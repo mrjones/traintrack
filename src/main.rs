@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate getopts;
 extern crate hyper;
 extern crate protobuf;
@@ -45,6 +46,19 @@ fn main() {
     file.read_to_end(&mut data).expect("Reading from file");
     println!("About to parse {} bytes", data.len());
 
-    let message = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data).expect("Parsing proto");
-    println!("Parsed: {:?}", message.get_header());
+    let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data).expect("Parsing proto");
+    println!("Parsed: {:?}", feed.get_header());
+
+    for entity in feed.get_entity() {
+        if entity.has_trip_update() {
+            let trip = entity.get_trip_update().get_trip();
+            println!("- Trip {}, Route {},", trip.get_trip_id(), trip.get_route_id());
+            for stop in entity.get_trip_update().get_stop_time_update() {
+                use chrono::TimeZone;
+                let time = chrono::Local.timestamp(
+                    stop.get_arrival().get_time(), 0);
+                println!("--- Stop {}, Time {}", stop.get_stop_id(), time);
+            }
+        }
+    }
 }
