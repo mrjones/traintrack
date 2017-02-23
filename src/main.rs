@@ -17,6 +17,17 @@ enum Direction {
     DOWNTOWN,
 }
 
+fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
+    // TODO(mrjones): Read the NYCT extension and determine this properly
+    let trip_id: String = trip_id.to_string();
+    let lastchar: String = trip_id.chars().rev().take(1).collect();
+    return match lastchar.as_ref() {
+        "N" => Direction::UPTOWN,
+        "S" => Direction::DOWNTOWN,
+        chr => panic!("Unexpcted direction {}", chr),
+    }
+}
+
 fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> Vec<(Direction, chrono::datetime::DateTime<chrono::UTC>)> {
     let mut upcoming = Vec::new();
     for entity in feed.get_entity() {
@@ -27,7 +38,7 @@ fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage
                 for stop_time_update in trip_update.get_stop_time_update() {
                     if stop_time_update.get_stop_id() == stop_id {
                         upcoming.push((
-                            Direction::UPTOWN,  // TODO!
+                            infer_direction_for_trip_id(trip.get_trip_id()),
                             chrono::UTC.timestamp(
                                 stop_time_update.get_arrival().get_time(), 0)));
                     }
