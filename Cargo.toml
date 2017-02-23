@@ -5,6 +5,9 @@ authors = ["Matt Jones <jonesmr@gmail.com>"]
 
 [dependencies]
 chrono = "*"
+chrono-tz = "*"
+csv = "*"
 getopts = "*"
 hyper = "*"
 protobuf = "*"
+rustc-serialize = "*"
