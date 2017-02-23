@@ -1,13 +1,13 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate getopts;
-extern crate hyper;
 extern crate protobuf;
 extern crate rustc_serialize;
 
 use std::io::Read;
 use std::io::Write;
 
+mod feedfetcher;
 mod gtfs_realtime;
 mod result;
 mod stops;
@@ -28,33 +28,14 @@ fn main() {
         None => panic!("must set --mta-api-key"),
     };
 
+    let fetcher = feedfetcher::Fetcher::new(&key);
     let stops = stops::Stops::new_from_csv("/home/mrjones/src/mta/hack/static/stops.txt").expect("parse stops");
     let use_cache = matches.opt_present("c");
 
-    if !use_cache {
-        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", key);
-        println!("URL: {}\n", url);
-
-        let client = hyper::Client::new();
-        let mut response = client.get(&url).send().expect("HTTP request");
-
-        let mut body = Vec::new();
-        response.read_to_end(&mut body).expect("HTTP response body");
-        println!("Response was {} bytes", body.len());
-
-        let mut file = std::fs::File::create("lastresponse.txt").expect("creating file");
-        file.write_all(&body).expect("Writing to file");
-    }
-
-    let mut file = std::fs::File::open("lastresponse.txt").expect("opening file for read");
-    let mut data = Vec::new();
-    file.read_to_end(&mut data).expect("Reading from file");
-    println!("About to parse {} bytes", data.len());
-
-    let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data).expect("Parsing proto");
-    println!("Parsed: {:?}", feed.get_header());
 
     let tz = chrono_tz::America::New_York;
+
+    let feed = fetcher.fetch(use_cache).expect("unwrap fetched feed");
 
     for entity in feed.get_entity() {
         if entity.has_trip_update() {
