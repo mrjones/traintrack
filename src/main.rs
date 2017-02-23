@@ -4,9 +4,6 @@ extern crate getopts;
 extern crate protobuf;
 extern crate rustc_serialize;
 
-use std::io::Read;
-use std::io::Write;
-
 mod feedfetcher;
 mod gtfs_realtime;
 mod result;

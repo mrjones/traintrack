@@ -25,22 +25,22 @@ impl Fetcher {
             println!("URL: {}\n", url);
 
             let client = hyper::Client::new();
-            let mut response = client.get(&url).send().expect("HTTP request");
+            let mut response = client.get(&url).send()?;
 
             let mut body = Vec::new();
-            response.read_to_end(&mut body).expect("HTTP response body");
+            response.read_to_end(&mut body)?;
             println!("Response was {} bytes", body.len());
 
-            let mut file = std::fs::File::create("lastresponse.txt").expect("creating file");
-            file.write_all(&body).expect("Writing to file");
+            let mut file = std::fs::File::create("lastresponse.txt")?;
+            file.write_all(&body)?;
         }
 
-        let mut file = std::fs::File::open("lastresponse.txt").expect("opening file for read");
+        let mut file = std::fs::File::open("lastresponse.txt")?;
         let mut data = Vec::new();
-        file.read_to_end(&mut data).expect("Reading from file");
+        file.read_to_end(&mut data)?;
         println!("About to parse {} bytes", data.len());
 
-        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data).expect("Parsing proto");
+        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
         println!("Parsed: {:?}", feed.get_header());
 
         return Ok(feed);
