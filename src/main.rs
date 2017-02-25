@@ -9,6 +9,7 @@ use chrono::TimeZone;
 mod feedfetcher;
 mod gtfs_realtime;
 mod result;
+mod server;
 mod stops;
 
 #[derive(Debug)]
@@ -57,6 +58,7 @@ fn main() {
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
     opts.optflag("c", "use-cache", "Use the cached response");
     opts.optopt("s", "stops-file", "Location of stops.txt file.", "STOPS_FILE");
+    opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -69,6 +71,8 @@ fn main() {
 
     let stops_file = matches.opt_str("s").unwrap_or("./data/stops.txt".to_string());
     let use_cache = matches.opt_present("c");
+    let port = matches.opt_str("p")
+        .map_or(3838, |s| s.parse::<u16>().expect("Could not parse --port"));
 
     let fetcher = feedfetcher::Fetcher::new(&key);
     let stops = stops::Stops::new_from_csv(&stops_file).expect("parse stops");
@@ -83,6 +87,8 @@ fn main() {
         println!("{:?} {}", direction, ts.with_timezone(&tz));
     }
 
+    let srv = server::TTServer::new(stops, fetcher);
+    server::TTServer::serve(srv, port);
     /*
     for entity in feed.get_entity() {
         if entity.has_trip_update() {
