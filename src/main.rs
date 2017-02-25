@@ -56,6 +56,7 @@ fn main() {
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
     opts.optflag("c", "use-cache", "Use the cached response");
+    opts.optopt("s", "stops-file", "Location of stops.txt file.", "STOPS_FILE");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -66,10 +67,11 @@ fn main() {
         None => panic!("must set --mta-api-key"),
     };
 
-    let fetcher = feedfetcher::Fetcher::new(&key);
-    let stops = stops::Stops::new_from_csv("/home/mrjones/src/mta/hack/static/stops.txt").expect("parse stops");
+    let stops_file = matches.opt_str("s").unwrap_or("./data/stops.txt".to_string());
     let use_cache = matches.opt_present("c");
 
+    let fetcher = feedfetcher::Fetcher::new(&key);
+    let stops = stops::Stops::new_from_csv(&stops_file).expect("parse stops");
 
     let tz = chrono_tz::America::New_York;
 
