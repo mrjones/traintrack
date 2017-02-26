@@ -75,7 +75,7 @@ impl TTServer {
             ("R", "R30"), ("N", "R30"), ("Q", "R30"),
         ];
         for (route, stop) in pois {
-            let trains = utils::upcoming_trains(route, stop, &feed);
+            let trains = utils::upcoming_trains(route, stop, &feed.feed);
             items.push(Item{
                 line: route.to_string(),
                 stop_id: stop.to_string(),
@@ -86,6 +86,7 @@ impl TTServer {
         let tz = chrono_tz::America::New_York;
 
         let mut body = "<html><body>".to_string();
+        body.push_str(&format!("<p>Updated at {}</p>", feed.timestamp));
         for item in items {
             body.push_str(&format!(
                 "<h2>{} : {}</h2><ul>",
@@ -112,7 +113,10 @@ impl TTServer {
 
     fn dump_proto(&self, _: hyper::server::Request, response: hyper::server::Response) {
         match self.fetcher.latest_value() {
-            Some(feed) => response.send(format!("{:#?}", feed).as_bytes()).unwrap(),
+            Some(feed) => response.send(format!(
+                "Updated at: {}\n{:#?}",
+                feed.timestamp,
+                feed.feed).as_bytes()).unwrap(),
             None => response.send("No data yet".as_bytes()).unwrap(),
         }
     }

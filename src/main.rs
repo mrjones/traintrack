@@ -1,13 +1,10 @@
 extern crate chrono;
-extern crate chrono_tz;
 extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
 extern crate protobuf;
 extern crate rustc_serialize;
-
-use chrono::TimeZone;
 
 mod feedfetcher;
 mod gtfs_realtime;

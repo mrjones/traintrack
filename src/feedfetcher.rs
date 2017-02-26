@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate hyper;
 extern crate log;
 extern crate protobuf;
@@ -10,9 +11,15 @@ use std::io::Write;
 use gtfs_realtime;
 use result;
 
+#[derive(Clone)]
+pub struct FetchResult {
+    pub feed: gtfs_realtime::FeedMessage,
+    pub timestamp: chrono::datetime::DateTime<chrono::UTC>,
+}
+
 pub struct Fetcher {
     mta_api_key: String,
-    latest_value: std::sync::Mutex<Option<gtfs_realtime::FeedMessage>>,
+    latest_value: std::sync::Mutex<Option<FetchResult>>,
 }
 
 impl Fetcher {
@@ -23,7 +30,7 @@ impl Fetcher {
         }
     }
 
-    pub fn latest_value(&self) -> Option<gtfs_realtime::FeedMessage> {
+    pub fn latest_value(&self) -> Option<FetchResult> {
         return self.latest_value.lock().unwrap().clone();
     }
 
@@ -50,7 +57,10 @@ impl Fetcher {
         let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
         debug!("Parsed: {:?}", feed.get_header());
 
-        *self.latest_value.lock().unwrap() = Some(feed.clone());
+        *self.latest_value.lock().unwrap() = Some(FetchResult{
+            feed: feed.clone(),
+            timestamp: chrono::UTC::now(),
+        });
 
         return Ok(feed);
     }
