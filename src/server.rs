@@ -11,12 +11,12 @@ use utils;
 
 pub struct TTServer {
     stops: stops::Stops,
-    fetcher: feedfetcher::Fetcher,
+    fetcher: std::sync::Arc<feedfetcher::Fetcher>,
     routing_table: Vec<(regex::Regex, fn(&TTServer, hyper::server::Request, hyper::server::Response))>,
 }
 
 impl TTServer {
-    pub fn new(stops: stops::Stops, fetcher: feedfetcher::Fetcher) -> TTServer {
+    pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>) -> TTServer {
         let mut routes: Vec<(regex::Regex, fn(&TTServer, hyper::server::Request, hyper::server::Response))> = Vec::new();
 
         routes.push((regex::Regex::new("^/dump_proto").unwrap(),
@@ -43,14 +43,23 @@ impl TTServer {
                 .handle(server).unwrap();
     }
 
-    fn dashboard(&self, request: hyper::server::Request, response: hyper::server::Response) {
+    fn dashboard(&self, _: hyper::server::Request, response: hyper::server::Response) {
         let feed;
-        match self.fetcher.fetch(false) {
+        /*
+        match self.fetcher.fetch_once() {
             Ok(f) => feed = f,
             Err(err) => {
                 response.send(format!("Fetcher error: {}", err).as_bytes()).unwrap();
                 return;
             },
+        }
+         */
+        match self.fetcher.latest_value() {
+            Some(f) => feed = f,
+            None => {
+                response.send("Fetcher has no data!".as_bytes()).unwrap();
+                return;
+            }
         }
 
         struct Item {
@@ -102,7 +111,10 @@ impl TTServer {
     }
 
     fn dump_proto(&self, _: hyper::server::Request, response: hyper::server::Response) {
-        response.send(format!("{:#?}", self.fetcher.fetch(true).unwrap()).as_bytes()).unwrap();;
+        match self.fetcher.latest_value() {
+            Some(feed) => response.send(format!("{:#?}", feed).as_bytes()).unwrap(),
+            None => response.send("No data yet".as_bytes()).unwrap(),
+        }
     }
 }
 
