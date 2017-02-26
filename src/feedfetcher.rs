@@ -1,4 +1,5 @@
 extern crate hyper;
+extern crate log;
 extern crate protobuf;
 extern crate std;
 
@@ -22,14 +23,14 @@ impl Fetcher {
     pub fn fetch(&self, use_cache: bool) -> result::TTResult<gtfs_realtime::FeedMessage> {
         if !use_cache {
             let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);
-            println!("URL: {}\n", url);
+            debug!("URL: {}\n", url);
 
             let client = hyper::Client::new();
             let mut response = client.get(&url).send()?;
 
             let mut body = Vec::new();
             response.read_to_end(&mut body)?;
-            println!("Response was {} bytes", body.len());
+            info!("Response was {} bytes", body.len());
 
             let mut file = std::fs::File::create("lastresponse.txt")?;
             file.write_all(&body)?;
@@ -38,10 +39,10 @@ impl Fetcher {
         let mut file = std::fs::File::open("lastresponse.txt")?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
-        println!("About to parse {} bytes", data.len());
+        info!("About to parse {} bytes", data.len());
 
         let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
-        println!("Parsed: {:?}", feed.get_header());
+        debug!("Parsed: {:?}", feed.get_header());
 
         return Ok(feed);
     }

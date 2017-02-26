@@ -40,5 +40,6 @@ pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMes
         }
     }
 
+    upcoming.sort_by_key(|&(_, ts)| ts);
     return upcoming;
 }

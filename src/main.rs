@@ -1,6 +1,9 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate getopts;
+#[macro_use]
+extern crate log;
+extern crate log4rs;
 extern crate protobuf;
 extern crate rustc_serialize;
 
@@ -13,7 +16,25 @@ mod server;
 mod stops;
 mod utils;
 
+fn log4rs_config() -> log4rs::config::Config {
+    use log4rs::append::console::ConsoleAppender;
+    use log4rs::config::{Appender, Config, Root};
+    use log4rs::encode::pattern::PatternEncoder;
+
+    let stdout = ConsoleAppender::builder()
+        .encoder(Box::new(PatternEncoder::new("{d(%Y%m%d %H:%M:%S%.3f)(local)} {l} {T}: {m}{n}")))
+        .build();
+
+    return Config::builder()
+        .appender(Appender::builder().build("stdout", Box::new(stdout)))
+        .build(Root::builder().appender("stdout").build(log::LogLevelFilter::Info))
+        .unwrap();
+
+}
+
 fn main() {
+    log4rs::init_config(log4rs_config()).unwrap();
+
     let args: Vec<String> = std::env::args().collect();
 
     let mut opts = getopts::Options::new();
@@ -39,6 +60,7 @@ fn main() {
     let fetcher = feedfetcher::Fetcher::new(&key);
     let stops = stops::Stops::new_from_csv(&stops_file).expect("parse stops");
 
+    /*
     let tz = chrono_tz::America::New_York;
 
     let feed = fetcher.fetch(use_cache).expect("unwrap fetched feed");
@@ -48,6 +70,7 @@ fn main() {
     for &(ref direction, ref ts) in upcoming.iter() {
         println!("{:?} {}", direction, ts.with_timezone(&tz));
     }
+     */
 
     let srv = server::TTServer::new(stops, fetcher);
     server::TTServer::serve(srv, port);

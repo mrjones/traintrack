@@ -1,9 +1,13 @@
+extern crate chrono;
+extern crate chrono_tz;
 extern crate hyper;
+extern crate log;
 extern crate regex;
 extern crate std;
 
 use feedfetcher;
 use stops;
+use utils;
 
 pub struct TTServer {
     stops: stops::Stops,
@@ -15,10 +19,12 @@ impl TTServer {
     pub fn new(stops: stops::Stops, fetcher: feedfetcher::Fetcher) -> TTServer {
         let mut routes: Vec<(regex::Regex, fn(&TTServer, hyper::server::Request, hyper::server::Response))> = Vec::new();
 
-        routes.push((regex::Regex::new("/dump_proto").unwrap(),
+        routes.push((regex::Regex::new("^/dump_proto").unwrap(),
                      TTServer::dump_proto));
-        routes.push((regex::Regex::new(".*").unwrap(),
+        routes.push((regex::Regex::new("^/debug").unwrap(),
                      TTServer::debug));
+        routes.push((regex::Regex::new(".*").unwrap(),
+                     TTServer::dashboard));
 
         return TTServer{
             stops: stops,
@@ -28,7 +34,7 @@ impl TTServer {
     }
 
     pub fn serve(server: TTServer, port: u16) {
-        println!("Serving on port {}", port);
+        info!("Serving on port {}", port);
 
         hyper::Server::http(
             std::net::SocketAddr::V4(
@@ -37,19 +43,73 @@ impl TTServer {
                 .handle(server).unwrap();
     }
 
-    fn debug(&self, request: hyper::server::Request, response: hyper::server::Response) {
-        response.send("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes());
+    fn dashboard(&self, request: hyper::server::Request, response: hyper::server::Response) {
+        let feed;
+        match self.fetcher.fetch(false) {
+            Ok(f) => feed = f,
+            Err(err) => {
+                response.send(format!("Fetcher error: {}", err).as_bytes()).unwrap();
+                return;
+            },
+        }
+
+        struct Item {
+            line: String,
+            stop_id: String,
+            trains: Vec<(utils::Direction, chrono::datetime::DateTime<chrono::UTC>)>,
+        }
+        let mut items = Vec::new();
+
+        let pois = vec![
+            ("R", "R20"), ("N", "R20"), ("Q", "R20"),
+            ("R", "R32"),
+            ("R", "R30"), ("N", "R30"), ("Q", "R30"),
+        ];
+        for (route, stop) in pois {
+            let trains = utils::upcoming_trains(route, stop, &feed);
+            items.push(Item{
+                line: route.to_string(),
+                stop_id: stop.to_string(),
+                trains: trains,
+            });
+        }
+
+        let tz = chrono_tz::America::New_York;
+
+        let mut body = "<html><body>".to_string();
+        for item in items {
+            body.push_str(&format!(
+                "<h2>{} : {}</h2><ul>",
+                item.line,
+                self.stops.lookup_by_id(&item.stop_id).unwrap().name));
+            let lis: Vec<String> = item.trains.iter().map(|&(ref direction, ref time)| {
+                return format!("<li>{:?} {}</li>",
+                               direction, time.with_timezone(&tz))
+            }).collect();
+            for li in lis {
+                body.push_str(&li);
+            }
+
+            body.push_str("</ul>");
+        }
+        body.push_str("</body></html>");
+
+        response.send(body.as_bytes()).unwrap();
     }
 
-    fn dump_proto(&self, request: hyper::server::Request, response: hyper::server::Response) {
-        response.send(format!("{:#?}", self.fetcher.fetch(true).unwrap()).as_bytes());
+    fn debug(&self, _: hyper::server::Request, response: hyper::server::Response) {
+        response.send("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes()).unwrap()
+    }
+
+    fn dump_proto(&self, _: hyper::server::Request, response: hyper::server::Response) {
+        response.send(format!("{:#?}", self.fetcher.fetch(true).unwrap()).as_bytes()).unwrap();;
     }
 }
 
 impl hyper::server::Handler for TTServer {
     fn handle(&self, req: hyper::server::Request, res: hyper::server::Response) {
         // TODO(mrjones): Abstract this out into a better router?
-        println!("Routing {} {} ", req.method, req.uri);
+        info!("Routing {} {} ", req.method, req.uri);
 
         // TODO: Surely this isn't the right way to do this.
         let uri_string = format!("{}", req.uri);
