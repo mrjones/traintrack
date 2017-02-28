@@ -34,6 +34,23 @@ impl Fetcher {
         return self.latest_value.lock().unwrap().clone();
     }
 
+    fn feed_from_file(&self, filename: &str) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        let mut file = std::fs::File::open(filename)?;
+        let mut data = Vec::new();
+        file.read_to_end(&mut data)?;
+        info!("About to parse {} bytes", data.len());
+
+        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
+        debug!("Parsed: {:?}", feed.get_header());
+
+        *self.latest_value.lock().unwrap() = Some(FetchResult{
+            feed: feed.clone(),
+            timestamp: chrono::UTC::now(),  // TODO: Use cached file time
+        });
+
+        return Ok(feed);
+    }
+
     pub fn fetch_once(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);
         info!("Fetching.");
@@ -49,20 +66,23 @@ impl Fetcher {
         let mut file = std::fs::File::create("lastresponse.txt")?;
         file.write_all(&body)?;
 
-        let mut file = std::fs::File::open("lastresponse.txt")?;
-        let mut data = Vec::new();
-        file.read_to_end(&mut data)?;
-        info!("About to parse {} bytes", data.len());
+        let mut first_err = None;
+        for candidate in vec!["lastresponse.txt", "lastgood.txt"] {
+            match self.feed_from_file(candidate) {
+                Ok(feed) => {
+                    let mut file = std::fs::File::open("lastgood.txt")?;
+                    file.write_all(&body)?;
+                    return Ok(feed);
+                },
+                Err(err) => {
+                    error!("Error parsing feed from '{}': {}", candidate, err);
+                    first_err = first_err.or(Some(err));
+                }
+            }
+        }
 
-        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
-        debug!("Parsed: {:?}", feed.get_header());
-
-        *self.latest_value.lock().unwrap() = Some(FetchResult{
-            feed: feed.clone(),
-            timestamp: chrono::UTC::now(),
-        });
-
-        return Ok(feed);
+        return Err(first_err.unwrap_or(
+            result::TTError::Uncategorized("Unknown error".to_string())));
     }
 }
 

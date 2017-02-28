@@ -26,6 +26,8 @@ impl TTServer {
                      TTServer::dump_proto));
         routes.push((regex::Regex::new("^/debug").unwrap(),
                      TTServer::debug));
+        routes.push((regex::Regex::new("^/fetch_now").unwrap(),
+                     TTServer::fetch_now));
         routes.push((regex::Regex::new(".*").unwrap(),
                      TTServer::dashboard));
 
@@ -130,8 +132,20 @@ impl TTServer {
 
         let tz = chrono_tz::America::New_York;
 
-        let mut body = "<html><body>".to_string();
-        body.push_str(&format!("<p>Updated at {}</p>", feed.timestamp));
+        use server::liquid::Renderable;
+
+        // TODO(mrjones): don't do per-request
+        let template = liquid::parse_file("./templates/dashboard.html",
+                                          Default::default())?;
+        let mut context = liquid::Context::new();
+        context.set_val("update_timestamp", liquid::Value::Str(
+            format!("{}", feed.timestamp)));
+
+        let output = template.render(&mut context)?;
+        let mut body = output.unwrap_or("No render result?".to_string());
+
+//        let mut body = "<html><body>".to_string();
+//        body.push_str(&format!("<p>Updated at {}</p>", feed.timestamp));
         for item in items {
             body.push_str(&format!(
                 "<h2>{} : {}</h2><ul>",
@@ -152,6 +166,11 @@ impl TTServer {
         return Ok(body.as_bytes().to_vec());
     }
 
+    fn fetch_now(&self) -> result::TTResult<Vec<u8>> {
+        self.fetcher.fetch_once()?;
+        return Ok("OK".to_string().as_bytes().to_vec());
+    }
+
     fn debug(&self) -> result::TTResult<Vec<u8>> {
         use server::liquid::Renderable;
 
@@ -162,8 +181,6 @@ impl TTServer {
 
         let output = template.render(&mut context)?;
         return Ok(output.unwrap_or("No render result?".to_string()).as_bytes().to_vec());
-
-//        return Ok("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes().to_vec());
     }
 
     fn dump_proto(&self) -> result::TTResult<Vec<u8>> {
