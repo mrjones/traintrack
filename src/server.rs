@@ -1,6 +1,7 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate hyper;
+extern crate liquid;
 extern crate log;
 extern crate regex;
 extern crate std;
@@ -152,7 +153,17 @@ impl TTServer {
     }
 
     fn debug(&self) -> result::TTResult<Vec<u8>> {
-        return Ok("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes().to_vec());
+        use server::liquid::Renderable;
+
+        // TODO(mrjones): don't do per-request
+        let template = liquid::parse_file("./templates/debug.html",
+                                          Default::default())?;
+        let mut context = liquid::Context::new();
+
+        let output = template.render(&mut context)?;
+        return Ok(output.unwrap_or("No render result?".to_string()).as_bytes().to_vec());
+
+//        return Ok("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes().to_vec());
     }
 
     fn dump_proto(&self) -> result::TTResult<Vec<u8>> {

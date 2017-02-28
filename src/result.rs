@@ -1,5 +1,6 @@
 extern crate csv;
 extern crate hyper;
+extern crate liquid;
 extern crate protobuf;
 extern crate std;
 
@@ -11,6 +12,7 @@ pub enum TTError {
     HTTPError(hyper::Error),
     IOError(std::io::Error),
     ProtobufError(protobuf::ProtobufError),
+    RenderError(liquid::Error),
     Uncategorized(String),
 }
 
@@ -29,6 +31,9 @@ impl std::fmt::Display for TTError {
             TTError::ProtobufError(ref err) => {
                 return write!(f, "Protobuf Error: {}", err);
             },
+            TTError::RenderError(ref err) => {
+                return write!(f, "Render Error: {}", err);
+            },
             TTError::Uncategorized(ref e) => std::fmt::Display::fmt(e, f),
         }
     }
@@ -41,6 +46,7 @@ impl std::error::Error for TTError {
             TTError::HTTPError(_) => "HTTPError",
             TTError::IOError(_) => "IOError",
             TTError::ProtobufError(_) => "ProtobufError",
+            TTError::RenderError(_) => "RenderError",
             TTError::Uncategorized(ref str) => str,
         }
     }
@@ -71,5 +77,11 @@ impl From<hyper::Error> for TTError {
 impl From<protobuf::ProtobufError> for TTError {
     fn from(err: protobuf::ProtobufError) -> TTError {
         return TTError::ProtobufError(err);
+    }
+}
+
+impl From<liquid::Error> for TTError {
+    fn from(err: liquid::Error) -> TTError {
+        return TTError::RenderError(err);
     }
 }
