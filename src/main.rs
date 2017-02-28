@@ -15,16 +15,43 @@ mod utils;
 
 fn log4rs_config() -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;
+    use log4rs::append::file::FileAppender;
+    use log4rs::append::rolling_file::RollingFileAppender;
+    use log4rs::append::rolling_file::policy::Policy;
+    use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
+    use log4rs::append::rolling_file::policy::compound::roll::fixed_window::FixedWindowRoller;
+    use log4rs::append::rolling_file::policy::compound::trigger::size::SizeTrigger;
     use log4rs::config::{Appender, Config, Root};
     use log4rs::encode::pattern::PatternEncoder;
 
+    let pattern = "{d(%Y%m%d %H:%M:%S%.3f)(local)} {l} {T}: {m}{n}";
+
     let stdout = ConsoleAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{d(%Y%m%d %H:%M:%S%.3f)(local)} {l} {T}: {m}{n}")))
+        .encoder(Box::new(PatternEncoder::new(pattern)))
         .build();
+
+    let file_log = FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(pattern)))
+        .build("./log/info.log").unwrap();
+
+    /*
+    let file_log = RollingFileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(pattern)))
+        .build("./log", Box::new(CompoundPolicy::new(
+            Box::new(SizeTrigger::new(50 * 1024 * 1024)),
+            Box::new(FixedWindowRoller::builder()
+                     .build("info.{}.log", 10)
+                     .unwrap()))))
+        .unwrap();
+    */
 
     return Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
-        .build(Root::builder().appender("stdout").build(log::LogLevelFilter::Info))
+        .appender(Appender::builder().build("file_log", Box::new(file_log)))
+        .build(Root::builder()
+               .appender("stdout")
+               .appender("file_log")
+               .build(log::LogLevelFilter::Info))
         .unwrap();
 }
 
