@@ -4,20 +4,22 @@ extern crate hyper;
 extern crate log;
 extern crate regex;
 extern crate std;
+extern crate tiny_http;
 
 use feedfetcher;
+use result;
 use stops;
 use utils;
 
 pub struct TTServer {
     stops: stops::Stops,
     fetcher: std::sync::Arc<feedfetcher::Fetcher>,
-    routing_table: Vec<(regex::Regex, fn(&TTServer, hyper::server::Request, hyper::server::Response))>,
+    routing_table: Vec<(regex::Regex, fn(&TTServer) -> result::TTResult<Vec<u8>>)>,
 }
 
 impl TTServer {
     pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>) -> TTServer {
-        let mut routes: Vec<(regex::Regex, fn(&TTServer, hyper::server::Request, hyper::server::Response))> = Vec::new();
+        let mut routes: Vec<(regex::Regex, fn(&TTServer) -> result::TTResult<Vec<u8>>)> = Vec::new();
 
         routes.push((regex::Regex::new("^/dump_proto").unwrap(),
                      TTServer::dump_proto));
@@ -33,17 +35,60 @@ impl TTServer {
         }
     }
 
-    pub fn serve(server: TTServer, port: u16) {
+    pub fn serve(tt_server: TTServer, port: u16) {
         info!("Serving on port {}", port);
 
-        hyper::Server::http(
-            std::net::SocketAddr::V4(
+        let bind_addr = std::net::SocketAddr::V4(
                 std::net::SocketAddrV4::new(
-                    std::net::Ipv4Addr::new(0,0,0,0), port))).unwrap()
-                .handle(server).unwrap();
+                    std::net::Ipv4Addr::new(0,0,0,0), port));
+
+        let hyper = false;
+
+        if hyper {
+            hyper::Server::http(bind_addr).unwrap()
+                .handle(tt_server).unwrap();
+        } else {
+            let tt_server = std::sync::Arc::new(tt_server);
+            let tiny_server = std::sync::Arc::new(
+                tiny_http::Server::http(bind_addr).unwrap());
+            let mut handles = Vec::new();
+
+            for i in 0..4 {
+                let tiny_server = tiny_server.clone();
+                let tt_server = tt_server.clone();
+
+                let handle = std::thread::Builder::new()
+                    .name(format!("TinyHTTP_{}", i))
+                    .spawn(move || {
+                        loop {
+                            let request = tiny_server.recv().unwrap();
+                            tt_server.tiny_dispatch(request);
+                        }
+                    }).unwrap();
+
+                handles.push(handle);
+            }
+
+            for handle in handles {
+                let _ = handle.join();
+            }
+        }
     }
 
-    fn dashboard(&self, _: hyper::server::Request, response: hyper::server::Response) {
+    fn hyper_wrap(logic: &fn(&TTServer) -> result::TTResult<Vec<u8>>,
+                  tt_server: &TTServer,
+                  hyper_response: hyper::server::Response) {
+        match logic(tt_server) {
+            Ok(response) => {
+                hyper_response.send(&response).unwrap();
+            },
+            Err(err) => {
+                hyper_response.send(format!("ERROR: {}", err).as_bytes()).unwrap();
+            }
+        }
+    }
+
+    fn dashboard(&self) -> result::TTResult<Vec<u8>> {
         let feed;
         /*
         match self.fetcher.fetch_once() {
@@ -57,8 +102,7 @@ impl TTServer {
         match self.fetcher.latest_value() {
             Some(f) => feed = f,
             None => {
-                response.send("Fetcher has no data!".as_bytes()).unwrap();
-                return;
+                return Ok("Fetcher has no data!".as_bytes().to_vec());
             }
         }
 
@@ -104,35 +148,61 @@ impl TTServer {
         }
         body.push_str("</body></html>");
 
-        response.send(body.as_bytes()).unwrap();
+        return Ok(body.as_bytes().to_vec());
     }
 
-    fn debug(&self, _: hyper::server::Request, response: hyper::server::Response) {
-        response.send("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes()).unwrap()
+    fn debug(&self) -> result::TTResult<Vec<u8>> {
+        return Ok("<html><head><title>TrainTrack debug</title></head><body><a href='/dump_proto'>/dump_proto</a></body></html>".as_bytes().to_vec());
     }
 
-    fn dump_proto(&self, _: hyper::server::Request, response: hyper::server::Response) {
-        match self.fetcher.latest_value() {
-            Some(feed) => response.send(format!(
+    fn dump_proto(&self) -> result::TTResult<Vec<u8>> {
+        return match self.fetcher.latest_value() {
+            Some(feed) => Ok(format!(
                 "Updated at: {}\n{:#?}",
                 feed.timestamp,
-                feed.feed).as_bytes()).unwrap(),
-            None => response.send("No data yet".as_bytes()).unwrap(),
+                feed.feed).as_bytes().to_vec()),
+            None => Ok("No data yet".as_bytes().to_vec()),
         }
+    }
+
+    fn tiny_dispatch(&self, request: tiny_http::Request) {
+        info!("TINY Routing {} {} ", request.method(), request.url());
+
+        // TODO: Surely this isn't the right way to do this.
+        let uri_string = format!("{}", request.url());
+
+        for &(ref pattern, ref target) in self.routing_table.iter() {
+            if pattern.is_match(&uri_string) {
+                match target(&self) {
+                    Ok(response) => {
+                        request.respond(tiny_http::Response::from_data(
+                            response)).unwrap();
+                    },
+                    Err(err) => {
+                        request.respond(tiny_http::Response::from_data(
+                            format!("ERROR: {}", err).as_bytes())).unwrap();
+                    }
+                }
+                return;
+            }
+        }
+
+        panic!("No route for {}", uri_string);
+
     }
 }
 
 impl hyper::server::Handler for TTServer {
     fn handle(&self, req: hyper::server::Request, res: hyper::server::Response) {
         // TODO(mrjones): Abstract this out into a better router?
-        info!("Routing {} {} ", req.method, req.uri);
+        info!("Hyper Routing {} {} ", req.method, req.uri);
 
         // TODO: Surely this isn't the right way to do this.
         let uri_string = format!("{}", req.uri);
 
         for &(ref pattern, ref target) in self.routing_table.iter() {
             if pattern.is_match(&uri_string) {
-                target(self, req, res);
+                TTServer::hyper_wrap(target, &self, res);
                 return;
             }
         }
