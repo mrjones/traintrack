@@ -65,6 +65,7 @@ fn main() {
     opts.optopt("s", "stops-file", "Location of stops.txt file.", "STOPS_FILE");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
+    opts.optflag("t", "compile-templates-once", "If true, compiles HTML templates once at startup. Otherwise compiles them on every usage.");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -81,11 +82,13 @@ fn main() {
     let fetch_period_seconds = matches.opt_str("f")
         .map_or(120, |s| s.parse::<u64>().expect("Could not parse --fetch-period-seconds"));
 
+    let compile_templates_once = matches.opt_present("compile-templates-once");
+
     let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
     let stops = stops::Stops::new_from_csv(&stops_file).expect("parse stops");
     let fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
 
-    let srv = server::TTServer::new(stops, fetcher);
+    let srv = server::TTServer::new(stops, fetcher, "./templates/", compile_templates_once);
     server::TTServer::serve(srv, port);
 }
