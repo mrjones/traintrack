@@ -157,20 +157,28 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 }
 
 fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let mut stop_values = Vec::new();
-    for ref stop in tt_context.stops.iter() {
-        let mut m = std::collections::HashMap::new();
-        m.insert("name".to_string(),
-                 liquid::Value::Str(stop.name.clone()));
-        m.insert("id".to_string(),
-                 liquid::Value::Str(stop.id.clone()));
 
-        let v = liquid::Value::Object(m);
-        stop_values.push(v);
+    let mut routes = Vec::new();
+    for route in tt_context.stops.routes() {
+        let mut stops = Vec::new();
+        for stop in tt_context.stops.stops_for_route(&route)? {
+            let mut props = std::collections::HashMap::new();
+            props.insert("name".to_string(),
+                         liquid::Value::Str(stop.name.clone()));
+            props.insert("id".to_string(),
+                         liquid::Value::Str(stop.id.clone()));
+            stops.push(liquid::Value::Object(props));
+        }
+        let mut route_props = std::collections::HashMap::new();
+        route_props.insert("route_id".to_string(),
+                           liquid::Value::Str(route));
+        route_props.insert("stops".to_string(),
+                           liquid::Value::Array(stops));
+        routes.push(liquid::Value::Object(route_props));
     }
 
     let mut context = liquid::Context::new();
-    context.set_val("stops", liquid::Value::Array(stop_values));
+    context.set_val("routes", liquid::Value::Array(routes));
 
     return tt_context.render("stoplist.html", &mut context);
 }

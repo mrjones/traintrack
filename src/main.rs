@@ -64,7 +64,7 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
-    opts.optopt("s", "stops-file", "Location of stops.txt file.", "STOPS_FILE");
+    opts.optopt("g", "gtfs-directory", "Location of stops.txt, trips.txt, etc. files.", "GTFS_DIRECTIORY");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
     opts.optflag("t", "compile-templates-once", "If true, compiles HTML templates once at startup. Otherwise compiles them on every usage.");
@@ -79,7 +79,7 @@ fn main() {
         None => panic!("must set --mta-api-key"),
     };
 
-    let stops_file = matches.opt_str("s").unwrap_or("./data/stops.txt".to_string());
+    let gtfs_directory = matches.opt_str("gtfs-directory").unwrap_or("./data/".to_string());
     let port = matches.opt_str("p")
         .map_or(3838, |s| s.parse::<u16>().expect("Could not parse --port"));
     let fetch_period_seconds = matches.opt_str("f")
@@ -89,7 +89,7 @@ fn main() {
     let disable_background_fetch = matches.opt_present("disable-background-fetch");
 
     let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
-    let stops = stops::Stops::new_from_csv(&stops_file).expect("parse stops");
+    let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {
         let fetcher_thread = feedfetcher::FetcherThread::new();
         fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
