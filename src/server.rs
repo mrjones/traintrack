@@ -1,12 +1,10 @@
 extern crate chrono;
 extern crate chrono_tz;
-extern crate hyper;
 extern crate liquid;
 extern crate log;
 extern crate regex;
 extern crate rustful;
 extern crate std;
-extern crate tiny_http;
 
 use feedfetcher;
 use result;
@@ -109,15 +107,14 @@ impl TTContext {
         return Ok(body.as_bytes().to_vec());
     }
 
-    fn fetch_now(&self) -> result::TTResult<Vec<u8>> {
-        self.fetcher.fetch_once()?;
-        return Ok("OK".to_string().as_bytes().to_vec());
-    }
 }
 
-fn list_stations(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let tt_context = ctx.global.get::<TTContext>().unwrap();
+fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+    tt_context.fetcher.fetch_once()?;
+    return Ok("OK".to_string().as_bytes().to_vec());
+}
 
+fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let mut stop_values = Vec::new();
     for ref stop in tt_context.stops.iter() {
         let mut m = std::collections::HashMap::new();
@@ -136,9 +133,7 @@ fn list_stations(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
     return tt_context.render("stoplist.html", &mut context);
 }
 
-fn dashboard(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let tt_context = ctx.global.get::<TTContext>().unwrap();
-
+fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let feed;
     match tt_context.fetcher.latest_value() {
         Some(f) => feed = f,
@@ -200,14 +195,12 @@ fn dashboard(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
     return Ok(body.as_bytes().to_vec());
 }
 
-fn debug(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let tt_context = ctx.global.get::<TTContext>().unwrap();
+fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let mut context = liquid::Context::new();
     return Ok(tt_context.render("debug.html", &mut context)?);
 }
 
-fn dump_proto(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let tt_context = ctx.global.get::<TTContext>().unwrap();
+fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     return match tt_context.fetcher.latest_value() {
         Some(feed) => Ok(format!(
             "Updated at: {}\n{:#?}",
@@ -218,14 +211,21 @@ fn dump_proto(ctx: rustful::Context) -> result::TTResult<Vec<u8>> {
 }
 
 struct StandardPage{
-    execute: fn(rustful::Context) -> result::TTResult<Vec<u8>>
+    execute: fn(&TTContext, rustful::Context) -> result::TTResult<Vec<u8>>
 }
 
 impl rustful::Handler for StandardPage {
-    fn handle_request(&self, context: rustful::Context, response: rustful::Response) {
-        match (self.execute)(context) {
-            Ok(body) => response.send(body),
-            Err(err) => response.send(format!("ERROR: {}", err)),
+    fn handle_request(&self, rustful_context: rustful::Context, response: rustful::Response) {
+        match rustful_context.global.get::<TTContext>() {
+            Some(ref tt_context) => {
+                match (self.execute)(tt_context, rustful_context) {
+                    Ok(body) => response.send(body),
+                    Err(err) => response.send(format!("ERROR: {}", err)),
+                }
+            },
+            None => {
+                response.send(format!("Internal error: Could not get context"));
+            }
         }
     }
 }
@@ -240,8 +240,11 @@ pub fn serve(context: TTContext, port: u16) {
         handlers: insert_routes!{
             rustful::TreeRouter::new() => {
                 Get: StandardPage{execute: dashboard},
-                "/debug" => Get: StandardPage{execute: debug},
-                "/dump_proto" => Get: StandardPage{execute: dump_proto},
+                "/debug" => {
+                    Get: StandardPage{execute: debug},
+                    "/dump_proto" => Get: StandardPage{execute: dump_proto},
+                    "/fetch_now" => Get: StandardPage{execute: fetch_now},
+                },
                 "/stations" => Get: StandardPage{execute: list_stations},
             }
         },
