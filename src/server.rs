@@ -28,6 +28,8 @@ impl TTServer {
                      TTServer::debug));
         routes.push((regex::Regex::new("^/fetch_now").unwrap(),
                      TTServer::fetch_now));
+        routes.push((regex::Regex::new("^/station").unwrap(),
+                     TTServer::station));
         routes.push((regex::Regex::new(".*").unwrap(),
                      TTServer::dashboard));
 
@@ -89,6 +91,30 @@ impl TTServer {
                 hyper_response.send(format!("ERROR: {}", err).as_bytes()).unwrap();
             }
         }
+    }
+
+    fn station(&self) -> result::TTResult<Vec<u8>> {
+        let mut stop_values = Vec::new();
+        for ref stop in self.stops.iter() {
+            let mut m = std::collections::HashMap::new();
+            m.insert("name".to_string(),
+                     liquid::Value::Str(stop.name.clone()));
+            m.insert("id".to_string(),
+                     liquid::Value::Str(stop.id.clone()));
+
+            let v = liquid::Value::Object(m);
+            stop_values.push(v);
+        }
+
+        use server::liquid::Renderable;
+        let template = liquid::parse_file("./templates/stoplist.html",
+                                          Default::default())?;
+        let mut context = liquid::Context::new();
+        context.set_val("stops", liquid::Value::Array(stop_values));
+
+        let output = template.render(&mut context)?;
+        let mut body = output.unwrap_or("No render result?".to_string());
+        return Ok(body.as_bytes().to_vec());
     }
 
     fn dashboard(&self) -> result::TTResult<Vec<u8>> {

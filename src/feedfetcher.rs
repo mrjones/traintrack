@@ -67,10 +67,12 @@ impl Fetcher {
         file.write_all(&body)?;
 
         let mut first_err = None;
+        // TODO(mrjones): Don't re-parse lastgood here:
+        // Just parse it at startup, and cache the object in memory.
         for candidate in vec!["lastresponse.txt", "lastgood.txt"] {
             match self.feed_from_file(candidate) {
                 Ok(feed) => {
-                    let mut file = std::fs::File::open("lastgood.txt")?;
+                    let mut file = std::fs::File::create("lastgood.txt")?;
                     file.write_all(&body)?;
                     return Ok(feed);
                 },

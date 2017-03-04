@@ -27,6 +27,10 @@ struct StopCsvRecord {
 }
 
 impl Stops {
+    pub fn iter(&self) -> std::collections::hash_map::Values<String, Stop> {
+        return self.stops.values();
+    }
+
     pub fn lookup_by_id(&self, id: &str) -> Option<&Stop> {
         return self.stops.get(id);
     }
