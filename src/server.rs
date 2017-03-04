@@ -167,8 +167,9 @@ impl TTServer {
         }
     }
 
-    fn render(template: &liquid::Template, mut context: &mut liquid::Context) -> result::TTResult<Vec<u8>> {
+    fn render(&self, template_name: &str, mut context: &mut liquid::Context) -> result::TTResult<Vec<u8>> {
         use server::liquid::Renderable;
+        let template = self.templates.get(template_name)?;
         let output = template.render(&mut context)?;
         let body = output.unwrap_or("No render result?".to_string());
         return Ok(body.as_bytes().to_vec());
@@ -187,11 +188,10 @@ impl TTServer {
             stop_values.push(v);
         }
 
-        let template = self.templates.get("stoplist.html")?;
         let mut context = liquid::Context::new();
         context.set_val("stops", liquid::Value::Array(stop_values));
 
-        return TTServer::render(&template, &mut context);
+        return self.render("stoplist.html", &mut context);
     }
 
     fn dashboard(&self) -> result::TTResult<Vec<u8>> {
@@ -275,9 +275,7 @@ impl TTServer {
 
     fn debug(&self) -> result::TTResult<Vec<u8>> {
         let mut context = liquid::Context::new();
-        // TODO(mrjones): don't do per-request
-        let template = self.templates.get("debug.html")?;
-        return TTServer::render(&template, &mut context);
+        return self.render("debug.html", &mut context);
     }
 
     fn dump_proto(&self) -> result::TTResult<Vec<u8>> {
