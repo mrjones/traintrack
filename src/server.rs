@@ -107,11 +107,53 @@ impl TTContext {
         return Ok(body.as_bytes().to_vec());
     }
 
+    fn feed(&self) -> result::TTResult<feedfetcher::FetchResult> {
+        return match self.fetcher.latest_value() {
+            Some(result) => Ok(result),
+            None => Err(result::TTError::Uncategorized(
+                "No feed data yet".to_string())),
+        };
+    }
 }
 
 fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     tt_context.fetcher.fetch_once()?;
     return Ok("OK".to_string().as_bytes().to_vec());
+}
+
+fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let station_id = rustful_context.variables.get("station_id").ok_or(
+        result::TTError::Uncategorized("Missing station_id".to_string()))?;
+    let station_id = station_id.into_owned();
+    let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
+        result::TTError::Uncategorized(
+            format!("No station with ID {}", station_id)))?;
+    let feed = tt_context.feed()?;
+
+    // TODO(mrjones): Figure out route <-> station mapping.
+    let trains = utils::upcoming_trains("R", &station_id, &feed.feed);
+    let tz = chrono_tz::America::New_York;
+
+
+    let mut context = liquid::Context::new();
+    let mut station_props = std::collections::HashMap::new();
+    station_props.insert("name".to_string(),
+                         liquid::Value::Str(station.name.clone()));
+    station_props.insert("id".to_string(),
+                         liquid::Value::Str(station.id.clone()));
+    context.set_val("station", liquid::Value::Object(station_props));
+
+    let train_props: Vec<liquid::Value> = trains.iter().map(|&(ref direction, ref time)| {
+        let mut props = std::collections::HashMap::new();
+        props.insert("direction".to_string(),
+                     liquid::Value::Str(format!("{:?}", direction)));
+        props.insert("time".to_string(),
+                     liquid::Value::Str(format!("{}",time.with_timezone(&tz))));
+        return liquid::Value::Object(props);
+    }).collect();
+    context.set_val("trains", liquid::Value::Array(train_props));
+
+    return tt_context.render("station_detail.html", &mut context);
 }
 
 fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
@@ -246,6 +288,7 @@ pub fn serve(context: TTContext, port: u16) {
                     "/fetch_now" => Get: StandardPage{execute: fetch_now},
                 },
                 "/stations" => Get: StandardPage{execute: list_stations},
+                "/station/:station_id" => Get: StandardPage{execute: station_detail},
             }
         },
         ..rustful::Server::default()

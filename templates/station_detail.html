@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <title>Station {{ station.name }}</title>
+  </head>
+  <body>
+    Station {{ station.name }}
+    {% for train in trains %}
+      <li>{{train.direction}} @ {{train.time}}</li>
+    {% endfor %}
+    <ul>
+    </ul>
+  </body>
+</html>
