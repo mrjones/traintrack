@@ -5,6 +5,8 @@ extern crate log;
 extern crate log4rs;
 extern crate protobuf;
 extern crate rustc_serialize;
+#[macro_use]
+extern crate rustful;
 
 mod feedfetcher;
 mod gtfs_realtime;
@@ -89,6 +91,6 @@ fn main() {
     let fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
 
-    let srv = server::TTServer::new(stops, fetcher, "./templates/", compile_templates_once);
-    server::TTServer::serve(srv, port);
+    let server_context = server::TTContext::new(stops, fetcher, "./templates/", compile_templates_once);
+    server::serve(server_context, port);
 }
