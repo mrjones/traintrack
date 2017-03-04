@@ -196,15 +196,6 @@ impl TTServer {
 
     fn dashboard(&self) -> result::TTResult<Vec<u8>> {
         let feed;
-        /*
-        match self.fetcher.fetch_once() {
-            Ok(f) => feed = f,
-            Err(err) => {
-                response.send(format!("Fetcher error: {}", err).as_bytes()).unwrap();
-                return;
-            },
-        }
-         */
         match self.fetcher.latest_value() {
             Some(f) => feed = f,
             None => {
