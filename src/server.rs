@@ -124,6 +124,8 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
 fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
+    let route = rustful_context.variables.get("route").ok_or(
+        result::TTError::Uncategorized("Missing route".to_string()))?;
     let station_id = station_id.into_owned();
     let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
         result::TTError::Uncategorized(
@@ -131,7 +133,7 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     let feed = tt_context.feed()?;
 
     // TODO(mrjones): Figure out route <-> station mapping.
-    let trains = utils::upcoming_trains("R", &station_id, &feed.feed);
+    let trains = utils::upcoming_trains(&route, &station_id, &feed.feed);
     let tz = chrono_tz::America::New_York;
 
 
@@ -296,7 +298,7 @@ pub fn serve(context: TTContext, port: u16) {
                     "/fetch_now" => Get: StandardPage{execute: fetch_now},
                 },
                 "/stations" => Get: StandardPage{execute: list_stations},
-                "/station/:station_id" => Get: StandardPage{execute: station_detail},
+                "/station/:route/:station_id" => Get: StandardPage{execute: station_detail},
             }
         },
         ..rustful::Server::default()

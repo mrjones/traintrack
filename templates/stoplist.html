@@ -3,13 +3,25 @@
     <title>Stops</title>
   </head>
   <body>
+    <script type="text/javascript">
+     var toggleVisibility = function(divId) {
+       var element = document.getElementById(divId);
+       if (element.style.display == "none") {
+         element.style.display = "block";
+       } else {
+         element.style.display = "none";
+       }
+     };
+    </script>
     {% for route in routes %}
-      <h2>{{ route.route_id }}</h2>
-      <ul>
-        {% for stop in route.stops %}
-          <li><a href="/station/{{ stop.id }}">{{ stop.name }}</a></li>
-        {% endfor %}
-      </ul>
+      <h2><a href=javascript:toggleVisibility("route_{{route.route_id}}");>{{ route.route_id }}</a></h2>
+      <div id="route_{{route.route_id}}" style="display: none;">
+        <ul>
+          {% for stop in route.stops %}
+            <li><a href="/station/{{route.route_id}}/{{ stop.id }}">{{ stop.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endfor %}
   </body>
 </html>

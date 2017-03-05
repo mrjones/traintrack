@@ -5,23 +5,14 @@ use result;
 
 pub struct Stop {
     pub id: String,
+    pub parent_id: Option<String>,
     pub name: String,
-}
-
-pub struct Trip {
-    pub route_id: String,
-    pub trip_id: String,
-}
-
-pub struct TripStop {
-    pub trip_id: String,
-    pub stop_id: String,
 }
 
 pub struct Stops {
     stops: std::collections::HashMap<String, Stop>,
-    trips: std::collections::HashMap<String, Trip>,
-    trip_stops: std::collections::HashMap<String, TripStop>,
+    trip_ids_by_route: std::collections::HashMap<String, Vec<String>>,
+    stop_ids_by_trip: std::collections::HashMap<String, Vec<String>>,
     routes: Vec<String>,
 }
 
@@ -37,7 +28,7 @@ struct StopCsvRecord {
     zone_id: Option<String>,
     stop_url: Option<String>,
     location_type: Option<i32>,
-    parent_station: String,
+    parent_station: Option<String>,
 }
 
 #[derive(Debug, RustcDecodable)]
@@ -92,25 +83,32 @@ impl Stops {
     }
 
     pub fn stops_for_route(&self, route_id: &str) -> result::TTResult<Vec<&Stop>> {
-        let mut trip_ids_for_route = std::collections::HashSet::new();
-        for trip in self.trips.values() {
-            if trip.route_id == route_id {
-                trip_ids_for_route.insert(&trip.trip_id);
+        let mut stop_ids_for_route = std::collections::HashSet::new();
+        for trip_id in self.trip_ids_by_route.get(route_id).unwrap_or(&vec![]).iter() {
+            for stop_id in self.stop_ids_by_trip.get(trip_id).ok_or(
+                result::quick_err("No stops for trip"))?.iter() {
+                stop_ids_for_route.insert(stop_id);
             }
         }
 
-        let mut stop_ids_for_route = std::collections::HashSet::new();
-        for trip_stop in self.trip_stops.values() {
-            if trip_ids_for_route.contains(&trip_stop.trip_id) {
-                stop_ids_for_route.insert(&trip_stop.stop_id);
-            }
+        let mut parent_stop_ids = std::collections::HashSet::new();
+        for stop_id in stop_ids_for_route {
+            let stop = self.stops.get(stop_id).ok_or(
+                result::quick_err(
+                    format!("No stop with ID: {}", stop_id).as_ref()))?;
+            match stop.parent_id {
+                None => { parent_stop_ids.insert(stop_id) },
+                Some(ref parent_id) => { parent_stop_ids.insert(parent_id) },
+            };
         }
+
 
         let mut stops = Vec::new();
-        for stop_id in stop_ids_for_route {
-            stops.push(self.stops.get(stop_id).ok_or(
-                result::TTError::Uncategorized(
-                    format!("No stop with ID: {}", stop_id)))?);
+        for stop_id in parent_stop_ids {
+            let stop = self.stops.get(stop_id).ok_or(
+                result::quick_err(
+                    format!("No stop with ID: {}", stop_id).as_ref()))?;
+            stops.push(stop);
         }
 
         return Ok(stops);
@@ -142,6 +140,7 @@ impl Stops {
                 let record: StopCsvRecord = record?;
                 stops.insert(record.stop_id.clone(), Stop{
                     id: record.stop_id.clone(),
+                    parent_id: record.parent_station.clone(),
                     name: record.stop_name.clone(),
                 });
             }
@@ -150,30 +149,36 @@ impl Stops {
         info!("Parsing trips.txt");
         let mut trips_file = gtfs_directory.clone();
         trips_file.push("trips.txt");
-        let mut trips = std::collections::HashMap::new();
+        let mut trip_ids_by_route: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
         {
             let mut reader = csv::Reader::from_file(trips_file)?;
             for record in reader.decode() {
                 let record: TripCsvRecord = record?;
-                trips.insert(record.trip_id.clone(), Trip{
-                    route_id: record.route_id.clone(),
-                    trip_id: record.trip_id.clone(),
-                });
+                if trip_ids_by_route.contains_key(&record.route_id) {
+                    trip_ids_by_route.get_mut(&record.route_id).unwrap().push(
+                        record.trip_id);
+                } else {
+                    trip_ids_by_route.insert(
+                        record.route_id, vec![record.trip_id]);
+                }
             }
         }
 
         info!("Parsing stop_times.txt");
         let mut trip_stops_file = gtfs_directory.clone();
         trip_stops_file.push("stop_times.txt");
-        let mut trip_stops = std::collections::HashMap::new();
+        let mut stop_ids_by_trip: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
         {
             let mut reader = csv::Reader::from_file(trip_stops_file)?;
             for record in reader.decode() {
                 let record: StopTimeCsvRecord = record?;
-                trip_stops.insert(record.trip_id.clone(), TripStop{
-                    trip_id: record.trip_id.clone(),
-                    stop_id: record.stop_id.clone(),
-                });
+                if stop_ids_by_trip.contains_key(&record.trip_id) {
+                    stop_ids_by_trip.get_mut(&record.trip_id).unwrap().push(
+                        record.stop_id);
+                } else {
+                    stop_ids_by_trip.insert(
+                        record.trip_id, vec![record.stop_id]);
+                }
             }
         }
 
@@ -181,8 +186,8 @@ impl Stops {
         info!("Done partsing GTFS files");
         return Ok(Stops{
             stops: stops,
-            trips: trips,
-            trip_stops: trip_stops,
+            trip_ids_by_route: trip_ids_by_route,
+            stop_ids_by_trip: stop_ids_by_trip,
             routes: routes,
         });
     }

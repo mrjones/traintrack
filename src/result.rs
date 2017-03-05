@@ -16,6 +16,10 @@ pub enum TTError {
     Uncategorized(String),
 }
 
+pub fn quick_err(desc: &str) -> TTError {
+    return TTError::Uncategorized(desc.to_string());
+}
+
 impl std::fmt::Display for TTError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
