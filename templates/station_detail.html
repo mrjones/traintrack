@@ -3,11 +3,22 @@
     <title>Station {{ station.name }}</title>
   </head>
   <body>
-    Station {{ station.name }}
-    {% for train in trains %}
-      <li>{{train.direction}} @ {{train.time}}</li>
-    {% endfor %}
+    <h1>Station {{ station.name }}</h1>
+    <h2>UPTOWN</h2>
     <ul>
+      {% for train in trains %}
+        {% if train.direction == "UPTOWN" %}
+          <li>{{train.direction}} @ {{train.time}}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    <h2>DOWNTOWN</h2>
+    <ul>
+      {% for train in trains %}
+        {% if train.direction == "DOWNTOWN" %}
+          <li>{{train.direction}} @ {{train.time}}</li>
+        {% endif %}
+      {% endfor %}
     </ul>
   </body>
 </html>

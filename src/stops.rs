@@ -3,17 +3,25 @@ extern crate std;
 
 use result;
 
+#[derive(Clone)]
 pub struct Stop {
     pub id: String,
     pub parent_id: Option<String>,
     pub name: String,
 }
 
+#[derive(Clone)]
+pub struct Route {
+    pub id: String,
+    pub color: String,
+}
+
 pub struct Stops {
     stops: std::collections::HashMap<String, Stop>,
     trip_ids_by_route: std::collections::HashMap<String, Vec<String>>,
     stop_ids_by_trip: std::collections::HashMap<String, Vec<String>>,
-    routes: Vec<String>,
+    stops_by_route: std::collections::HashMap<String, Vec<Stop>>,
+    routes: Vec<Route>,
 }
 
 
@@ -78,14 +86,23 @@ impl Stops {
         return self.stops.get(id);
     }
 
-    pub fn routes(&self) -> Vec<String> {
+    pub fn routes(&self) -> Vec<Route> {
         return self.routes.clone();
     }
 
-    pub fn stops_for_route(&self, route_id: &str) -> result::TTResult<Vec<&Stop>> {
+    pub fn stops_for_route(&self, route_id: &str) -> result::TTResult<&Vec<Stop>> {
+        return self.stops_by_route.get(route_id).ok_or(
+            result::quick_err("No stops for route"));
+    }
+
+    pub fn compute_stops_for_route(
+        trip_ids_by_route: &std::collections::HashMap<String, Vec<String>>,
+        stop_ids_by_trip: &std::collections::HashMap<String, Vec<String>>,
+        stops: &std::collections::HashMap<String, Stop>,
+        route_id: &str) -> result::TTResult<Vec<Stop>> {
         let mut stop_ids_for_route = std::collections::HashSet::new();
-        for trip_id in self.trip_ids_by_route.get(route_id).unwrap_or(&vec![]).iter() {
-            for stop_id in self.stop_ids_by_trip.get(trip_id).ok_or(
+        for trip_id in trip_ids_by_route.get(route_id).unwrap_or(&vec![]).iter() {
+            for stop_id in stop_ids_by_trip.get(trip_id).ok_or(
                 result::quick_err("No stops for trip"))?.iter() {
                 stop_ids_for_route.insert(stop_id);
             }
@@ -93,7 +110,7 @@ impl Stops {
 
         let mut parent_stop_ids = std::collections::HashSet::new();
         for stop_id in stop_ids_for_route {
-            let stop = self.stops.get(stop_id).ok_or(
+            let stop = stops.get(stop_id).ok_or(
                 result::quick_err(
                     format!("No stop with ID: {}", stop_id).as_ref()))?;
             match stop.parent_id {
@@ -103,15 +120,15 @@ impl Stops {
         }
 
 
-        let mut stops = Vec::new();
+        let mut stops_for_this_route: Vec<Stop> = Vec::new();
         for stop_id in parent_stop_ids {
-            let stop = self.stops.get(stop_id).ok_or(
+            let stop = stops.get(stop_id).ok_or(
                 result::quick_err(
                     format!("No stop with ID: {}", stop_id).as_ref()))?;
-            stops.push(stop);
+            stops_for_this_route.push(stop.to_owned());
         }
 
-        return Ok(stops);
+        return Ok(stops_for_this_route);
     }
 
     pub fn new_from_csvs(filename: &str) -> result::TTResult<Stops> {
@@ -126,7 +143,10 @@ impl Stops {
             let mut reader = csv::Reader::from_file(routes_file)?;
             for record in reader.decode() {
                 let record: RouteCsvRecord = record?;
-                routes.push(record.route_id);
+                routes.push(Route{
+                    id: record.route_id,
+                    color: record.route_color,
+                });
             }
         }
 
@@ -182,12 +202,23 @@ impl Stops {
             }
         }
 
+        info!("Computing stops per route");
+        let mut stops_by_route = std::collections::HashMap::new();
+        for route in &routes {
+            stops_by_route.insert(
+                route.id.to_string(), Stops::compute_stops_for_route(
+                    &trip_ids_by_route,
+                    &stop_ids_by_trip,
+                    &stops,
+                    route.id.as_ref())?);
+        }
 
         info!("Done partsing GTFS files");
         return Ok(Stops{
             stops: stops,
             trip_ids_by_route: trip_ids_by_route,
             stop_ids_by_trip: stop_ids_by_trip,
+            stops_by_route: stops_by_route,
             routes: routes,
         });
     }

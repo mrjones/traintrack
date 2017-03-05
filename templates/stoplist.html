@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>Stops</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
   </head>
   <body>
     <script type="text/javascript">
@@ -13,8 +14,13 @@
        }
      };
     </script>
+    <div class="routeMenu">
+      {% for route in routes %}
+        <a style="background-color: #{{ route.route_color }}" href=javascript:toggleVisibility("route_{{route.route_id}}");>{{ route.route_id }}</a>
+      {% endfor %}
+    </div>
+
     {% for route in routes %}
-      <h2><a href=javascript:toggleVisibility("route_{{route.route_id}}");>{{ route.route_id }}</a></h2>
       <div id="route_{{route.route_id}}" style="display: none;">
         <ul>
           {% for stop in route.stops %}

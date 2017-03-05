@@ -163,7 +163,7 @@ fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResul
     let mut routes = Vec::new();
     for route in tt_context.stops.routes() {
         let mut stops = Vec::new();
-        for stop in tt_context.stops.stops_for_route(&route)? {
+        for stop in tt_context.stops.stops_for_route(&route.id)? {
             let mut props = std::collections::HashMap::new();
             props.insert("name".to_string(),
                          liquid::Value::Str(stop.name.clone()));
@@ -173,7 +173,9 @@ fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResul
         }
         let mut route_props = std::collections::HashMap::new();
         route_props.insert("route_id".to_string(),
-                           liquid::Value::Str(route));
+                           liquid::Value::Str(route.id));
+        route_props.insert("route_color".to_string(),
+                           liquid::Value::Str(route.color));
         route_props.insert("stops".to_string(),
                            liquid::Value::Array(stops));
         routes.push(liquid::Value::Object(route_props));
@@ -262,25 +264,49 @@ fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<V
     }
 }
 
-struct StandardPage{
-    execute: fn(&TTContext, rustful::Context) -> result::TTResult<Vec<u8>>
+enum PageType {
+    Dynamic(fn(&TTContext, rustful::Context) -> result::TTResult<Vec<u8>>),
+    Static(std::path::PathBuf),
 }
 
-impl rustful::Handler for StandardPage {
+impl PageType {
+    fn new_static_page<P: AsRef<std::path::Path>>(path: P) -> PageType {
+        return PageType::Static(path.as_ref().to_path_buf());
+    }
+}
+
+impl rustful::Handler for PageType {
     fn handle_request(&self, rustful_context: rustful::Context, response: rustful::Response) {
-        match rustful_context.global.get::<TTContext>() {
-            Some(ref tt_context) => {
-                match (self.execute)(tt_context, rustful_context) {
-                    Ok(body) => response.send(body),
-                    Err(err) => response.send(format!("ERROR: {}", err)),
+        match self {
+            &PageType::Dynamic(execute) => {
+                match rustful_context.global.get::<TTContext>() {
+                    Some(ref tt_context) => {
+                        match execute(tt_context, rustful_context) {
+                            Ok(body) => response.send(body),
+                            Err(err) => response.send(format!("ERROR: {}", err)),
+                        }
+                    },
+                    None => {
+                        response.send(format!("Internal error: Could not get context"));
+                    }
                 }
             },
-            None => {
-                response.send(format!("Internal error: Could not get context"));
-            }
+            &PageType::Static(ref file_path) => {
+                match response.send_file(file_path) {
+                    Ok(_) => {},
+                    Err(rustful::response::FileError::Open(io_err, mut response)) => {
+                        error!("failed to open '{:?}': {}", file_path, io_err);
+                        response.set_status(rustful::StatusCode::InternalServerError);
+                    },
+                    Err(err) => {
+                        error!("Error sending static file '{:?}': {}", file_path, err);
+                    }
+                }
+            },
         }
     }
 }
+
 
 pub fn serve(context: TTContext, port: u16) {
     let global: rustful::server::Global = Box::new(context).into();
@@ -291,14 +317,15 @@ pub fn serve(context: TTContext, port: u16) {
         global: global,
         handlers: insert_routes!{
             rustful::TreeRouter::new() => {
-                Get: StandardPage{execute: dashboard},
+                Get: PageType::Dynamic(dashboard),
                 "/debug" => {
-                    Get: StandardPage{execute: debug},
-                    "/dump_proto" => Get: StandardPage{execute: dump_proto},
-                    "/fetch_now" => Get: StandardPage{execute: fetch_now},
+                    Get: PageType::Dynamic(debug),
+                    "/dump_proto" => Get: PageType::Dynamic(dump_proto),
+                    "/fetch_now" => Get: PageType::Dynamic(fetch_now),
                 },
-                "/stations" => Get: StandardPage{execute: list_stations},
-                "/station/:route/:station_id" => Get: StandardPage{execute: station_detail},
+                "/stations" => Get: PageType::Dynamic(list_stations),
+                "/station/:route/:station_id" => Get: PageType::Dynamic(station_detail),
+                "/style.css" => Get: PageType::new_static_page("./static/style.css"),
             }
         },
         ..rustful::Server::default()

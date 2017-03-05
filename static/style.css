@@ -1,0 +1,19 @@
+.routemenu a {
+    display: inline-block;
+    border: 1px solid black;
+    width: 2em;
+    height: 2em;
+    margin: .25em;
+    text-align: center;
+    line-height: 2em;
+    color: white;
+    -webkit-text-stroke: 1px black;
+    font-weight: bold;
+    font-size: 150%;
+    font-family: sans-serif;
+    text-decoration: none;
+}
+
+.routemenu a:hover {
+    opacity: .5;
+}
