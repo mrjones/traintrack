@@ -3,10 +3,14 @@ extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
+#[macro_use]
+extern crate maplit;
 extern crate protobuf;
 extern crate rustc_serialize;
 #[macro_use]
 extern crate rustful;
+#[macro_use]
+extern crate serde_derive;
 
 mod feedfetcher;
 mod gtfs_realtime;

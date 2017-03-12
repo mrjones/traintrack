@@ -2,6 +2,7 @@ extern crate csv;
 extern crate hyper;
 extern crate liquid;
 extern crate protobuf;
+extern crate serde_json;
 extern crate std;
 
 pub type TTResult<T> = std::result::Result<T, TTError>;
@@ -13,6 +14,7 @@ pub enum TTError {
     IOError(std::io::Error),
     ProtobufError(protobuf::ProtobufError),
     RenderError(liquid::Error),
+    SerializationError(serde_json::Error),
     Uncategorized(String),
 }
 
@@ -38,6 +40,9 @@ impl std::fmt::Display for TTError {
             TTError::RenderError(ref err) => {
                 return write!(f, "Render Error: {}", err);
             },
+            TTError::SerializationError(ref err) => {
+                return write!(f, "Serialization Error: {}", err);
+            },
             TTError::Uncategorized(ref e) => std::fmt::Display::fmt(e, f),
         }
     }
@@ -51,6 +56,7 @@ impl std::error::Error for TTError {
             TTError::IOError(_) => "IOError",
             TTError::ProtobufError(_) => "ProtobufError",
             TTError::RenderError(_) => "RenderError",
+            TTError::SerializationError(_) => "SerializationError",
             TTError::Uncategorized(ref str) => str,
         }
     }
@@ -87,5 +93,11 @@ impl From<protobuf::ProtobufError> for TTError {
 impl From<liquid::Error> for TTError {
     fn from(err: liquid::Error) -> TTError {
         return TTError::RenderError(err);
+    }
+}
+
+impl From<serde_json::Error> for TTError {
+    fn from(err: serde_json::Error) -> TTError {
+        return TTError::SerializationError(err);
     }
 }

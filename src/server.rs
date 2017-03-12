@@ -4,6 +4,7 @@ extern crate liquid;
 extern crate log;
 extern crate regex;
 extern crate rustful;
+extern crate serde_json;
 extern crate std;
 
 use feedfetcher;
@@ -124,36 +125,51 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
 fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
-    let route = rustful_context.variables.get("route").ok_or(
-        result::TTError::Uncategorized("Missing route".to_string()))?;
+    let desired_route = rustful_context.variables.get("route_id").map(|x| x.to_string());
     let station_id = station_id.into_owned();
     let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
         result::TTError::Uncategorized(
             format!("No station with ID {}", station_id)))?;
     let feed = tt_context.feed()?;
 
-    // TODO(mrjones): Figure out route <-> station mapping.
-    let trains = utils::upcoming_trains(&route, &station_id, &feed.feed);
     let tz = chrono_tz::America::New_York;
+    let now = chrono::UTC::now();
 
-
+    use self::liquid::Value;
     let mut context = liquid::Context::new();
-    let mut station_props = std::collections::HashMap::new();
-    station_props.insert("name".to_string(),
-                         liquid::Value::Str(station.name.clone()));
-    station_props.insert("id".to_string(),
-                         liquid::Value::Str(station.id.clone()));
-    context.set_val("station", liquid::Value::Object(station_props));
 
-    let train_props: Vec<liquid::Value> = trains.iter().map(|&(ref direction, ref time)| {
-        let mut props = std::collections::HashMap::new();
-        props.insert("direction".to_string(),
-                     liquid::Value::Str(format!("{:?}", direction)));
-        props.insert("time".to_string(),
-                     liquid::Value::Str(format!("{}",time.with_timezone(&tz))));
-        return liquid::Value::Object(props);
-    }).collect();
-    context.set_val("trains", liquid::Value::Array(train_props));
+    context.set_val("station", Value::Object(hashmap![
+        "name".to_string() => Value::Str(station.name.clone()),
+        "id".to_string() => Value::Str(station.id.clone()),
+    ]));
+
+    let trains_by_route = utils::all_upcoming_trains(&station_id, &feed.feed);
+    context.set_val(
+        "routes",
+        Value::Array(trains_by_route.iter().filter_map(|(ref route, ref trains)| {
+            if desired_route.is_some() && desired_route != Some(route.to_string()) {
+                return None;
+            }
+            return Some(Value::Object(hashmap![
+                "id".to_string() => Value::Str(route.to_string()),
+                "trains_by_direction".to_string() =>
+                    Value::Array(
+                        trains.iter().map(|(ref direction, ref times)| {
+                            return Value::Object(hashmap![
+                                "direction".to_string() =>
+                                    Value::Str(format!("{:?}", direction)),
+                                "arrivals".to_string() =>
+                                    Value::Array(times.iter().map(|time| {
+                                        return Value::Object(
+                                            hashmap![
+                                                String::from("time") =>
+                                                    Value::Str(format!("{}",time.with_timezone(&tz))),
+                                            ]);
+                                    }).collect()),
+                            ]);
+                        }).collect()),
+            ]));
+        }).collect()));
 
     return tt_context.render("station_detail.html", &mut context);
 }
@@ -196,12 +212,12 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         }
     }
 
-    struct Item {
+    struct StationInfo {
         line: String,
         stop_id: String,
-        trains: Vec<(utils::Direction, chrono::datetime::DateTime<chrono::UTC>)>,
+        trains: std::collections::HashMap<utils::Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>,
     }
-    let mut items = Vec::new();
+    let mut station_infos = Vec::new();
 
     let pois = vec![
         ("R", "R20"), ("N", "R20"), ("Q", "R20"),
@@ -210,7 +226,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     ];
     for (route, stop) in pois {
         let trains = utils::upcoming_trains(route, stop, &feed.feed);
-        items.push(Item{
+        station_infos.push(StationInfo{
             line: route.to_string(),
             stop_id: stop.to_string(),
             trains: trains,
@@ -227,19 +243,19 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
 
     let mut body = String::from_utf8(tt_context.render("dashboard.html", &mut context).unwrap()).unwrap();
 
-    //        let mut body = "<html><body>".to_string();
-//        body.push_str(&format!("<p>Updated at {}</p>", feed.timestamp));
-    for item in items {
+    for station_info in station_infos {
         body.push_str(&format!(
             "<h2>{} : {}</h2><ul>",
-            item.line,
-            tt_context.stops.lookup_by_id(&item.stop_id).unwrap().name));
-        let lis: Vec<String> = item.trains.iter().map(|&(ref direction, ref time)| {
-            return format!("<li>{:?} {}</li>",
-                           direction, time.with_timezone(&tz))
-        }).collect();
-        for li in lis {
-            body.push_str(&li);
+            station_info.line,
+            tt_context.stops.lookup_by_id(&station_info.stop_id).unwrap().name));
+        for (ref direction, ref stop_times) in &station_info.trains {
+            let lis: Vec<String> = stop_times.iter().map(|time| {
+                return format!("<li>{:?} {}</li>",
+                               direction, time.with_timezone(&tz))
+            }).collect();
+            for li in lis {
+                body.push_str(&li);
+            }
         }
 
         body.push_str("</ul>");
@@ -247,6 +263,62 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     body.push_str("</body></html>");
 
     return Ok(body.as_bytes().to_vec());
+}
+
+fn hack559(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    use chrono::datetime::DateTime;
+    use chrono::TimeZone;
+    use chrono::UTC;
+    let direction = rustful_context.variables.get("direction").ok_or(
+        result::TTError::Uncategorized("Missing direction".to_string()))?;
+
+    let feed = tt_context.fetcher.latest_value().ok_or(
+        result::quick_err("No data yet"))?;
+
+    #[derive(Serialize, Deserialize, Debug)]
+    struct Trip {
+        trip_id: String,
+        route_id: String,
+        direction: String,
+        stops: Vec<(String, i64)>,
+    };
+    let mut trips: Vec<Trip> = Vec::new();
+
+    for entity in feed.feed.get_entity() {
+        if entity.has_trip_update() {
+            let trip_update = entity.get_trip_update();
+
+            let pois = vec!["R20", "R30", "R31", "R32"];
+
+            let route_id = trip_update.get_trip().get_route_id();
+            trips.push(Trip{
+                trip_id: trip_update.get_trip().get_trip_id().to_string(),
+                route_id: trip_update.get_trip().get_route_id().to_string(),
+                direction: format!("{:?}", utils::infer_direction_for_trip_id(
+                    trip_update.get_trip().get_trip_id())),
+                stops: trip_update.get_stop_time_update().iter().filter_map(|stu| {
+                    let stop_id = stu.get_stop_id();
+                    if !pois.contains(&stop_id) {
+                        return None;
+                    }
+
+                    if (stop_id == "R31" && route_id == "Q") ||
+                        (stop_id == "R30" && route_id == "N") {
+                        // Skip Q at Barclays and N at DeKalb since that transfer is tough, and it's better to transfer at the other one
+                        return None;
+                    }
+
+                    return Some((stop_id.to_string(), stu.get_arrival().get_time()));
+                }).collect(),
+            });
+        }
+    }
+
+    let mut context = liquid::Context::new();
+    context.set_val("data", liquid::Value::Str(
+        serde_json::to_string(&trips)?));
+    context.set_val("direction", liquid::Value::Str(direction.to_string()));
+    return Ok(tt_context.render("hack559.html", &mut context)?);
 }
 
 fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
@@ -257,7 +329,7 @@ fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8
 fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     return match tt_context.fetcher.latest_value() {
         Some(feed) => Ok(format!(
-            "Updated at: {}\n{:#?}",
+            "Updated at: {}\n<pre>{:#?}</pre>",
             feed.timestamp,
             feed.feed).as_bytes().to_vec()),
         None => Ok("No data yet".as_bytes().to_vec()),
@@ -324,8 +396,11 @@ pub fn serve(context: TTContext, port: u16) {
                     "/fetch_now" => Get: PageType::Dynamic(fetch_now),
                 },
                 "/stations" => Get: PageType::Dynamic(list_stations),
-                "/station/:route/:station_id" => Get: PageType::Dynamic(station_detail),
+                "/hack559/:direction" => Get: PageType::Dynamic(hack559),
+                "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail),
+                "/station/:station_id" => Get: PageType::Dynamic(station_detail),
                 "/style.css" => Get: PageType::new_static_page("./static/style.css"),
+                "/hack559.js" => Get: PageType::new_static_page("./static/hack559.js"),
             }
         },
         ..rustful::Server::default()

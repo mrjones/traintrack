@@ -1,16 +1,17 @@
 extern crate chrono;
+extern crate std;
 
 use chrono::TimeZone;
 
 use gtfs_realtime;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Direction {
     UPTOWN,
     DOWNTOWN,
 }
 
-fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
+pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     // TODO(mrjones): Read the NYCT extension and determine this properly
     let trip_id: String = trip_id.to_string();
     let lastchar: String = trip_id.chars().rev().take(1).collect();
@@ -21,25 +22,45 @@ fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> Vec<(Direction, chrono::datetime::DateTime<chrono::UTC>)> {
-    let mut upcoming = Vec::new();
+pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
+    let mut all_trains = all_upcoming_trains(stop_id, feed);
+    return all_trains.remove(route).unwrap_or(std::collections::HashMap::new());
+}
+
+pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::HashMap<String, std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
+    let mut upcoming: std::collections::HashMap<String, std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> = std::collections::HashMap::new();
+
     for entity in feed.get_entity() {
         if entity.has_trip_update() {
             let trip_update = entity.get_trip_update();
             let trip = trip_update.get_trip();
-            if trip.get_route_id() == route {
-                for stop_time_update in trip_update.get_stop_time_update() {
-                    if stop_time_update.get_stop_id() == stop_id {
-                        upcoming.push((
-                            infer_direction_for_trip_id(trip.get_trip_id()),
-                            chrono::UTC.timestamp(
-                                stop_time_update.get_arrival().get_time(), 0)));
+
+            for stop_time_update in trip_update.get_stop_time_update() {
+                if stop_time_update.get_stop_id() == stop_id {
+                    let direction = infer_direction_for_trip_id(trip.get_trip_id());
+                    let timestamp = chrono::UTC.timestamp(
+                        stop_time_update.get_arrival().get_time(), 0);
+
+                    if !upcoming.contains_key(trip.get_route_id()) {
+                        upcoming.insert(trip.get_route_id().to_string(), hashmap![]);
+                    }
+                    let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
+
+                    if route_trains.contains_key(&direction) {
+                        route_trains.get_mut(&direction).unwrap().push(timestamp);
+                    } else {
+                        route_trains.insert(direction, vec![timestamp]);
                     }
                 }
             }
         }
     }
 
-    upcoming.sort_by_key(|&(_, ts)| ts);
+
+    for route_trains in upcoming.values_mut() {
+        for timestamps in route_trains.values_mut() {
+            timestamps.sort();
+        }
+    }
     return upcoming;
 }

@@ -24,7 +24,7 @@
       <div id="route_{{route.route_id}}" style="display: none;">
         <ul>
           {% for stop in route.stops %}
-            <li><a href="/station/{{route.route_id}}/{{ stop.id }}">{{ stop.name }}</a></li>
+            <li><a href="/station/{{ stop.id }}/{{ route.route_id }}">{{ stop.name }}</a> [<a href="/station/{{stop.id}}">All routes</a>]</li>
           {% endfor %}
         </ul>
       </div>

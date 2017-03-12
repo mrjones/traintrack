@@ -72,8 +72,14 @@ impl Fetcher {
         for candidate in vec!["lastresponse.txt", "lastgood.txt"] {
             match self.feed_from_file(candidate) {
                 Ok(feed) => {
-                    let mut file = std::fs::File::create("lastgood.txt")?;
-                    file.write_all(&body)?;
+                    if candidate == "lastresponse.txt" {
+                        info!("About to write lastgood.txt. {} bytes.",
+                              body.len());
+                        let mut file = std::fs::File::create("lastgood.txt")?;
+                        file.write_all(&body)?;
+                        info!("Succeeded writing lastgood.txt. {} bytes.",
+                              body.len());
+                    }
                     return Ok(feed);
                 },
                 Err(err) => {
