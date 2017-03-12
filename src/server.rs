@@ -179,13 +179,20 @@ fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResul
     let mut routes = Vec::new();
     for route in tt_context.stops.routes() {
         let mut stops = Vec::new();
-        for stop in tt_context.stops.stops_for_route(&route.id)? {
-            let mut props = std::collections::HashMap::new();
-            props.insert("name".to_string(),
-                         liquid::Value::Str(stop.name.clone()));
-            props.insert("id".to_string(),
-                         liquid::Value::Str(stop.id.clone()));
-            stops.push(liquid::Value::Object(props));
+        match tt_context.stops.stops_for_route(&route.id) {
+            Ok(stop_infos) => {
+                for stop in stop_infos {
+                    let mut props = std::collections::HashMap::new();
+                    props.insert("name".to_string(),
+                                 liquid::Value::Str(stop.name.clone()));
+                    props.insert("id".to_string(),
+                                 liquid::Value::Str(stop.id.clone()));
+                    stops.push(liquid::Value::Object(props));
+                }
+            },
+            Err(err) => {
+                error!("list_stations: {:?}", err);
+            }
         }
         let mut route_props = std::collections::HashMap::new();
         route_props.insert("route_id".to_string(),
