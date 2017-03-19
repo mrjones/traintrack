@@ -394,7 +394,7 @@ impl rustful::Handler for PageType {
 }
 
 
-pub fn serve(context: TTContext, port: u16) {
+pub fn serve(context: TTContext, port: u16, static_dir: &str) {
     let global: rustful::server::Global = Box::new(context).into();
     assert!(!global.get::<TTContext>().is_none());
 
@@ -413,8 +413,10 @@ pub fn serve(context: TTContext, port: u16) {
                 "/hack559/:direction" => Get: PageType::Dynamic(hack559),
                 "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail),
                 "/station/:station_id" => Get: PageType::Dynamic(station_detail),
-                "/style.css" => Get: PageType::new_static_page("./static/style.css"),
-                "/hack559.js" => Get: PageType::new_static_page("./static/hack559.js"),
+                "/style.css" => Get: PageType::new_static_page(
+                    format!("{}/style.css", static_dir)),
+                "/hack559.js" => Get: PageType::new_static_page(
+                    format!("{}/hack559.js", static_dir)),
             }
         },
         ..rustful::Server::default()

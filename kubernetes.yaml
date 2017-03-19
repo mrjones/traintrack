@@ -1,0 +1,25 @@
+# kubectl create secret generic traintrack-creds --from-literal=mta-api-key=$MTA_API_KEY
+# kubectl apply -f kubernets.yaml
+# kubectl expose deployment traintrack --type=LoadBalancer --port=80 --target-port=3837
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: traintrack
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: traintrack
+    spec:
+      containers:
+      - name: workouts
+        image: gcr.io/mrjones-gke/traintrack:2017-03-19.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MTA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: traintrack-creds
+              key: mta-api-key
+        args: ["--mta-api-key", "$(MTA_API_KEY)"]

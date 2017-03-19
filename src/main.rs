@@ -19,7 +19,7 @@ mod server;
 mod stops;
 mod utils;
 
-fn log4rs_config() -> log4rs::config::Config {
+fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;
     use log4rs::append::file::FileAppender;
     use log4rs::append::rolling_file::RollingFileAppender;
@@ -38,7 +38,7 @@ fn log4rs_config() -> log4rs::config::Config {
 
     let file_log = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(pattern)))
-        .build("./log/info.log").unwrap();
+        .build(format!("{}/info.log", log_dir)).unwrap();
 
     /*
     let file_log = RollingFileAppender::builder()
@@ -62,12 +62,12 @@ fn log4rs_config() -> log4rs::config::Config {
 }
 
 fn main() {
-    log4rs::init_config(log4rs_config()).unwrap();
 
     let args: Vec<String> = std::env::args().collect();
 
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
+    opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
     opts.optopt("g", "gtfs-directory", "Location of stops.txt, trips.txt, etc. files.", "GTFS_DIRECTIORY");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
@@ -77,13 +77,17 @@ fn main() {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
     };
+    let root_directory = matches.opt_str("root-directory").unwrap_or(
+        ".".to_string());
+    log4rs::init_config(log4rs_config(format!("{}/log/", root_directory).as_ref())).unwrap();
 
     let key = match matches.opt_str("k") {
         Some(key) => key,
         None => panic!("must set --mta-api-key"),
     };
 
-    let gtfs_directory = matches.opt_str("gtfs-directory").unwrap_or("./data/".to_string());
+    let gtfs_directory = matches.opt_str("gtfs-directory").unwrap_or(
+        format!("{}/data/", root_directory));
     let port = matches.opt_str("p")
         .map_or(3838, |s| s.parse::<u16>().expect("Could not parse --port"));
     let fetch_period_seconds = matches.opt_str("f")
@@ -99,6 +103,7 @@ fn main() {
         fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
-    let server_context = server::TTContext::new(stops, fetcher, "./templates/", compile_templates_once);
-    server::serve(server_context, port);
+    let server_context = server::TTContext::new(
+        stops, fetcher, format!("{}/templates/", root_directory), compile_templates_once);
+    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref());
 }
