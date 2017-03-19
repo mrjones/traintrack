@@ -222,7 +222,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     struct StationInfo {
         line: String,
         stop_id: String,
-        trains: std::collections::HashMap<utils::Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>,
+        trains: std::collections::BTreeMap<utils::Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>,
     }
     let mut station_infos = Vec::new();
 
@@ -245,8 +245,14 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     use server::liquid::Renderable;
 
     let mut context = liquid::Context::new();
+    let tz = chrono_tz::America::New_York;
     context.set_val("update_timestamp", liquid::Value::Str(
-        format!("{}", feed.timestamp)));
+        format!("{}", feed.timestamp.with_timezone(&tz))));
+    context.set_val("update_timestamp_age", liquid::Value::Str(
+        format!("{}", chrono::Duration::seconds(
+            chrono::UTC::now().timestamp() - feed.timestamp.timestamp()))));
+    context.set_val("fetch_timestamp", liquid::Value::Str(
+        format!("{:?}", feed.last_fetch.map(|ts| ts.with_timezone(&tz)))));
 
     let mut body = String::from_utf8(tt_context.render("dashboard.html", &mut context).unwrap()).unwrap();
 
@@ -334,10 +340,11 @@ fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8
 }
 
 fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let tz = chrono_tz::America::New_York;
     return match tt_context.fetcher.latest_value() {
         Some(feed) => Ok(format!(
             "Updated at: {}\n<pre>{:#?}</pre>",
-            feed.timestamp,
+            feed.timestamp.with_timezone(&tz),
             feed.feed).as_bytes().to_vec()),
         None => Ok("No data yet".as_bytes().to_vec()),
     }

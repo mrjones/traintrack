@@ -5,7 +5,7 @@ use chrono::TimeZone;
 
 use gtfs_realtime;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Direction {
     UPTOWN,
     DOWNTOWN,
@@ -22,13 +22,13 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
+pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
     let mut all_trains = all_upcoming_trains(stop_id, feed);
-    return all_trains.remove(route).unwrap_or(std::collections::HashMap::new());
+    return all_trains.remove(route).unwrap_or(std::collections::BTreeMap::new());
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::HashMap<String, std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
-    let mut upcoming: std::collections::HashMap<String, std::collections::HashMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> = std::collections::HashMap::new();
+pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
+    let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> = std::collections::BTreeMap::new();
 
     for entity in feed.get_entity() {
         if entity.has_trip_update() {
@@ -42,7 +42,7 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> 
                         stop_time_update.get_arrival().get_time(), 0);
 
                     if !upcoming.contains_key(trip.get_route_id()) {
-                        upcoming.insert(trip.get_route_id().to_string(), hashmap![]);
+                        upcoming.insert(trip.get_route_id().to_string(), btreemap![]);
                     }
                     let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 

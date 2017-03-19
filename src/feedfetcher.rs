@@ -15,6 +15,7 @@ use result;
 pub struct FetchResult {
     pub feed: gtfs_realtime::FeedMessage,
     pub timestamp: chrono::datetime::DateTime<chrono::UTC>,
+    pub last_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
 }
 
 pub struct Fetcher {
@@ -34,7 +35,7 @@ impl Fetcher {
         return self.latest_value.lock().unwrap().clone();
     }
 
-    fn feed_from_file(&self, filename: &str) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn feed_from_file(&self, filename: &str, fetch_timestamp: Option<chrono::datetime::DateTime<chrono::UTC>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
@@ -43,15 +44,23 @@ impl Fetcher {
         let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
         debug!("Parsed: {:?}", feed.get_header());
 
+        use chrono::TimeZone;
         *self.latest_value.lock().unwrap() = Some(FetchResult{
             feed: feed.clone(),
-            timestamp: chrono::UTC::now(),  // TODO: Use cached file time
+            timestamp: chrono::UTC.timestamp(
+                feed.get_header().get_timestamp() as i64, 0),
+            last_fetch: fetch_timestamp,
         });
 
         return Ok(feed);
     }
 
     pub fn fetch_once(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        let last_successful_fetch = match self.latest_value.lock().unwrap().as_ref() {
+            None => None,
+            Some(ref result) => result.last_fetch,
+        };
+
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);
         info!("Fetching.");
         debug!("URL: {}", url);
@@ -69,8 +78,10 @@ impl Fetcher {
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
         // Just parse it at startup, and cache the object in memory.
-        for candidate in vec!["lastresponse.txt", "lastgood.txt"] {
-            match self.feed_from_file(candidate) {
+        for (candidate, timestamp) in vec![
+            ("lastresponse.txt", Some(chrono::UTC::now())),
+            ("lastgood.txt", last_successful_fetch)] {
+            match self.feed_from_file(candidate, timestamp) {
                 Ok(feed) => {
                     if candidate == "lastresponse.txt" {
                         info!("About to write lastgood.txt. {} bytes.",
