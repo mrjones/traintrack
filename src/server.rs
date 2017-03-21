@@ -227,9 +227,11 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     let mut station_infos = Vec::new();
 
     let pois = vec![
-        ("R", "R20"), ("N", "R20"), ("Q", "R20"),
-        ("R", "R32"),
-        ("R", "R30"), ("N", "R30"), ("Q", "R30"),
+        ("R", "R16"), ("N", "R16"), ("Q", "R16"), // Times Square
+        ("R", "R20"), ("N", "R20"), ("Q", "R20"), // Union Square
+        ("R", "R32"), // Union Street
+        ("R", "R30"), ("Q", "R30"),  // DeKalb
+        ("R", "R29"), // MetroTech
     ];
     for (route, stop) in pois {
         let trains = utils::upcoming_trains(route, stop, &feed.feed);
@@ -260,8 +262,13 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
             tt_context.stops.lookup_by_id(&station_info.stop_id).unwrap().name));
         for (ref direction, ref stop_times) in &station_info.trains {
             let lis: Vec<String> = stop_times.iter().map(|time| {
-                return format!("<li>{:?} {}</li>",
-                               direction, time.with_timezone(&tz))
+                if time.lt(&chrono::UTC::now()) {
+                    return format!("<li><strike>{:?} {}</strike></li>",
+                                   direction, time.with_timezone(&tz))
+                } else {
+                    return format!("<li>{:?} {}</li>",
+                                   direction, time.with_timezone(&tz))
+                }
             }).collect();
             for li in lis {
                 body.push_str(&li);
