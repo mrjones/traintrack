@@ -15,7 +15,8 @@ use result;
 pub struct FetchResult {
     pub feed: gtfs_realtime::FeedMessage,
     pub timestamp: chrono::datetime::DateTime<chrono::UTC>,
-    pub last_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
+    pub last_good_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
+    pub last_any_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
 }
 
 pub struct Fetcher {
@@ -49,7 +50,9 @@ impl Fetcher {
             feed: feed.clone(),
             timestamp: chrono::UTC.timestamp(
                 feed.get_header().get_timestamp() as i64, 0),
-            last_fetch: fetch_timestamp,
+            // TODO(mrjones): This timestamp business is gross.
+            last_good_fetch: fetch_timestamp,
+            last_any_fetch: Some(chrono::UTC::now()),
         });
 
         return Ok(feed);
@@ -58,7 +61,7 @@ impl Fetcher {
     pub fn fetch_once(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let last_successful_fetch = match self.latest_value.lock().unwrap().as_ref() {
             None => None,
-            Some(ref result) => result.last_fetch,
+            Some(ref result) => result.last_good_fetch,
         };
 
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);

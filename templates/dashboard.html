@@ -3,6 +3,7 @@
     <title>
       TrainTrack
     </title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
   </head>
   <body>
     <ul>
@@ -12,5 +13,10 @@
       <li><a href="/hack559/DOWNTOWN">/hack559/DOWNTOWN</a></li>
       <li><a href="http://apps.mta.info/traintime/">MTA Subway Time</a>
     </ul>
-    <p>Data updated at {{ update_timestamp }} ({{ update_timestamp_age }} ago)</p>
-    <p>Last successful fetch at: {{ fetch_timestamp }}</p>
+    <p>
+      <span class="update_info{% if update_timestamp_age_seconds > 1800 %} very_old{% elsif update_timestamp_age_seconds > 900 %} old{% endif %}">
+        Data updated {{ update_timestamp_age_seconds | divided_by: 60 }} minutes ago (at {{ update_timestamp }})<br>
+      </span>
+      Last attempted fetch at: {{ any_fetch_timestamp }}<br/>
+      Last successful fetch at: {{ good_fetch_timestamp }}
+    </p>

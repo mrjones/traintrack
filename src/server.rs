@@ -240,19 +240,16 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         });
     }
 
-    let tz = chrono_tz::America::New_York;
-
-    use server::liquid::Renderable;
-
     let mut context = liquid::Context::new();
     let tz = chrono_tz::America::New_York;
     context.set_val("update_timestamp", liquid::Value::Str(
         format!("{}", feed.timestamp.with_timezone(&tz))));
-    context.set_val("update_timestamp_age", liquid::Value::Str(
-        format!("{}", chrono::Duration::seconds(
-            chrono::UTC::now().timestamp() - feed.timestamp.timestamp()))));
-    context.set_val("fetch_timestamp", liquid::Value::Str(
-        format!("{:?}", feed.last_fetch.map(|ts| ts.with_timezone(&tz)))));
+    context.set_val("update_timestamp_age_seconds", liquid::Value::Num(
+        (chrono::UTC::now().timestamp() - feed.timestamp.timestamp()) as f32));
+    context.set_val("good_fetch_timestamp", liquid::Value::Str(
+        format!("{:?}", feed.last_good_fetch.map(|ts| ts.with_timezone(&tz)))));
+    context.set_val("any_fetch_timestamp", liquid::Value::Str(
+        format!("{:?}", feed.last_any_fetch.map(|ts| ts.with_timezone(&tz)))));
 
     let mut body = String::from_utf8(tt_context.render("dashboard.html", &mut context).unwrap()).unwrap();
 

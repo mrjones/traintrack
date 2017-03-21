@@ -17,3 +17,12 @@
 .routemenu a:hover {
     opacity: .5;
 }
+
+.update_info.very_old {
+    color: red;
+    font-weight: bold;
+}
+
+.update_info.old {
+    color: orange;
+}
