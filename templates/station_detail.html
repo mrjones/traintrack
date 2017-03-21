@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>Station {{ station.name }}</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
   </head>
   <body>
     <h1>Station {{ station.name }}</h1>
@@ -10,7 +11,7 @@
         <h3>{{ train_dir.direction }}</h2>
         <ul>
           {% for arrival in train_dir.arrivals %}
-            <li>{{ arrival.time }}</li>
+            <li {% if arrival.timestamp < now %}class="past"{% endif %}>{{ arrival.pretty_time }}</li>
           {% endfor %}
         </ul>
       {% endfor %}

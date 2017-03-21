@@ -143,6 +143,8 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
         "id".to_string() => Value::Str(station.id.clone()),
     ]));
 
+    context.set_val("now", Value::Num(chrono::UTC::now().timestamp() as f32));
+
     let trains_by_route = utils::all_upcoming_trains(&station_id, &feed.feed);
     context.set_val(
         "routes",
@@ -162,8 +164,10 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
                                     Value::Array(times.iter().map(|time| {
                                         return Value::Object(
                                             hashmap![
-                                                String::from("time") =>
+                                                String::from("pretty_time") =>
                                                     Value::Str(format!("{}",time.with_timezone(&tz))),
+                                                String::from("timestamp") =>
+                                                    Value::Num(time.timestamp() as f32),
                                             ]);
                                     }).collect()),
                             ]);
@@ -263,7 +267,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         for (ref direction, ref stop_times) in &station_info.trains {
             let lis: Vec<String> = stop_times.iter().map(|time| {
                 if time.lt(&chrono::UTC::now()) {
-                    return format!("<li><strike>{:?} {}</strike></li>",
+                    return format!("<li class='past'>{:?} {}</li>",
                                    direction, time.with_timezone(&tz))
                 } else {
                     return format!("<li>{:?} {}</li>",
