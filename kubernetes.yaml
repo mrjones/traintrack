@@ -13,8 +13,8 @@ spec:
         run: traintrack
     spec:
       containers:
-      - name: workouts
-        image: gcr.io/mrjones-gke/traintrack:2017-03-19.0
+      - name: workouts  # TODO: change me
+        image: gcr.io/mrjones-gke/traintrack:2017-03-25.1
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
@@ -22,4 +22,7 @@ spec:
             secretKeyRef:
               name: traintrack-creds
               key: mta-api-key
-        args: ["--mta-api-key", "$(MTA_API_KEY)"]
+        args: [
+          "--compile-templates-once",
+          "--mta-api-key", "$(MTA_API_KEY)",
+        ]

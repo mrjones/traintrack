@@ -165,7 +165,7 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
                                         return Value::Object(
                                             hashmap![
                                                 String::from("pretty_time") =>
-                                                    Value::Str(format!("{}",time.with_timezone(&tz))),
+                                                    Value::Str(format!("{}",time.with_timezone(&tz).format("%H:%M %p"))),
                                                 String::from("timestamp") =>
                                                     Value::Num(time.timestamp() as f32),
                                             ]);
@@ -249,13 +249,15 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     let mut context = liquid::Context::new();
     let tz = chrono_tz::America::New_York;
     context.set_val("update_timestamp", liquid::Value::Str(
-        format!("{}", feed.timestamp.with_timezone(&tz))));
+        format!("{}", feed.timestamp.with_timezone(&tz).format("%v %r"))));
     context.set_val("update_timestamp_age_seconds", liquid::Value::Num(
         (chrono::UTC::now().timestamp() - feed.timestamp.timestamp()) as f32));
     context.set_val("good_fetch_timestamp", liquid::Value::Str(
-        format!("{:?}", feed.last_good_fetch.map(|ts| ts.with_timezone(&tz)))));
+        format!("{:?}", feed.last_good_fetch.map(
+            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))))));
     context.set_val("any_fetch_timestamp", liquid::Value::Str(
-        format!("{:?}", feed.last_any_fetch.map(|ts| ts.with_timezone(&tz)))));
+        format!("{:?}", feed.last_any_fetch.map(
+            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))))));
 
     let mut body = String::from_utf8(tt_context.render("dashboard.html", &mut context).unwrap()).unwrap();
 
@@ -268,10 +270,12 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
             let lis: Vec<String> = stop_times.iter().map(|time| {
                 if time.lt(&chrono::UTC::now()) {
                     return format!("<li class='past'>{:?} {}</li>",
-                                   direction, time.with_timezone(&tz))
+                                   direction,
+                                   time.with_timezone(&tz).format("%H:%M %p"))
                 } else {
                     return format!("<li>{:?} {}</li>",
-                                   direction, time.with_timezone(&tz))
+                                   direction,
+                                   time.with_timezone(&tz).format("%H:%M %p"))
                 }
             }).collect();
             for li in lis {
@@ -352,7 +356,7 @@ fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<V
     return match tt_context.fetcher.latest_value() {
         Some(feed) => Ok(format!(
             "Updated at: {}\n<pre>{:#?}</pre>",
-            feed.timestamp.with_timezone(&tz),
+            feed.timestamp.with_timezone(&tz).format("%v %r"),
             feed.feed).as_bytes().to_vec()),
         None => Ok("No data yet".as_bytes().to_vec()),
     }

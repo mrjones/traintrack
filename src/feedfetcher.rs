@@ -40,10 +40,10 @@ impl Fetcher {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
-        info!("About to parse {} bytes", data.len());
+        trace!("About to parse {} bytes", data.len());
 
         let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
-        debug!("Parsed: {:?}", feed.get_header());
+        trace!("Parsed: {:?}", feed.get_header());
 
         use chrono::TimeZone;
         *self.latest_value.lock().unwrap() = Some(FetchResult{
@@ -65,15 +65,14 @@ impl Fetcher {
         };
 
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);
-        info!("Fetching.");
-        debug!("URL: {}", url);
+        debug!("Fetching URL: {}", url);
 
         let client = hyper::Client::new();
         let mut response = client.get(&url).send()?;
 
         let mut body = Vec::new();
         response.read_to_end(&mut body)?;
-        info!("Response was {} bytes", body.len());
+        trace!("Response was {} bytes", body.len());
 
         let mut file = std::fs::File::create("lastresponse.txt")?;
         file.write_all(&body)?;
@@ -87,11 +86,11 @@ impl Fetcher {
             match self.feed_from_file(candidate, timestamp) {
                 Ok(feed) => {
                     if candidate == "lastresponse.txt" {
-                        info!("About to write lastgood.txt. {} bytes.",
+                        trace!("About to write lastgood.txt. {} bytes.",
                               body.len());
                         let mut file = std::fs::File::create("lastgood.txt")?;
                         file.write_all(&body)?;
-                        info!("Succeeded writing lastgood.txt. {} bytes.",
+                        trace!("Succeeded writing lastgood.txt. {} bytes.",
                               body.len());
                     }
                     return Ok(feed);
