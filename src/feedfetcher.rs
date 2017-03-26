@@ -109,21 +109,25 @@ impl Fetcher {
 
 pub struct FetcherThread {
     cancelled: std::sync::Arc<std::sync::Mutex<bool>>,
+    handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl FetcherThread {
     pub fn new() -> FetcherThread {
-        return FetcherThread{cancelled: std::sync::Arc::new(std::sync::Mutex::new(false))};
+        return FetcherThread{
+            cancelled: std::sync::Arc::new(std::sync::Mutex::new(false)),
+            handle: None,
+        };
     }
 
     pub fn cancel(&self) {
         *self.cancelled.lock().unwrap() = true;
     }
 
-    pub fn fetch_periodically(&self, fetcher: std::sync::Arc<Fetcher>, period: std::time::Duration) {
+    pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<Fetcher>, period: std::time::Duration) {
         let f = fetcher.clone();
         let cancelled = self.cancelled.clone();
-        std::thread::Builder::new()
+        let handle = std::thread::Builder::new()
             .name("FetcherThread".to_string())
             .spawn(move || {
                 while *cancelled.lock().unwrap() != true {
@@ -134,5 +138,14 @@ impl FetcherThread {
                     std::thread::sleep(period);
                 }
             }).unwrap();
+
+        self.handle = Some(handle);
+    }
+
+    pub fn join(&mut self) {
+        match self.handle.take() {
+            Some(handle) => handle.join().unwrap(),
+            None => {},
+        }
     }
 }

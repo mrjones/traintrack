@@ -13,7 +13,7 @@ spec:
         run: traintrack
     spec:
       containers:
-      - name: workouts  # TODO: change me
+      - name: frontend
         image: gcr.io/mrjones-gke/traintrack:2017-03-25.1
         imagePullPolicy: IfNotPresent
         env:

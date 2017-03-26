@@ -3,3 +3,4 @@ lastgood.txt
 lastresponse.txt
 log/
 target
+build/feedproxy/feedproxy

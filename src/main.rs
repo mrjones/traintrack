@@ -62,7 +62,6 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
 }
 
 fn main() {
-
     let args: Vec<String> = std::env::args().collect();
 
     let mut opts = getopts::Options::new();
@@ -99,7 +98,7 @@ fn main() {
     let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
     let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {
-        let fetcher_thread = feedfetcher::FetcherThread::new();
+        let mut fetcher_thread = feedfetcher::FetcherThread::new();
         fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
