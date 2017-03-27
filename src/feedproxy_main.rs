@@ -4,8 +4,10 @@ extern crate getopts;
 extern crate log;
 extern crate log4rs;
 extern crate protobuf;
+extern crate tiny_http;
 
 mod feedfetcher;
+mod feedproxy_api;
 mod gtfs_realtime;
 mod result;
 
@@ -42,6 +44,7 @@ fn main() {
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
+    opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
 
     let matches = match opts.parse(&args[1..]) {
@@ -60,11 +63,41 @@ fn main() {
 
     let fetch_period_seconds = matches.opt_str("fetch-period-seconds")
         .map_or(120, |s| s.parse::<u64>().expect("Could not parse --fetch-period-seconds"));
+    let port = matches.opt_str("port")
+        .map_or(3839, |s| s.parse::<u16>().expect("Could not parse --port"));
 
 
     let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
     let mut fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(
-        fetcher, std::time::Duration::new(fetch_period_seconds, 0));
-    fetcher_thread.join();
+        fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
+
+    let server = tiny_http::Server::http(format!("0.0.0.0:{}", port)).unwrap();
+
+    for request in server.incoming_requests() {
+        let current_data = fetcher.latest_value();
+
+        let mut reply_data = feedproxy_api::FeedProxyResponse::new();
+        match current_data {
+            Some(data) => {
+                reply_data.set_feed(data.feed);
+                if data.last_good_fetch.is_some() {
+                    reply_data.set_last_good_fetch_timestamp(
+                        data.last_good_fetch.unwrap().timestamp());
+                }
+                if data.last_any_fetch.is_some() {
+                    reply_data.set_last_attempted_fetch_timestamp(
+                        data.last_any_fetch.unwrap().timestamp());
+                }
+            },
+            None => {}
+        }
+
+//        println!("REPLYING: {:#?}", reply_data);
+
+        use protobuf::Message;
+        let reply_bytes = reply_data.write_to_bytes().unwrap();
+        let response = tiny_http::Response::from_data(reply_bytes);
+        request.respond(response).unwrap();
+    }
 }

@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+import "gtfs-realtime.proto";
+
+message FeedProxyResponse {
+  optional transit_realtime.FeedMessage feed = 1;
+  optional int64 last_good_fetch_timestamp = 2;
+  optional int64 last_attempted_fetch_timestamp = 3;
+}
