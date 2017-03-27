@@ -67,7 +67,7 @@ fn main() {
         .map_or(3839, |s| s.parse::<u16>().expect("Could not parse --port"));
 
 
-    let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
+    let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(&key));
     let mut fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(
         fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
@@ -94,6 +94,7 @@ fn main() {
         }
 
 //        println!("REPLYING: {:#?}", reply_data);
+        info!("REPLYING!");
 
         use protobuf::Message;
         let reply_bytes = reply_data.write_to_bytes().unwrap();

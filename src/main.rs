@@ -13,6 +13,7 @@ extern crate rustful;
 extern crate serde_derive;
 
 mod feedfetcher;
+mod feedproxy_api;
 mod gtfs_realtime;
 mod result;
 mod server;
@@ -72,6 +73,7 @@ fn main() {
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
     opts.optflag("t", "compile-templates-once", "If true, compiles HTML templates once at startup. Otherwise compiles them on every usage.");
     opts.optflag("d", "disable-background-fetch", "If true, won't periodically fetch feeds in the background..");
+    opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -92,10 +94,15 @@ fn main() {
     let fetch_period_seconds = matches.opt_str("f")
         .map_or(120, |s| s.parse::<u64>().expect("Could not parse --fetch-period-seconds"));
 
+    let maybe_proxy_url = matches.opt_str("proxy-url");
+
     let compile_templates_once = matches.opt_present("compile-templates-once");
     let disable_background_fetch = matches.opt_present("disable-background-fetch");
 
-    let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new(&key));
+    let fetcher = match maybe_proxy_url {
+        None => std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(&key)),
+        Some(ref url) => std::sync::Arc::new(feedfetcher::Fetcher::new_remote_fetcher(url)),
+    };
     let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {
         let mut fetcher_thread = feedfetcher::FetcherThread::new();

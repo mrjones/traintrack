@@ -8,6 +8,7 @@ extern crate time;
 use std::io::Read;
 use std::io::Write;
 
+use feedproxy_api;
 use gtfs_realtime;
 use result;
 
@@ -22,13 +23,25 @@ pub struct FetchResult {
 pub struct Fetcher {
     mta_api_key: String,
     latest_value: std::sync::Mutex<Option<FetchResult>>,
+    proxy_url: Option<String>,
 }
 
 impl Fetcher {
-    pub fn new(mta_api_key: &str) -> Fetcher {
+    pub fn new_local_fetcher(mta_api_key: &str) -> Fetcher {
+        info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_value: std::sync::Mutex::new(None),
+            proxy_url: None,
+        }
+    }
+
+    pub fn new_remote_fetcher(proxy_url: &str) -> Fetcher {
+        info!("Using remote feedproxy at {}", proxy_url);
+        return Fetcher{
+            mta_api_key: "".to_string(),
+            latest_value: std::sync::Mutex::new(None),
+            proxy_url: Some(proxy_url.to_string()),
         }
     }
 
@@ -59,6 +72,38 @@ impl Fetcher {
     }
 
     pub fn fetch_once(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        info!("fetch_once");
+        return match self.proxy_url {
+            None => self.fetch_once_local(),
+            Some(ref proxy_url) => self.fetch_once_remote(proxy_url),
+        }
+    }
+
+    fn fetch_once_remote(&self, proxy_url: &str) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        let client = hyper::Client::new();
+        let mut response = client.get(proxy_url).send()?;
+
+        let mut body = Vec::new();
+        response.read_to_end(&mut body)?;
+
+        let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(&body)?;
+
+        use chrono::TimeZone;
+        let fetch_result = Some(FetchResult{
+            feed: proxy_response.get_feed().clone(),
+            timestamp: chrono::UTC.timestamp(
+                proxy_response.get_feed().get_header().get_timestamp() as i64, 0),
+            last_good_fetch: Some(chrono::UTC.timestamp(
+                proxy_response.get_last_good_fetch_timestamp(), 0)),
+            last_any_fetch: Some(chrono::UTC.timestamp(
+                proxy_response.get_last_attempted_fetch_timestamp(), 0)),
+        });
+
+        *self.latest_value.lock().unwrap() = fetch_result;
+        return Ok(proxy_response.take_feed());
+    }
+
+    fn fetch_once_local(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let last_successful_fetch = match self.latest_value.lock().unwrap().as_ref() {
             None => None,
             Some(ref result) => result.last_good_fetch,
