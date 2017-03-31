@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2017-03-25.1
+        image: gcr.io/mrjones-gke/traintrack:2017-03-30.0
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
@@ -24,5 +24,7 @@ spec:
               key: mta-api-key
         args: [
           "--compile-templates-once",
+          # TODO: Remove
           "--mta-api-key", "$(MTA_API_KEY)",
+          "--proxy-url", "http://$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_HOST):$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_PORT)",
         ]
