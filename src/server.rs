@@ -122,6 +122,10 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
+fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    return Err(result::TTError::Uncategorized("Not implemented".to_string()))
+}
+
 fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
@@ -433,6 +437,9 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
                     format!("{}/singlepage.html", static_dir)),
                 "/webclient.js" => Get: PageType::new_static_page(
                     "./webclient/bin/webclient.js"),
+                "/api" => {
+                    "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail_proto),
+                },
             }
         },
         ..rustful::Server::default()

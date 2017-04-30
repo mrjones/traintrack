@@ -36,7 +36,9 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> 
             let trip = trip_update.get_trip();
 
             for stop_time_update in trip_update.get_stop_time_update() {
-                if stop_time_update.get_stop_id() == stop_id {
+                if (stop_time_update.get_stop_id() == stop_id) ||
+                    (stop_time_update.get_stop_id() == format!("{}N", stop_id)) ||
+                    (stop_time_update.get_stop_id() == format!("{}S", stop_id)) {
                     let direction = infer_direction_for_trip_id(trip.get_trip_id());
                     let timestamp = chrono::UTC.timestamp(
                         stop_time_update.get_arrival().get_time(), 0);
