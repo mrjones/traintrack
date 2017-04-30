@@ -6,6 +6,7 @@ extern crate log4rs;
 #[macro_use]
 extern crate maplit;
 extern crate protobuf;
+extern crate protobuf_json;
 extern crate rustc_serialize;
 #[macro_use]
 extern crate rustful;
@@ -19,6 +20,7 @@ mod result;
 mod server;
 mod stops;
 mod utils;
+mod webclient_api;
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;

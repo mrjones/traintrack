@@ -8,9 +8,12 @@ extern crate serde_json;
 extern crate std;
 
 use feedfetcher;
+use protobuf;
+use protobuf_json;
 use result;
 use stops;
 use utils;
+use webclient_api;
 
 struct TemplateRegistry {
     compiled_templates: std::collections::HashMap<String, std::sync::Arc<liquid::Template>>,
@@ -122,8 +125,32 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
+fn api_response<M: protobuf::Message>(data: &M, tt_context: &TTContext, rustful_context: &rustful::Context) -> result::TTResult<Vec<u8>> {
+    use std::borrow::Borrow;
+
+    let format: Option<String> = rustful_context.query.get("format")
+        .map(|x| String::from(x.borrow()));
+
+    match format.as_ref().map(String::as_ref) {
+        Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
+        Some("json") => return Ok(protobuf_json::proto_to_json(data).to_string().as_bytes().to_vec()),
+        _ => return data.write_to_bytes().map_err(|x| result::TTError::ProtobufError(x)),
+    }
+
+}
+
 fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
-    return Err(result::TTError::Uncategorized("Not implemented".to_string()))
+    let station_id = rustful_context.variables.get("station_id").ok_or(
+        result::TTError::Uncategorized("Missing station_id".to_string()))?;
+    let station_id = station_id.into_owned();
+    let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
+        result::TTError::Uncategorized(
+            format!("No station with ID {}", station_id)))?;
+
+    let mut response = webclient_api::StationStatus::new();
+    response.set_name(station.name.clone());
+
+    return api_response(&response, tt_context, &rustful_context);
 }
 
 fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
@@ -439,7 +466,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
                 "/webclient.js" => Get: PageType::new_static_page(
                     "./webclient/bin/webclient.js"),
                 "/api" => {
-                    "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail_proto),
+                    "/station/:station_id" => Get: PageType::Dynamic(station_detail_proto),
                 },
             }
         },

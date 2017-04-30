@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+enum Direction {
+  UPTOWN = 0;
+  DOWNTOWN = 1;
+}
+
+message LineArrivals {
+  optional string line = 1;
+  optional Direction direction = 2;
+  repeated int32 timestamp = 3;
+}
+
+message StationStatus {
+  optional string name = 1;
+  repeated LineArrivals line = 2;
+}
