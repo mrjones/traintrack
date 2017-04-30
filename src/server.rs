@@ -149,7 +149,8 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 
     context.set_val("now", Value::Num(chrono::UTC::now().timestamp() as f32));
 
-    let trains_by_route = utils::all_upcoming_trains(&station_id, &feed.feed);
+    let trains_by_route =
+        utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
     context.set_val(
         "routes",
         Value::Array(trains_by_route.iter().filter_map(|(ref route, ref trains)| {
@@ -242,7 +243,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         ("R", "R29"), // MetroTech
     ];
     for (route, stop) in pois {
-        let trains = utils::upcoming_trains(route, stop, &feed.feed);
+        let trains = utils::upcoming_trains(route, stop, &feed.feed, &tt_context.stops);
         station_infos.push(StationInfo{
             line: route.to_string(),
             stop_id: stop.to_string(),

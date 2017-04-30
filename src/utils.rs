@@ -4,6 +4,7 @@ extern crate std;
 use chrono::TimeZone;
 
 use gtfs_realtime;
+use stops;
 
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Direction {
@@ -22,12 +23,31 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
-    let mut all_trains = all_upcoming_trains(stop_id, feed);
+pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
+    let mut all_trains = all_upcoming_trains(stop_id, feed, stops);
     return all_trains.remove(route).unwrap_or(std::collections::BTreeMap::new());
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
+fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) -> bool {
+    return candidate_id == desired_id ||
+        candidate_id == format!("{}N", desired_id) ||
+        candidate_id == format!("{}S", desired_id);
+    /*
+    Not useful unless StopsLogic==GTFS in stops.rs
+
+    if candidate_id == desired_id {
+        return true;
+    }
+
+    return match stops.lookup_by_id(candidate_id)
+        .and_then(|info| info.parent_id.as_ref()) {
+            None => false,
+            Some(parent_id) => parent_id == desired_id,
+        }
+     */
+}
+
+pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> = std::collections::BTreeMap::new();
 
     for entity in feed.get_entity() {
@@ -36,9 +56,7 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage) -> 
             let trip = trip_update.get_trip();
 
             for stop_time_update in trip_update.get_stop_time_update() {
-                if (stop_time_update.get_stop_id() == stop_id) ||
-                    (stop_time_update.get_stop_id() == format!("{}N", stop_id)) ||
-                    (stop_time_update.get_stop_id() == format!("{}S", stop_id)) {
+                if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
                     let direction = infer_direction_for_trip_id(trip.get_trip_id());
                     let timestamp = chrono::UTC.timestamp(
                         stop_time_update.get_arrival().get_time(), 0);
