@@ -147,8 +147,26 @@ fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Contex
         result::TTError::Uncategorized(
             format!("No station with ID {}", station_id)))?;
 
+    let feed = tt_context.feed()?;
+    let trains_by_route =
+        utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
+
     let mut response = webclient_api::StationStatus::new();
     response.set_name(station.name.clone());
+
+    for (route_id, trains) in trains_by_route.iter() {
+        for (direction, stop_times) in trains.iter() {
+            let mut line = webclient_api::LineArrivals::new();
+            line.set_line(route_id.clone());
+            line.set_direction(match direction {
+                &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
+                &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
+            });
+            line.set_timestamp(stop_times.iter().map(chrono::datetime::DateTime::timestamp).collect());
+
+            response.mut_line().push(line);
+        }
+    }
 
     return api_response(&response, tt_context, &rustful_context);
 }

@@ -8,7 +8,7 @@ enum Direction {
 message LineArrivals {
   optional string line = 1;
   optional Direction direction = 2;
-  repeated int32 timestamp = 3;
+  repeated int64 timestamp = 3;
 }
 
 message StationStatus {
