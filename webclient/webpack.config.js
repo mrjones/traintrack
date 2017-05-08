@@ -8,7 +8,10 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' }
+      {
+        test: /\.tsx?$/,
+        loader: 'awesome-typescript-loader',
+      },
     ]
   }
 }
