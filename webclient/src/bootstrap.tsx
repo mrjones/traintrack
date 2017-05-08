@@ -11,13 +11,19 @@ class StationBoard extends React.Component<IStationBoardProps, undefined> {
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
+        /*
         console.log("Deserializing: " + this.responseText);
         const a = proto.LineArrivals.deserializeBinary(this.responseText);
-        a.setLine("foo");
-        console.log(a.toString());
+         */
+
+        const bytes = new Uint8Array(xhr.response);
+        const data = proto.StationStatus.deserializeBinary(bytes);
+        
+        console.log("Fetched station: [" + data.getName() + "]");
       }
     };
-    xhr.open("GET", "http://linode.mrjon.es:3838/api/station/R20");
+    xhr.responseType = 'arraybuffer';
+    xhr.open("GET", "http://localhost:3838/api/station/R20");
     xhr.send();
 
     return (<div>

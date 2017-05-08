@@ -1,3 +1,4 @@
+extern crate base64;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate liquid;
@@ -134,7 +135,10 @@ fn api_response<M: protobuf::Message>(data: &M, tt_context: &TTContext, rustful_
     match format.as_ref().map(String::as_ref) {
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => return Ok(protobuf_json::proto_to_json(data).to_string().as_bytes().to_vec()),
-        _ => return data.write_to_bytes().map_err(|x| result::TTError::ProtobufError(x)),
+        _ => {
+            let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
+            return r;
+        }
     }
 
 }
@@ -152,8 +156,12 @@ fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Contex
         utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
 
     let mut response = webclient_api::StationStatus::new();
+//    response.set_name("PROTO".to_string());
+//    let mut line = webclient_api::LineArrivals::new();
+//    line.set_line("LINE".to_string());
+//    response.mut_line().push(line);
+    
     response.set_name(station.name.clone());
-
     for (route_id, trains) in trains_by_route.iter() {
         for (direction, stop_times) in trains.iter() {
             let mut line = webclient_api::LineArrivals::new();
