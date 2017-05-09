@@ -2,13 +2,45 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import './webclient_api_pb';
 
-interface IStationBoardProps {
-  stationName: string;
+class StationLineProps {
+  data: proto.LineArrivals;
 };
 
-class StationBoard extends React.Component<IStationBoardProps, undefined> {
-  public render() {
+class StationLine extends React.Component<StationLineProps, undefined> {
+  constructor(props: StationLineProps) {
+    super(props);
+  };
+
+  render() {
+    const arrivals = this.props.data.getTimestampList().map(
+      (ts: number) => { return <li>{ts}</li> }
+    );
+
+    return (
+      <div>
+        <b>{this.props.data.getLine()} - {this.props.data.getDirection()}</b>
+        <ul>{arrivals}</ul>
+      </div>);
+  }
+};
+
+interface StationBoardState {
+  stationName: string;
+  data: proto.StationStatus;
+};
+
+class StationBoard extends React.Component<any, StationBoardState> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      stationName: "Loading...",
+      data: new proto.StationStatus(),
+    };
+  }
+
+  public componentDidMount() {
     const xhr = new XMLHttpRequest();
+    const component = this;
     xhr.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
         /*
@@ -20,15 +52,25 @@ class StationBoard extends React.Component<IStationBoardProps, undefined> {
         const data = proto.StationStatus.deserializeBinary(bytes);
         
         console.log("Fetched station: [" + data.getName() + "]");
+        component.setState({
+          stationName: data.getName(),
+          data: data,
+        });
       }
     };
     xhr.responseType = 'arraybuffer';
     xhr.open("GET", "http://localhost:3838/api/station/R20");
-    xhr.send();
-
+    xhr.send();    
+  }
+  
+  public render() {
+    var lineSet = this.state.data.getLineList().map(
+      (line: proto.LineArrivals) => { return <StationLine data={line} /> });
+    
     return (<div>
   <h1>StationBoard</h1>
-  Station name = {this.props.stationName}
+  Station name = {this.state.stationName}
+  {lineSet}
     </div>);
   };
 }

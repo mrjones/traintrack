@@ -26,14 +26,14 @@ declare namespace proto {
 
         public addLine(line: LineArrivals): void;
         public setLineList(lines: LineArrivals[]): void;
-        public getTimestampList(): LineArrivals[];
+        public getLineList(): LineArrivals[];
     }
 
     namespace LineArrivals {
-        export function deserializeBinary(b: string): LineArrivals;
+        export function deserializeBinary(b: Uint8Array): LineArrivals;
     }
 
     namespace StationStatus {
-        export function deserializeBinary(b: string): LineArrivals;
+        export function deserializeBinary(b: Uint8Array): StationStatus;
     }
 }
