@@ -1,6 +1,19 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import * as moment from "moment";
 import './webclient_api_pb';
+
+function directionName(direction: proto.Direction): string {
+  switch (direction) {
+    case proto.Direction.UPTOWN:
+      return "Uptown";
+    case proto.Direction.DOWNTOWN:
+      return "Downtown";
+    default:
+      console.log("Unknown Direction: " + direction);
+      return "" + direction;
+  }
+}
 
 class StationLineProps {
   data: proto.LineArrivals;
@@ -13,12 +26,21 @@ class StationLine extends React.Component<StationLineProps, undefined> {
 
   render() {
     const arrivals = this.props.data.getTimestampList().map(
-      (ts: number) => { return <li>{ts}</li> }
+      (ts: number) => {
+        const time = moment.unix(ts);
+
+        let timeNode;
+        if (time > moment()) {
+          return <li key={ts}>{time.format("LT")}</li>;
+        } else {
+          return <li key={ts}><s>{time.format("LT")}</s></li>;
+        }
+      }
     );
 
     return (
       <div>
-        <b>{this.props.data.getLine()} - {this.props.data.getDirection()}</b>
+        <b>{this.props.data.getLine()} - {directionName(this.props.data.getDirection())}</b>
         <ul>{arrivals}</ul>
       </div>);
   }
