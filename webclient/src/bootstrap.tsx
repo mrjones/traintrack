@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as moment from "moment";
-import './webclient_api_pb';
+import * as proto from './webclient_api_pb';
 
 function directionName(direction: proto.Direction): string {
   switch (direction) {
@@ -25,7 +25,7 @@ class StationLine extends React.Component<StationLineProps, undefined> {
   };
 
   render() {
-    const arrivals = this.props.data.getTimestampList().map(
+    const arrivals = this.props.data.timestamp.map(
       (ts: number) => {
         const time = moment.unix(ts);
 
@@ -40,7 +40,7 @@ class StationLine extends React.Component<StationLineProps, undefined> {
 
     return (
       <div>
-        <b>{this.props.data.getLine()} - {directionName(this.props.data.getDirection())}</b>
+        <b>{this.props.data.line} - {directionName(this.props.data.direction)}</b>
         <ul>{arrivals}</ul>
       </div>);
   }
@@ -71,11 +71,12 @@ class StationBoard extends React.Component<any, StationBoardState> {
          */
 
         const bytes = new Uint8Array(xhr.response);
-        const data = proto.StationStatus.deserializeBinary(bytes);
+        //        const data = proto.StationStatus.deserializeBinary(bytes);
+        const data = proto.StationStatus.decode(bytes);
         
-        console.log("Fetched station: [" + data.getName() + "]");
+        console.log("Fetched station: [" + data.name + "]");
         component.setState({
-          stationName: data.getName(),
+          stationName: data.name,
           data: data,
         });
       }
@@ -86,7 +87,7 @@ class StationBoard extends React.Component<any, StationBoardState> {
   }
   
   public render() {
-    var lineSet = this.state.data.getLineList().map(
+    var lineSet = this.state.data.line.map(
       (line: proto.LineArrivals) => { return <StationLine data={line} /> });
     
     return (<div>

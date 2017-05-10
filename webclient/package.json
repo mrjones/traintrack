@@ -5,7 +5,7 @@
     "@types/react-dom": "^0.14.23",
     "google-protobuf": "^3.2.0",
     "moment": "^2.18.1",
-    "protobufjs": "^6.7.3",
+    "protobufjs": "git+https://github.com/dcodeIO/protobuf.js.git",
     "react": "^15.4.2",
     "react-dom": "^15.4.2"
   },
