@@ -3,41 +3,70 @@ import * as ReactDOM from "react-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
-class OneStationViewState {
-  displayedStationId: string;
-  inputStationId: string;
+class StationPickerState {
+  currentText: string;
 };
 
-class OneStationView extends React.Component<any, OneStationViewState> {
-  constructor(props: any) {
+class StationPickerProps {
+  initialStationId: string;
+  stationPickedFn: (newStation: string) => void;
+}
+
+class StationPicker extends React.Component<StationPickerProps, StationPickerState> {
+  constructor(props: StationPickerProps) {
     super(props);
 
-    this.state ={
-      displayedStationId: "R20",
-      inputStationId: "R20",
-    };
+    this.state = {
+      currentText: props.initialStationId,
+    }
   }
 
   handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("XXX HandleSubmit: " + this.state.inputStationId);
-    this.setState({displayedStationId: this.state.inputStationId});
+    this.props.stationPickedFn(this.state.currentText);
   }
 
-  handleStationTextChanged(e: React.FormEvent<HTMLInputElement>) {
-    console.log("XXX HandleTextChanged");
-    const newId = e.currentTarget.value
-    this.setState({inputStationId: newId});
+  handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
+    this.setState({currentText: e.currentTarget.value});
   }
 
   render() {
     return (<div>
   <form onSubmit={this.handleSubmit.bind(this)}>
-    <input id="stationIdBox" type="text" value={this.state.inputStationId} onChange={this.handleStationTextChanged.bind(this)} />
+    <input id="stationIdBox" type="text" value={this.state.currentText} onChange={this.handleCurrentTextChanged.bind(this)} />
     <input type="submit" />
   </form>
-  <span>Station is: {this.state.displayedStationId}</span>
-  <StationBoard stationId={this.state.displayedStationId} />
+  <span>Station is: {this.state.currentText}</span>
+    </div>);
+  }
+
+}
+
+class OneStationViewProps {
+  initialStationId: string;
+}
+
+class OneStationViewState {
+  displayedStationId: string;
+};
+
+class OneStationView extends React.Component<OneStationViewProps, OneStationViewState> {
+  constructor(props: OneStationViewProps) {
+    super(props);
+
+    this.state ={
+      displayedStationId: props.initialStationId,
+    };
+  }
+
+  handleStationChanged(newStationId: string) {
+    this.setState({displayedStationId: newStationId});
+  }
+
+  render() {
+    return (<div>
+      <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} />
+      <StationBoard stationId={this.state.displayedStationId} />
     </div>);
   }
 }
@@ -166,6 +195,6 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 
 ReactDOM.render(
   <div>
-    <OneStationView stationId="R20"/>
+    <OneStationView initialStationId="R32"/>
   </div>,
   document.getElementById('tt_app'));
