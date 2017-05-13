@@ -48,12 +48,29 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   }
 
   render() {
+    let i = 0;
+    const max = 10;
+    let done = false;
+    let stationLis = this.state.allStations.station.map(
+      (station: proto.Station) => {
+        if (station.name.toLowerCase().includes(this.state.currentText.toLowerCase())) {
+          if (i++ < max && !done) {
+            return <li key={station.id} onClick={() => this.props.stationPickedFn(station.id)}>{station.name}</li>;
+          } else if (!done) {
+            done = true;
+            return <li>...</li>;
+          }
+        }
+      });
+
+
+
     return (<div>
   <form onSubmit={this.handleSubmit.bind(this)}>
     <input id="stationIdBox" type="text" value={this.state.currentText} onChange={this.handleCurrentTextChanged.bind(this)} />
     <input type="submit" />
   </form>
-  <span>Station is: {this.state.currentText}</span>
+  <ul>{stationLis}</ul>
     </div>);
   }
 
