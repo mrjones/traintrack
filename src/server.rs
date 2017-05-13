@@ -143,7 +143,7 @@ fn api_response<M: protobuf::Message>(data: &M, tt_context: &TTContext, rustful_
 
 }
 
-fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
     let station_id = station_id.into_owned();
@@ -160,7 +160,7 @@ fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Contex
 //    let mut line = webclient_api::LineArrivals::new();
 //    line.set_line("LINE".to_string());
 //    response.mut_line().push(line);
-    
+
     response.set_name(station.name.clone());
     for (route_id, trains) in trains_by_route.iter() {
         for (direction, stop_times) in trains.iter() {
@@ -174,6 +174,18 @@ fn station_detail_proto(tt_context: &TTContext, rustful_context: rustful::Contex
 
             response.mut_line().push(line);
         }
+    }
+
+    return api_response(&response, tt_context, &rustful_context);
+}
+
+fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let mut response = webclient_api::StationList::new();
+    for &ref stop in tt_context.stops.iter() {
+        let mut station = webclient_api::Station::new();
+        station.set_name(stop.name.clone());
+        station.set_id(stop.id.clone());
+        response.mut_station().push(station);
     }
 
     return api_response(&response, tt_context, &rustful_context);
@@ -492,7 +504,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
                 "/webclient.js" => Get: PageType::new_static_page(
                     "./webclient/bin/webclient.js"),
                 "/api" => {
-                    "/station/:station_id" => Get: PageType::Dynamic(station_detail_proto),
+                    "/station/:station_id" => Get: PageType::Dynamic(station_detail_api),
+                    "/stations" => Get: PageType::Dynamic(station_list_api),
                 },
             }
         },

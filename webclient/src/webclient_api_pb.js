@@ -465,4 +465,360 @@ $root.StationStatus = (function() {
     return StationStatus;
 })();
 
+$root.Station = (function() {
+
+    /**
+     * Properties of a Station.
+     * @exports IStation
+     * @interface IStation
+     * @property {string} [id] Station id
+     * @property {string} [name] Station name
+     */
+
+    /**
+     * Constructs a new Station.
+     * @exports Station
+     * @classdesc Represents a Station.
+     * @constructor
+     * @param {IStation=} [properties] Properties to set
+     */
+    function Station(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Station id.
+     * @type {string}
+     */
+    Station.prototype.id = "";
+
+    /**
+     * Station name.
+     * @type {string}
+     */
+    Station.prototype.name = "";
+
+    /**
+     * Creates a new Station instance using the specified properties.
+     * @param {IStation=} [properties] Properties to set
+     * @returns {Station} Station instance
+     */
+    Station.create = function create(properties) {
+        return new Station(properties);
+    };
+
+    /**
+     * Encodes the specified Station message. Does not implicitly {@link Station.verify|verify} messages.
+     * @param {IStation} message Station message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Station.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.id != null && message.hasOwnProperty("id"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+        if (message.name != null && message.hasOwnProperty("name"))
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified Station message, length delimited. Does not implicitly {@link Station.verify|verify} messages.
+     * @param {IStation} message Station message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Station.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a Station message from the specified reader or buffer.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {Station} Station
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Station.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.Station();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.id = reader.string();
+                break;
+            case 2:
+                message.name = reader.string();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a Station message from the specified reader or buffer, length delimited.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {Station} Station
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Station.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a Station message.
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Station.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.id != null && message.hasOwnProperty("id"))
+            if (!$util.isString(message.id))
+                return "id: string expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+            if (!$util.isString(message.name))
+                return "name: string expected";
+        return null;
+    };
+
+    /**
+     * Creates a Station message from a plain object. Also converts values to their respective internal types.
+     * @param {Object.<string,*>} object Plain object
+     * @returns {Station} Station
+     */
+    Station.fromObject = function fromObject(object) {
+        if (object instanceof $root.Station)
+            return object;
+        var message = new $root.Station();
+        if (object.id != null)
+            message.id = String(object.id);
+        if (object.name != null)
+            message.name = String(object.name);
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a Station message. Also converts values to other types if specified.
+     * @param {Station} message Station
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Station.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.id = "";
+            object.name = "";
+        }
+        if (message.id != null && message.hasOwnProperty("id"))
+            object.id = message.id;
+        if (message.name != null && message.hasOwnProperty("name"))
+            object.name = message.name;
+        return object;
+    };
+
+    /**
+     * Converts this Station to JSON.
+     * @returns {Object.<string,*>} JSON object
+     */
+    Station.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return Station;
+})();
+
+$root.StationList = (function() {
+
+    /**
+     * Properties of a StationList.
+     * @exports IStationList
+     * @interface IStationList
+     * @property {Array.<IStation>} [station] StationList station
+     */
+
+    /**
+     * Constructs a new StationList.
+     * @exports StationList
+     * @classdesc Represents a StationList.
+     * @constructor
+     * @param {IStationList=} [properties] Properties to set
+     */
+    function StationList(properties) {
+        this.station = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * StationList station.
+     * @type {Array.<IStation>}
+     */
+    StationList.prototype.station = $util.emptyArray;
+
+    /**
+     * Creates a new StationList instance using the specified properties.
+     * @param {IStationList=} [properties] Properties to set
+     * @returns {StationList} StationList instance
+     */
+    StationList.create = function create(properties) {
+        return new StationList(properties);
+    };
+
+    /**
+     * Encodes the specified StationList message. Does not implicitly {@link StationList.verify|verify} messages.
+     * @param {IStationList} message StationList message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    StationList.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.station != null && message.station.length)
+            for (var i = 0; i < message.station.length; ++i)
+                $root.Station.encode(message.station[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified StationList message, length delimited. Does not implicitly {@link StationList.verify|verify} messages.
+     * @param {IStationList} message StationList message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    StationList.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a StationList message from the specified reader or buffer.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {StationList} StationList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    StationList.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.StationList();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                if (!(message.station && message.station.length))
+                    message.station = [];
+                message.station.push($root.Station.decode(reader, reader.uint32()));
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a StationList message from the specified reader or buffer, length delimited.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {StationList} StationList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    StationList.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a StationList message.
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    StationList.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.station != null && message.hasOwnProperty("station")) {
+            if (!Array.isArray(message.station))
+                return "station: array expected";
+            for (var i = 0; i < message.station.length; ++i) {
+                var error = $root.Station.verify(message.station[i]);
+                if (error)
+                    return "station." + error;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Creates a StationList message from a plain object. Also converts values to their respective internal types.
+     * @param {Object.<string,*>} object Plain object
+     * @returns {StationList} StationList
+     */
+    StationList.fromObject = function fromObject(object) {
+        if (object instanceof $root.StationList)
+            return object;
+        var message = new $root.StationList();
+        if (object.station) {
+            if (!Array.isArray(object.station))
+                throw TypeError(".StationList.station: array expected");
+            message.station = [];
+            for (var i = 0; i < object.station.length; ++i) {
+                if (typeof object.station[i] !== "object")
+                    throw TypeError(".StationList.station: object expected");
+                message.station[i] = $root.Station.fromObject(object.station[i]);
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a StationList message. Also converts values to other types if specified.
+     * @param {StationList} message StationList
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    StationList.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.station = [];
+        if (message.station && message.station.length) {
+            object.station = [];
+            for (var j = 0; j < message.station.length; ++j)
+                object.station[j] = $root.Station.toObject(message.station[j], options);
+        }
+        return object;
+    };
+
+    /**
+     * Converts this StationList to JSON.
+     * @returns {Object.<string,*>} JSON object
+     */
+    StationList.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return StationList;
+})();
+
 module.exports = $root;

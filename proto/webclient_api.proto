@@ -15,3 +15,12 @@ message StationStatus {
   optional string name = 1;
   repeated LineArrivals line = 2;
 }
+
+message Station {
+  optional string id = 1;
+  optional string name = 2;
+}
+
+message StationList {
+  repeated Station station = 1;
+}

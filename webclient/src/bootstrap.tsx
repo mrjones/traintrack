@@ -5,6 +5,7 @@ import * as proto from './webclient_api_pb';
 
 class StationPickerState {
   currentText: string;
+  allStations: proto.StationList;
 };
 
 class StationPickerProps {
@@ -18,11 +19,27 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
 
     this.state = {
       currentText: props.initialStationId,
+      allStations: new proto.StationList(),
     }
+  }
+
+  componentDidMount() {
+    fetch("/api/stations").then((response: Response) => {
+      return response.arrayBuffer();
+    }).then((bodyBuffer: ArrayBuffer) => {
+      const bodyBytes = new Uint8Array(bodyBuffer);
+      const stationList = proto.StationList.decode(bodyBytes);
+      this.setState({allStations: stationList});
+    });
   }
 
   handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    for (let station of this.state.allStations.station) {
+      if (station.id == this.state.currentText) {
+        console.log("Matched: " + station.name);
+      }
+    }
     this.props.stationPickedFn(this.state.currentText);
   }
 
