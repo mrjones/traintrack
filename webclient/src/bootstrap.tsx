@@ -4,7 +4,8 @@ import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
 class StationPickerState {
-  currentText: string;
+  currentJumpText: string;
+  currentFilterText: string;
   allStations: proto.StationList;
 };
 
@@ -18,7 +19,8 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
     super(props);
 
     this.state = {
-      currentText: props.initialStationId,
+      currentJumpText: props.initialStationId,
+      currentFilterText: "",
       allStations: new proto.StationList(),
     }
   }
@@ -36,15 +38,25 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     for (let station of this.state.allStations.station) {
-      if (station.id == this.state.currentText) {
+      if (station.id == this.state.currentJumpText) {
         console.log("Matched: " + station.name);
       }
     }
-    this.props.stationPickedFn(this.state.currentText);
+    this.props.stationPickedFn(this.state.currentJumpText);
   }
 
   handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
-    this.setState({currentText: e.currentTarget.value});
+    this.setState({currentJumpText: e.currentTarget.value});
+  }
+
+  handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
+    this.setState({currentFilterText: e.currentTarget.value});
+  }
+
+  stationClicked(station: proto.Station,
+                 e: React.FormEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    this.props.stationPickedFn(station.id);
   }
 
   render() {
@@ -53,9 +65,9 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
     let done = false;
     let stationLis = this.state.allStations.station.map(
       (station: proto.Station) => {
-        if (station.name.toLowerCase().includes(this.state.currentText.toLowerCase())) {
+        if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
-            return <li key={station.id} onClick={() => this.props.stationPickedFn(station.id)}>{station.name}</li>;
+            return <li key={station.id}><a href="#" onClick={this.stationClicked.bind(this, station)}>{station.name}</a></li>;
           } else if (!done) {
             done = true;
             return <li>...</li>;
@@ -63,13 +75,12 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
         }
       });
 
-
-
     return (<div>
   <form onSubmit={this.handleSubmit.bind(this)}>
-    <input id="stationIdBox" type="text" value={this.state.currentText} onChange={this.handleCurrentTextChanged.bind(this)} />
-    <input type="submit" />
+    <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
+    <input type="submit" value="Jump"/>
   </form>
+  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter"/>
   <ul>{stationLis}</ul>
     </div>);
   }
