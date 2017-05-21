@@ -1,5 +1,7 @@
+import * as History from "history";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
@@ -67,7 +69,8 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
       (station: proto.Station) => {
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
-            return <li key={station.id}><a href="#" onClick={this.stationClicked.bind(this, station)}>{station.name}</a></li>;
+//            return <li key={station.id}><a href="#" onClick={this.stationClicked.bind(this, station)}>{station.name}</a></li>;
+            return <li key={station.id}><ReactRouter.Link to={`/singlepage/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
           } else if (!done) {
             done = true;
             return <li>...</li>;
@@ -84,7 +87,15 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   <ul>{stationLis}</ul>
     </div>);
   }
+}
 
+class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
+  render() {
+    return <div>
+      <p>ROUTER PROXY HACK: {this.props.match.params.initialStationId}</p>
+      <OneStationView initialStationId={this.props.match.params.initialStationId} />
+    </div>
+  }
 }
 
 class OneStationViewProps {
@@ -92,6 +103,7 @@ class OneStationViewProps {
 }
 
 class OneStationViewState {
+  stationIdAtLoad: string;
   displayedStationId: string;
 };
 
@@ -100,12 +112,22 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
     super(props);
 
     this.state ={
+      stationIdAtLoad: props.initialStationId,
       displayedStationId: props.initialStationId,
     };
   }
 
   handleStationChanged(newStationId: string) {
     this.setState({displayedStationId: newStationId});
+  }
+
+  public componentDidUpdate() {
+    if (this.props.initialStationId != this.state.stationIdAtLoad) {
+      this.setState({
+        stationIdAtLoad: this.props.initialStationId,
+        displayedStationId: this.props.initialStationId,
+      });
+    }
   }
 
   render() {
@@ -239,7 +261,12 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 }
 
 ReactDOM.render(
-  <div>
-    <OneStationView initialStationId="R32"/>
-  </div>,
+  <ReactRouter.BrowserRouter>
+    <ReactRouter.Switch>
+      <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
+      <ReactRouter.Route path='/singlepage/'>
+        <OneStationView initialStationId="R32" />
+      </ReactRouter.Route>
+    </ReactRouter.Switch>
+  </ReactRouter.BrowserRouter>,
   document.getElementById('tt_app'));

@@ -501,6 +501,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
                     format!("{}/hack559.js", static_dir)),
                 "/singlepage" => Get: PageType::new_static_page(
                     format!("{}/singlepage.html", static_dir)),
+                "/singlepage/*" => Get: PageType::new_static_page(
+                    format!("{}/singlepage.html", static_dir)),
                 "/webclient.js" => Get: PageType::new_static_page(
                     "./webclient/bin/webclient.js"),
                 "/api" => {
