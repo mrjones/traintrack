@@ -6,7 +6,7 @@ kind: Deployment
 metadata:
   name: traintrack
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -28,3 +28,8 @@ spec:
           "--mta-api-key", "$(MTA_API_KEY)",
           "--proxy-url", "http://$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_HOST):$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_PORT)",
         ]
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3837  # TODO(mrjones): get this from dockerfile?
+          periodSeconds: 60
