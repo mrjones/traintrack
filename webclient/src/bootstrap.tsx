@@ -1,19 +1,20 @@
-import * as History from "history";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
+import DataFetcher from './datafetcher';
+
 class StationPickerState {
-  currentJumpText: string;
-  currentFilterText: string;
-  allStations: proto.StationList;
+  public currentJumpText: string;
+  public currentFilterText: string;
+  public allStations: proto.StationList;
 };
 
 class StationPickerProps {
-  initialStationId: string;
-  stationPickedFn: (newStation: string) => void;
+  public initialStationId: string;
+  public stationPickedFn: (newStation: string) => void;
 }
 
 class StationPicker extends React.Component<StationPickerProps, StationPickerState> {
@@ -24,44 +25,35 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
       currentJumpText: props.initialStationId,
       currentFilterText: "",
       allStations: new proto.StationList(),
-    }
+    };
   }
 
-  componentDidMount() {
-    fetch("/api/stations").then((response: Response) => {
-      return response.arrayBuffer();
-    }).then((bodyBuffer: ArrayBuffer) => {
-      const bodyBytes = new Uint8Array(bodyBuffer);
-      const stationList = proto.StationList.decode(bodyBytes);
+  public componentDidMount() {
+    let fetcher = new DataFetcher();
+    fetcher.fetchStationList().then((stationList: proto.StationList) => {
       this.setState({allStations: stationList});
     });
   }
 
-  handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  private handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     for (let station of this.state.allStations.station) {
-      if (station.id == this.state.currentJumpText) {
+      if (station.id === this.state.currentJumpText) {
         console.log("Matched: " + station.name);
       }
     }
     this.props.stationPickedFn(this.state.currentJumpText);
   }
 
-  handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
+  private handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
     this.setState({currentJumpText: e.currentTarget.value});
   }
 
-  handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
+  private handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
     this.setState({currentFilterText: e.currentTarget.value});
   }
 
-  stationClicked(station: proto.Station,
-                 e: React.FormEvent<HTMLAnchorElement>) {
-    e.preventDefault();
-    this.props.stationPickedFn(station.id);
-  }
-
-  render() {
+  public render() {
     let i = 0;
     const max = 10;
     let done = false;
@@ -69,7 +61,7 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
       (station: proto.Station) => {
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
-//            return <li key={station.id}><a href="#" onClick={this.stationClicked.bind(this, station)}>{station.name}</a></li>;
+            // TODO(mrjones): Inject the link URL for flexibility
             return <li key={station.id}><ReactRouter.Link to={`/singlepage/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
           } else if (!done) {
             done = true;
@@ -90,21 +82,21 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
 }
 
 class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  render() {
+  public render() {
     return <div>
-      <p>ROUTER PROXY HACK: {this.props.match.params.initialStationId}</p>
       <OneStationView initialStationId={this.props.match.params.initialStationId} />
     </div>
   }
 }
 
 class OneStationViewProps {
-  initialStationId: string;
+  public initialStationId: string;
 }
 
 class OneStationViewState {
-  stationIdAtLoad: string;
-  displayedStationId: string;
+  public stationIdAtLoad: string;
+  public displayedStationId: string;
+  public stationPickerDisplayed: boolean;
 };
 
 class OneStationView extends React.Component<OneStationViewProps, OneStationViewState> {
@@ -114,10 +106,11 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
     this.state ={
       stationIdAtLoad: props.initialStationId,
       displayedStationId: props.initialStationId,
+      stationPickerDisplayed: false,
     };
   }
 
-  handleStationChanged(newStationId: string) {
+  private handleStationChanged(newStationId: string) {
     this.setState({displayedStationId: newStationId});
   }
 
@@ -130,9 +123,22 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
     }
   }
 
-  render() {
+  private toggleStationPicker() {
+    this.setState({stationPickerDisplayed: !this.state.stationPickerDisplayed});
+  }
+
+  public render() {
+    let stationPicker;
+    let stationPickerToggle;
+    if (this.state.stationPickerDisplayed) {
+      stationPicker = <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} />;
+      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Hide picker</a>
+    } else {
+      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Pick another station</a>
+    }
     return (<div>
-      <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} />
+      {stationPickerToggle}
+      {stationPicker}
       <StationBoard stationId={this.state.displayedStationId} />
     </div>);
   }
@@ -151,7 +157,7 @@ function directionName(direction: proto.Direction): string {
 }
 
 class StationLineProps {
-  data: proto.LineArrivals;
+  public data: proto.LineArrivals;
 };
 
 class StationLine extends React.Component<StationLineProps, undefined> {
@@ -159,14 +165,13 @@ class StationLine extends React.Component<StationLineProps, undefined> {
     super(props);
   };
 
-  render() {
+  public render() {
     const arrivals = this.props.data.timestamp.map(
       (ts: number) => {
         const time = moment.unix(ts);
 
-        let timeNode;
         if (time > moment()) {
-          return <li key={ts}>{time.format("LT")}</li>;
+          return <li key={ts}>{time.format("LT")} ({time.fromNow()})</li>;
         } else {
           return <li key={ts}><s>{time.format("LT")}</s></li>;
         }
@@ -181,14 +186,14 @@ class StationLine extends React.Component<StationLineProps, undefined> {
   }
 };
 
-interface StationBoardState {
-  stationId: string;
-  stationName: string;
-  data: proto.StationStatus;
+class StationBoardState {
+  public stationId: string;
+  public stationName: string;
+  public data: proto.StationStatus;
 };
 
-interface StationBoardProps {
-  stationId: string;
+class StationBoardProps {
+  public stationId: string;
 }
 
 class StationBoard extends React.Component<StationBoardProps, StationBoardState> {
@@ -206,42 +211,27 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
   }
 
   public componentDidUpdate() {
-    if (this.props.stationId != this.state.stationId) {
+    if (this.props.stationId !== this.state.stationId) {
       this.stationChanged();
     }
   }
 
   private stationChanged() {
-    const xhr = new XMLHttpRequest();
     const component = this;
-    xhr.onreadystatechange = function() {
-      console.log("ajax response");
-      if (this.readyState === 4 && this.status === 200) {
-        /*
-        console.log("Deserializing: " + this.responseText);
-        const a = proto.LineArrivals.deserializeBinary(this.responseText);
-         */
-
-        const bytes = new Uint8Array(xhr.response);
-        //        const data = proto.StationStatus.deserializeBinary(bytes);
-        const data = proto.StationStatus.decode(bytes);
-
-        console.log("XXX Fetched station: [" + data.name + "]");
+    let fetcher = new DataFetcher();
+    fetcher
+      .fetchStationStatus(this.props.stationId)
+      .then((stationStatus: proto.StationStatus) => {
         component.setState({
           stationId: component.props.stationId,
-          stationName: data.name,
-          data: data,
+          stationName: stationStatus.name,
+          data: stationStatus,
         });
-      }
-    };
-    console.log("Fetching " + this.props.stationId);
-    xhr.responseType = 'arraybuffer';
-    xhr.open("GET", "/api/station/" + this.props.stationId);
-    xhr.send();
+      });
   }
 
   public render() {
-    var lineSet = this.state.data.line.map(
+    const lineSet = this.state.data.line.map(
       (line: proto.LineArrivals) => {
         const key = this.props.stationId + "-" + line.line + "-" + line.direction;
         return <StationLine data={line} key={key} />
