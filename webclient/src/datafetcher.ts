@@ -9,6 +9,7 @@ class Cached<T> {
   }
 
   public set(value: T): void {
+    this.valid = true;
     this.value = value;
   }
 
@@ -21,6 +22,8 @@ export default class DataFetcher {
   private stationCache: Cached<proto.StationList>;
 
   public constructor() {
+    console.log("new DataFetcher");
+    this.stationCache = new Cached<proto.StationList>();
   }
 
   public fetchStationStatus(stationId: string): Promise<proto.StationStatus> {
@@ -39,17 +42,20 @@ export default class DataFetcher {
   public fetchStationList(): Promise<proto.StationList> {
     return new Promise<proto.StationList>((resolve: (s: proto.StationList) => void) => {
       if (this.stationCache.valid) {
+        console.log("Using cached station list");
         resolve(this.stationCache.value);
+        return;
+      } else {
+        console.log("Requesting station list");
+        fetch("/api/stations").then((response: Response) => {
+          return response.arrayBuffer();
+        }).then((bodyBuffer: ArrayBuffer) => {
+          const bodyBytes = new Uint8Array(bodyBuffer);
+          const stationList = proto.StationList.decode(bodyBytes);
+          this.stationCache.set(stationList);
+          resolve(stationList);
+        });
       }
-
-      fetch("/api/stations").then((response: Response) => {
-        return response.arrayBuffer();
-      }).then((bodyBuffer: ArrayBuffer) => {
-        const bodyBytes = new Uint8Array(bodyBuffer);
-        const stationList = proto.StationList.decode(bodyBytes);
-        this.stationCache.set(stationList);
-        resolve(stationList);
-      });
     });
   }
 

@@ -15,6 +15,7 @@ class StationPickerState {
 class StationPickerProps {
   public initialStationId: string;
   public stationPickedFn: (newStation: string) => void;
+  public dataFetcher: DataFetcher;
 }
 
 class StationPicker extends React.Component<StationPickerProps, StationPickerState> {
@@ -29,8 +30,7 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   }
 
   public componentDidMount() {
-    let fetcher = new DataFetcher();
-    fetcher.fetchStationList().then((stationList: proto.StationList) => {
+    this.props.dataFetcher.fetchStationList().then((stationList: proto.StationList) => {
       this.setState({allStations: stationList});
     });
   }
@@ -82,15 +82,23 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
 }
 
 class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
+  private dataFetcher: DataFetcher;
+
+  constructor() {
+    super();
+    this.dataFetcher = new DataFetcher();
+  }
+
   public render() {
     return <div>
-      <OneStationView initialStationId={this.props.match.params.initialStationId} />
+      <OneStationView initialStationId={this.props.match.params.initialStationId} dataFetcher={this.dataFetcher} />
     </div>
   }
 }
 
 class OneStationViewProps {
   public initialStationId: string;
+  public dataFetcher: DataFetcher;
 }
 
 class OneStationViewState {
@@ -131,7 +139,7 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
     let stationPicker;
     let stationPickerToggle;
     if (this.state.stationPickerDisplayed) {
-      stationPicker = <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} />;
+      stationPicker = <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} dataFetcher={this.props.dataFetcher} />;
       stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Hide picker</a>
     } else {
       stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Pick another station</a>
@@ -255,7 +263,7 @@ ReactDOM.render(
     <ReactRouter.Switch>
       <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
       <ReactRouter.Route path='/singlepage/'>
-        <OneStationView initialStationId="R32" />
+        <OneStationView initialStationId="R32" dataFetcher={new DataFetcher}/>
       </ReactRouter.Route>
     </ReactRouter.Switch>
   </ReactRouter.BrowserRouter>,
