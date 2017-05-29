@@ -102,7 +102,7 @@ impl Stops {
         return self.stops.get(id);
     }
 
-    pub fn routes(&self) -> Vec<Route> {
+    pub fn lines(&self) -> Vec<Route> {
         return self.routes.clone();
     }
 

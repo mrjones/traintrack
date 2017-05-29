@@ -24,3 +24,12 @@ message Station {
 message StationList {
   repeated Station station = 1;
 }
+
+message Line {
+  optional string name = 1;
+  optional string color_hex = 2;
+}
+
+message LineList {
+  repeated Line line = 1;
+}

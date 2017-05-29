@@ -821,4 +821,360 @@ $root.StationList = (function() {
     return StationList;
 })();
 
+$root.Line = (function() {
+
+    /**
+     * Properties of a Line.
+     * @exports ILine
+     * @interface ILine
+     * @property {string} [name] Line name
+     * @property {string} [colorHex] Line colorHex
+     */
+
+    /**
+     * Constructs a new Line.
+     * @exports Line
+     * @classdesc Represents a Line.
+     * @constructor
+     * @param {ILine=} [properties] Properties to set
+     */
+    function Line(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Line name.
+     * @type {string}
+     */
+    Line.prototype.name = "";
+
+    /**
+     * Line colorHex.
+     * @type {string}
+     */
+    Line.prototype.colorHex = "";
+
+    /**
+     * Creates a new Line instance using the specified properties.
+     * @param {ILine=} [properties] Properties to set
+     * @returns {Line} Line instance
+     */
+    Line.create = function create(properties) {
+        return new Line(properties);
+    };
+
+    /**
+     * Encodes the specified Line message. Does not implicitly {@link Line.verify|verify} messages.
+     * @param {ILine} message Line message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Line.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.name != null && message.hasOwnProperty("name"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
+        if (message.colorHex != null && message.hasOwnProperty("colorHex"))
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.colorHex);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified Line message, length delimited. Does not implicitly {@link Line.verify|verify} messages.
+     * @param {ILine} message Line message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Line.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a Line message from the specified reader or buffer.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {Line} Line
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Line.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.Line();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.name = reader.string();
+                break;
+            case 2:
+                message.colorHex = reader.string();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a Line message from the specified reader or buffer, length delimited.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {Line} Line
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Line.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a Line message.
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Line.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+            if (!$util.isString(message.name))
+                return "name: string expected";
+        if (message.colorHex != null && message.hasOwnProperty("colorHex"))
+            if (!$util.isString(message.colorHex))
+                return "colorHex: string expected";
+        return null;
+    };
+
+    /**
+     * Creates a Line message from a plain object. Also converts values to their respective internal types.
+     * @param {Object.<string,*>} object Plain object
+     * @returns {Line} Line
+     */
+    Line.fromObject = function fromObject(object) {
+        if (object instanceof $root.Line)
+            return object;
+        var message = new $root.Line();
+        if (object.name != null)
+            message.name = String(object.name);
+        if (object.colorHex != null)
+            message.colorHex = String(object.colorHex);
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a Line message. Also converts values to other types if specified.
+     * @param {Line} message Line
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Line.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.name = "";
+            object.colorHex = "";
+        }
+        if (message.name != null && message.hasOwnProperty("name"))
+            object.name = message.name;
+        if (message.colorHex != null && message.hasOwnProperty("colorHex"))
+            object.colorHex = message.colorHex;
+        return object;
+    };
+
+    /**
+     * Converts this Line to JSON.
+     * @returns {Object.<string,*>} JSON object
+     */
+    Line.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return Line;
+})();
+
+$root.LineList = (function() {
+
+    /**
+     * Properties of a LineList.
+     * @exports ILineList
+     * @interface ILineList
+     * @property {Array.<ILine>} [line] LineList line
+     */
+
+    /**
+     * Constructs a new LineList.
+     * @exports LineList
+     * @classdesc Represents a LineList.
+     * @constructor
+     * @param {ILineList=} [properties] Properties to set
+     */
+    function LineList(properties) {
+        this.line = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * LineList line.
+     * @type {Array.<ILine>}
+     */
+    LineList.prototype.line = $util.emptyArray;
+
+    /**
+     * Creates a new LineList instance using the specified properties.
+     * @param {ILineList=} [properties] Properties to set
+     * @returns {LineList} LineList instance
+     */
+    LineList.create = function create(properties) {
+        return new LineList(properties);
+    };
+
+    /**
+     * Encodes the specified LineList message. Does not implicitly {@link LineList.verify|verify} messages.
+     * @param {ILineList} message LineList message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LineList.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.line != null && message.line.length)
+            for (var i = 0; i < message.line.length; ++i)
+                $root.Line.encode(message.line[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified LineList message, length delimited. Does not implicitly {@link LineList.verify|verify} messages.
+     * @param {ILineList} message LineList message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    LineList.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a LineList message from the specified reader or buffer.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {LineList} LineList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LineList.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.LineList();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                if (!(message.line && message.line.length))
+                    message.line = [];
+                message.line.push($root.Line.decode(reader, reader.uint32()));
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a LineList message from the specified reader or buffer, length delimited.
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {LineList} LineList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    LineList.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a LineList message.
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    LineList.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.line != null && message.hasOwnProperty("line")) {
+            if (!Array.isArray(message.line))
+                return "line: array expected";
+            for (var i = 0; i < message.line.length; ++i) {
+                var error = $root.Line.verify(message.line[i]);
+                if (error)
+                    return "line." + error;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Creates a LineList message from a plain object. Also converts values to their respective internal types.
+     * @param {Object.<string,*>} object Plain object
+     * @returns {LineList} LineList
+     */
+    LineList.fromObject = function fromObject(object) {
+        if (object instanceof $root.LineList)
+            return object;
+        var message = new $root.LineList();
+        if (object.line) {
+            if (!Array.isArray(object.line))
+                throw TypeError(".LineList.line: array expected");
+            message.line = [];
+            for (var i = 0; i < object.line.length; ++i) {
+                if (typeof object.line[i] !== "object")
+                    throw TypeError(".LineList.line: object expected");
+                message.line[i] = $root.Line.fromObject(object.line[i]);
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a LineList message. Also converts values to other types if specified.
+     * @param {LineList} message LineList
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    LineList.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.line = [];
+        if (message.line && message.line.length) {
+            object.line = [];
+            for (var j = 0; j < message.line.length; ++j)
+                object.line[j] = $root.Line.toObject(message.line[j], options);
+        }
+        return object;
+    };
+
+    /**
+     * Converts this LineList to JSON.
+     * @returns {Object.<string,*>} JSON object
+     */
+    LineList.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return LineList;
+})();
+
 module.exports = $root;

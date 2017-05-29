@@ -383,6 +383,192 @@ export class StationList {
      */
     public toJSON(): { [k: string]: any };
 }
+
+/** Properties of a Line. */
+export interface ILine {
+
+    /** Line name */
+    name?: string;
+
+    /** Line colorHex */
+    colorHex?: string;
+}
+
+/** Represents a Line. */
+export class Line {
+
+    /**
+     * Constructs a new Line.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: ILine);
+
+    /** Line name. */
+    public name: string;
+
+    /** Line colorHex. */
+    public colorHex: string;
+
+    /**
+     * Creates a new Line instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns Line instance
+     */
+    public static create(properties?: ILine): Line;
+
+    /**
+     * Encodes the specified Line message. Does not implicitly {@link Line.verify|verify} messages.
+     * @param message Line message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: ILine, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified Line message, length delimited. Does not implicitly {@link Line.verify|verify} messages.
+     * @param message Line message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: ILine, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a Line message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns Line
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Line;
+
+    /**
+     * Decodes a Line message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns Line
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): Line;
+
+    /**
+     * Verifies a Line message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a Line message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns Line
+     */
+    public static fromObject(object: { [k: string]: any }): Line;
+
+    /**
+     * Creates a plain object from a Line message. Also converts values to other types if specified.
+     * @param message Line
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: Line, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this Line to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
+
+/** Properties of a LineList. */
+export interface ILineList {
+
+    /** LineList line */
+    line?: ILine[];
+}
+
+/** Represents a LineList. */
+export class LineList {
+
+    /**
+     * Constructs a new LineList.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: ILineList);
+
+    /** LineList line. */
+    public line: ILine[];
+
+    /**
+     * Creates a new LineList instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns LineList instance
+     */
+    public static create(properties?: ILineList): LineList;
+
+    /**
+     * Encodes the specified LineList message. Does not implicitly {@link LineList.verify|verify} messages.
+     * @param message LineList message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: ILineList, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified LineList message, length delimited. Does not implicitly {@link LineList.verify|verify} messages.
+     * @param message LineList message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: ILineList, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a LineList message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns LineList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): LineList;
+
+    /**
+     * Decodes a LineList message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns LineList
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): LineList;
+
+    /**
+     * Verifies a LineList message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a LineList message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns LineList
+     */
+    public static fromObject(object: { [k: string]: any }): LineList;
+
+    /**
+     * Creates a plain object from a LineList message. Also converts values to other types if specified.
+     * @param message LineList
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: LineList, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this LineList to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
 // NOTE: THIS WAS ADDED MANUALLY
 // https://github.com/dcodeIO/protobuf.js/issues/780
 export enum Direction {

@@ -18,12 +18,34 @@ class Cached<T> {
   }
 }
 
-export default class DataFetcher {
+export default class Foo {};
+
+export class DataFetcher {
   private stationCache: Cached<proto.StationList>;
+  private lineListCache: Cached<proto.LineList>;
 
   public constructor() {
     console.log("new DataFetcher");
     this.stationCache = new Cached<proto.StationList>();
+    this.lineListCache = new Cached<proto.LineList>();
+  }
+
+  public fetchLineList(): Promise<proto.LineList> {
+    return new Promise<proto.LineList>((resolve: (l: proto.LineList) => void) => {
+      if (this.stationCache.valid) {
+        resolve(this.lineListCache.value);
+        return;
+      } else {
+        fetch("/api/lines").then((response: Response) => {
+          return response.arrayBuffer();
+        }).then((bodyBuffer: ArrayBuffer) => {
+          const bodyBytes = new Uint8Array(bodyBuffer);
+          const lineList = proto.LineList.decode(bodyBytes);
+          this.lineListCache.set(lineList);
+          resolve(lineList);
+        });
+      }
+    });
   }
 
   public fetchStationStatus(stationId: string): Promise<proto.StationStatus> {

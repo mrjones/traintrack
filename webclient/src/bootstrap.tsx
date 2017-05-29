@@ -4,7 +4,8 @@ import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
-import DataFetcher from './datafetcher';
+import { DataFetcher } from './datafetcher';
+import { LinePickerRouterWrapper } from './navigation';
 
 class StationPickerState {
   public currentJumpText: string;
@@ -242,7 +243,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
     const lineSet = this.state.data.line.map(
       (line: proto.LineArrivals) => {
         const key = this.props.stationId + "-" + line.line + "-" + line.direction;
-        return <StationLine data={line} key={key} />
+        return <StationLine data={line} key={key} />;
       });
 
     return (<div>
@@ -261,9 +262,11 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 ReactDOM.render(
   <ReactRouter.BrowserRouter>
     <ReactRouter.Switch>
+      <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
+      <ReactRouter.Route path='/singlepage/line/:line_id' component={LinePickerRouterWrapper}/>
       <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
       <ReactRouter.Route path='/singlepage/'>
-        <OneStationView initialStationId="R32" dataFetcher={new DataFetcher}/>
+        <OneStationView initialStationId="R32" dataFetcher={new DataFetcher()}/>
       </ReactRouter.Route>
     </ReactRouter.Switch>
   </ReactRouter.BrowserRouter>,

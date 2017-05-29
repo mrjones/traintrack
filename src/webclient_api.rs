@@ -925,6 +925,417 @@ impl ::std::fmt::Debug for StationList {
     }
 }
 
+#[derive(Clone,Default)]
+pub struct Line {
+    // message fields
+    name: ::protobuf::SingularField<::std::string::String>,
+    color_hex: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::std::cell::Cell<u32>,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for Line {}
+
+impl Line {
+    pub fn new() -> Line {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static Line {
+        static mut instance: ::protobuf::lazy::Lazy<Line> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const Line,
+        };
+        unsafe {
+            instance.get(|| {
+                Line {
+                    name: ::protobuf::SingularField::none(),
+                    color_hex: ::protobuf::SingularField::none(),
+                    unknown_fields: ::protobuf::UnknownFields::new(),
+                    cached_size: ::std::cell::Cell::new(0),
+                }
+            })
+        }
+    }
+
+    // optional string name = 1;
+
+    pub fn clear_name(&mut self) {
+        self.name.clear();
+    }
+
+    pub fn has_name(&self) -> bool {
+        self.name.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_name(&mut self, v: ::std::string::String) {
+        self.name = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_name(&mut self) -> &mut ::std::string::String {
+        if self.name.is_none() {
+            self.name.set_default();
+        };
+        self.name.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_name(&mut self) -> ::std::string::String {
+        self.name.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self.name.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    // optional string color_hex = 2;
+
+    pub fn clear_color_hex(&mut self) {
+        self.color_hex.clear();
+    }
+
+    pub fn has_color_hex(&self) -> bool {
+        self.color_hex.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_color_hex(&mut self, v: ::std::string::String) {
+        self.color_hex = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_color_hex(&mut self) -> &mut ::std::string::String {
+        if self.color_hex.is_none() {
+            self.color_hex.set_default();
+        };
+        self.color_hex.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_color_hex(&mut self) -> ::std::string::String {
+        self.color_hex.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_color_hex(&self) -> &str {
+        match self.color_hex.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+}
+
+impl ::protobuf::Message for Line {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !try!(is.eof()) {
+            let (field_number, wire_type) = try!(is.read_tag_unpack());
+            match field_number {
+                1 => {
+                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                },
+                2 => {
+                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.color_hex));
+                },
+                _ => {
+                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        for value in &self.name {
+            my_size += ::protobuf::rt::string_size(1, &value);
+        };
+        for value in &self.color_hex {
+            my_size += ::protobuf::rt::string_size(2, &value);
+        };
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.name.as_ref() {
+            try!(os.write_string(1, &v));
+        };
+        if let Some(v) = self.color_hex.as_ref() {
+            try!(os.write_string(2, &v));
+        };
+        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn type_id(&self) -> ::std::any::TypeId {
+        ::std::any::TypeId::of::<Line>()
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for Line {
+    fn new() -> Line {
+        Line::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<Line>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                    "name",
+                    Line::has_name,
+                    Line::get_name,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                    "color_hex",
+                    Line::has_color_hex,
+                    Line::get_color_hex,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<Line>(
+                    "Line",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for Line {
+    fn clear(&mut self) {
+        self.clear_name();
+        self.clear_color_hex();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::cmp::PartialEq for Line {
+    fn eq(&self, other: &Line) -> bool {
+        self.name == other.name &&
+        self.color_hex == other.color_hex &&
+        self.unknown_fields == other.unknown_fields
+    }
+}
+
+impl ::std::fmt::Debug for Line {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+#[derive(Clone,Default)]
+pub struct LineList {
+    // message fields
+    line: ::protobuf::RepeatedField<Line>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::std::cell::Cell<u32>,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for LineList {}
+
+impl LineList {
+    pub fn new() -> LineList {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static LineList {
+        static mut instance: ::protobuf::lazy::Lazy<LineList> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const LineList,
+        };
+        unsafe {
+            instance.get(|| {
+                LineList {
+                    line: ::protobuf::RepeatedField::new(),
+                    unknown_fields: ::protobuf::UnknownFields::new(),
+                    cached_size: ::std::cell::Cell::new(0),
+                }
+            })
+        }
+    }
+
+    // repeated .Line line = 1;
+
+    pub fn clear_line(&mut self) {
+        self.line.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_line(&mut self, v: ::protobuf::RepeatedField<Line>) {
+        self.line = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_line(&mut self) -> &mut ::protobuf::RepeatedField<Line> {
+        &mut self.line
+    }
+
+    // Take field
+    pub fn take_line(&mut self) -> ::protobuf::RepeatedField<Line> {
+        ::std::mem::replace(&mut self.line, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_line(&self) -> &[Line] {
+        &self.line
+    }
+}
+
+impl ::protobuf::Message for LineList {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !try!(is.eof()) {
+            let (field_number, wire_type) = try!(is.read_tag_unpack());
+            match field_number {
+                1 => {
+                    try!(::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.line));
+                },
+                _ => {
+                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        for value in &self.line {
+            let len = value.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        };
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        for v in &self.line {
+            try!(os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited));
+            try!(os.write_raw_varint32(v.get_cached_size()));
+            try!(v.write_to_with_cached_sizes(os));
+        };
+        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn type_id(&self) -> ::std::any::TypeId {
+        ::std::any::TypeId::of::<LineList>()
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for LineList {
+    fn new() -> LineList {
+        LineList::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<LineList>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_repeated_message_accessor(
+                    "line",
+                    LineList::get_line,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<LineList>(
+                    "LineList",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for LineList {
+    fn clear(&mut self) {
+        self.clear_line();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::cmp::PartialEq for LineList {
+    fn eq(&self, other: &LineList) -> bool {
+        self.line == other.line &&
+        self.unknown_fields == other.unknown_fields
+    }
+}
+
+impl ::std::fmt::Debug for LineList {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
 #[derive(Clone,PartialEq,Eq,Debug,Hash)]
 pub enum Direction {
     UPTOWN = 0,
@@ -987,10 +1398,16 @@ static file_descriptor_proto_data: &'static [u8] = &[
     0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x31, 0x0a, 0x0b, 0x53, 0x74, 0x61, 0x74,
     0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x22, 0x0a, 0x07, 0x73, 0x74, 0x61, 0x74, 0x69,
     0x6f, 0x6e, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x08, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x69,
-    0x6f, 0x6e, 0x52, 0x07, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2a, 0x25, 0x0a, 0x09, 0x44,
+    0x6f, 0x6e, 0x52, 0x07, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x37, 0x0a, 0x04, 0x4c,
+    0x69, 0x6e, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+    0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x63, 0x6f, 0x6c, 0x6f, 0x72,
+    0x5f, 0x68, 0x65, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x63, 0x6f, 0x6c, 0x6f,
+    0x72, 0x48, 0x65, 0x78, 0x22, 0x25, 0x0a, 0x08, 0x4c, 0x69, 0x6e, 0x65, 0x4c, 0x69, 0x73, 0x74,
+    0x12, 0x19, 0x0a, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x05,
+    0x2e, 0x4c, 0x69, 0x6e, 0x65, 0x52, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x2a, 0x25, 0x0a, 0x09, 0x44,
     0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x0a, 0x0a, 0x06, 0x55, 0x50, 0x54, 0x4f,
     0x57, 0x4e, 0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x44, 0x4f, 0x57, 0x4e, 0x54, 0x4f, 0x57, 0x4e,
-    0x10, 0x01, 0x4a, 0x84, 0x06, 0x0a, 0x06, 0x12, 0x04, 0x00, 0x00, 0x19, 0x01, 0x0a, 0x08, 0x0a,
+    0x10, 0x01, 0x4a, 0x83, 0x08, 0x0a, 0x06, 0x12, 0x04, 0x00, 0x00, 0x22, 0x01, 0x0a, 0x08, 0x0a,
     0x01, 0x0c, 0x12, 0x03, 0x00, 0x00, 0x12, 0x0a, 0x0a, 0x0a, 0x02, 0x05, 0x00, 0x12, 0x04, 0x02,
     0x00, 0x05, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x05, 0x00, 0x01, 0x12, 0x03, 0x02, 0x05, 0x0e, 0x0a,
     0x0b, 0x0a, 0x04, 0x05, 0x00, 0x02, 0x00, 0x12, 0x03, 0x03, 0x02, 0x0d, 0x0a, 0x0c, 0x0a, 0x05,
@@ -1038,7 +1455,23 @@ static file_descriptor_proto_data: &'static [u8] = &[
     0x1f, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x03, 0x02, 0x00, 0x04, 0x12, 0x03, 0x18, 0x02, 0x0a, 0x0a,
     0x0c, 0x0a, 0x05, 0x04, 0x03, 0x02, 0x00, 0x06, 0x12, 0x03, 0x18, 0x0b, 0x12, 0x0a, 0x0c, 0x0a,
     0x05, 0x04, 0x03, 0x02, 0x00, 0x01, 0x12, 0x03, 0x18, 0x13, 0x1a, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x03, 0x02, 0x00, 0x03, 0x12, 0x03, 0x18, 0x1d, 0x1e,
+    0x03, 0x02, 0x00, 0x03, 0x12, 0x03, 0x18, 0x1d, 0x1e, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x04, 0x12,
+    0x04, 0x1b, 0x00, 0x1e, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x04, 0x01, 0x12, 0x03, 0x1b, 0x08,
+    0x0c, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x04, 0x02, 0x00, 0x12, 0x03, 0x1c, 0x02, 0x1b, 0x0a, 0x0c,
+    0x0a, 0x05, 0x04, 0x04, 0x02, 0x00, 0x04, 0x12, 0x03, 0x1c, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05,
+    0x04, 0x04, 0x02, 0x00, 0x05, 0x12, 0x03, 0x1c, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04,
+    0x02, 0x00, 0x01, 0x12, 0x03, 0x1c, 0x12, 0x16, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x00,
+    0x03, 0x12, 0x03, 0x1c, 0x19, 0x1a, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x04, 0x02, 0x01, 0x12, 0x03,
+    0x1d, 0x02, 0x20, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x01, 0x04, 0x12, 0x03, 0x1d, 0x02,
+    0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x01, 0x05, 0x12, 0x03, 0x1d, 0x0b, 0x11, 0x0a,
+    0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x01, 0x01, 0x12, 0x03, 0x1d, 0x12, 0x1b, 0x0a, 0x0c, 0x0a,
+    0x05, 0x04, 0x04, 0x02, 0x01, 0x03, 0x12, 0x03, 0x1d, 0x1e, 0x1f, 0x0a, 0x0a, 0x0a, 0x02, 0x04,
+    0x05, 0x12, 0x04, 0x20, 0x00, 0x22, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x05, 0x01, 0x12, 0x03,
+    0x20, 0x08, 0x10, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x05, 0x02, 0x00, 0x12, 0x03, 0x21, 0x02, 0x19,
+    0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x05, 0x02, 0x00, 0x04, 0x12, 0x03, 0x21, 0x02, 0x0a, 0x0a, 0x0c,
+    0x0a, 0x05, 0x04, 0x05, 0x02, 0x00, 0x06, 0x12, 0x03, 0x21, 0x0b, 0x0f, 0x0a, 0x0c, 0x0a, 0x05,
+    0x04, 0x05, 0x02, 0x00, 0x01, 0x12, 0x03, 0x21, 0x10, 0x14, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x05,
+    0x02, 0x00, 0x03, 0x12, 0x03, 0x21, 0x17, 0x18,
 ];
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

@@ -126,7 +126,7 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
-fn api_response<M: protobuf::Message>(data: &M, tt_context: &TTContext, rustful_context: &rustful::Context) -> result::TTResult<Vec<u8>> {
+fn api_response<M: protobuf::Message>(data: &M, _: &TTContext, rustful_context: &rustful::Context) -> result::TTResult<Vec<u8>> {
     use std::borrow::Borrow;
 
     let format: Option<String> = rustful_context.query.get("format")
@@ -186,6 +186,34 @@ fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -
         station.set_name(stop.name.clone());
         station.set_id(stop.id.clone());
         response.mut_station().push(station);
+    }
+
+    return api_response(&response, tt_context, &rustful_context);
+}
+
+fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let desired_line = rustful_context.variables.get("line_id")
+        .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
+        .map(|x| x.to_string())?;
+
+    let mut response = webclient_api::StationList::new();
+    for &ref stop in tt_context.stops.stops_for_route(&desired_line)? {
+        let mut station = webclient_api::Station::new();
+        station.set_name(stop.name.clone());
+        station.set_id(stop.id.clone());
+        response.mut_station().push(station);
+    }
+
+    return api_response(&response, tt_context, &rustful_context);
+}
+
+fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let mut response = webclient_api::LineList::new();
+    for &ref line in tt_context.stops.lines().iter() {
+        let mut line_proto = webclient_api::Line::new();
+        line_proto.set_name(line.id.clone());
+        line_proto.set_color_hex(line.color.clone());
+        response.mut_line().push(line_proto);
     }
 
     return api_response(&response, tt_context, &rustful_context);
@@ -251,7 +279,7 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
 
     let mut routes = Vec::new();
-    for route in tt_context.stops.routes() {
+    for route in tt_context.stops.lines() {
         let mut stops = Vec::new();
         match tt_context.stops.stops_for_route(&route.id) {
             Ok(stop_infos) => {
@@ -506,8 +534,10 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
                 "/webclient.js" => Get: PageType::new_static_page(
                     "./webclient/bin/webclient.js"),
                 "/api" => {
+                    "/lines" => Get: PageType::Dynamic(line_list_api),
                     "/station/:station_id" => Get: PageType::Dynamic(station_detail_api),
                     "/stations" => Get: PageType::Dynamic(station_list_api),
+                    "/stations/byline/:line_id" => Get: PageType::Dynamic(stations_byline_api),
                 },
             }
         },
