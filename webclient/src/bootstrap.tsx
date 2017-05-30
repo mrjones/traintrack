@@ -6,6 +6,7 @@ import * as proto from './webclient_api_pb';
 
 import { DataFetcher } from './datafetcher';
 import { LinePickerRouterWrapper } from './navigation';
+import { LineViewRouterWrapper } from './lineview';
 
 class StationPickerState {
   public currentJumpText: string;
@@ -263,7 +264,7 @@ ReactDOM.render(
   <ReactRouter.BrowserRouter>
     <ReactRouter.Switch>
       <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
-      <ReactRouter.Route path='/singlepage/line/:line_id' component={LinePickerRouterWrapper}/>
+      <ReactRouter.Route path='/singlepage/line/:lineId' component={LineViewRouterWrapper}/>
       <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
       <ReactRouter.Route path='/singlepage/'>
         <OneStationView initialStationId="R32" dataFetcher={new DataFetcher()}/>

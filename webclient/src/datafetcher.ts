@@ -23,11 +23,13 @@ export default class Foo {};
 export class DataFetcher {
   private stationCache: Cached<proto.StationList>;
   private lineListCache: Cached<proto.LineList>;
+  private stationsByLineCache: Map<string, Cached<proto.StationList>>;
 
   public constructor() {
     console.log("new DataFetcher");
     this.stationCache = new Cached<proto.StationList>();
     this.lineListCache = new Cached<proto.LineList>();
+    this.stationsByLineCache = new Map<string, Cached<proto.StationList>>();
   }
 
   public fetchLineList(): Promise<proto.LineList> {
@@ -81,4 +83,27 @@ export class DataFetcher {
     });
   }
 
+  public fetchStationsForLine(lineId: string): Promise<proto.StationList> {
+    return new Promise<proto.StationList>((resolve: (s: proto.StationList) => void) => {
+      if (!this.stationsByLineCache.has(lineId)) {
+        this.stationsByLineCache.set(lineId, new Cached<proto.StationList>());
+      }
+
+      let cached = this.stationsByLineCache.get(lineId);
+
+      if (cached.valid) {
+        resolve(cached.value);
+        return;
+      } else {
+        fetch("/api/stations/byline/" + lineId).then((response: Response) => {
+          return response.arrayBuffer();
+        }).then((bodyBuffer: ArrayBuffer) => {
+          const bodyBytes = new Uint8Array(bodyBuffer);
+          const stationList = proto.StationList.decode(bodyBytes);
+          cached.set(stationList);
+          resolve(stationList);
+        });
+      }
+    });
+  }
 }
