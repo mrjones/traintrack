@@ -9,9 +9,7 @@ extern crate protobuf;
 extern crate protobuf_json;
 extern crate requests;
 extern crate rustc_serialize;
-#[macro_use]
 extern crate rustful;
-#[macro_use]
 extern crate serde_derive;
 
 mod feedfetcher;

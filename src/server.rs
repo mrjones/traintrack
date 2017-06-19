@@ -230,7 +230,6 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     let feed = tt_context.feed()?;
 
     let tz = chrono_tz::America::New_York;
-    let now = chrono::UTC::now();
 
     use self::liquid::Value;
     let mut context = liquid::Context::new();
@@ -329,9 +328,8 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     let mut station_infos = Vec::new();
 
     let pois = vec![
-        ("R", "R16"), ("N", "R16"), ("Q", "R16"), // Times Square
-        ("R", "R20"), ("N", "R20"), ("Q", "R20"), // Union Square
         ("R", "R32"), // Union Street
+        ("R", "R31"), ("N", "R31"),  // Atlantic
         ("R", "R30"), ("Q", "R30"),  // DeKalb
         ("R", "R29"), // MetroTech
     ];
@@ -388,6 +386,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     return Ok(body.as_bytes().to_vec());
 }
 
+/*
 fn hack559(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
     use chrono::datetime::DateTime;
     use chrono::TimeZone;
@@ -443,6 +442,7 @@ fn hack559(tt_context: &TTContext, rustful_context: rustful::Context) -> result:
     context.set_val("direction", liquid::Value::Str(direction.to_string()));
     return Ok(tt_context.render("hack559.html", &mut context)?);
 }
+*/
 
 fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let mut context = liquid::Context::new();
@@ -509,6 +509,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
 
     let mut router = rustful::DefaultRouter::<PageType>::new();
     router.build().many(|mut node| {
+        node.then().on_get(PageType::Dynamic(dashboard));
         node.path("debug").many(|mut node| {
             node.then().on_get(PageType::Dynamic(debug));
             node.path("dump_proto").then().on_get(PageType::Dynamic(dump_proto));
