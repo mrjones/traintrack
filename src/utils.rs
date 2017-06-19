@@ -28,7 +28,7 @@ pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMes
     return all_trains.remove(route).unwrap_or(std::collections::BTreeMap::new());
 }
 
-fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) -> bool {
+fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
     return candidate_id == desired_id ||
         candidate_id == format!("{}N", desired_id) ||
         candidate_id == format!("{}S", desired_id);
