@@ -77,6 +77,7 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   </form>
   <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
   <ul>{stationLis}</ul>
+    <hr/>
     <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
     <input type="submit" value="Jump (by ID)"/>
     </div>);

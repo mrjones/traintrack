@@ -61,7 +61,7 @@ html {font-size: 1.375em;  /* 22px */}
     margin: .5em;
     border: 1px solid black;
     padding: .75em;
-    background-color: gray;
+    background-color: lightgray;
 }
 
 .stationPicker input {
