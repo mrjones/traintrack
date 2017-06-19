@@ -27,9 +27,9 @@ impl std::fmt::Display for TTError {
             TTError::CSVError(ref err) => {
                 return write!(f, "CSV Error: {}", err);
             },
-            TTError::HTTPError(ref err) => {
-                return write!(f, "HTTP Error: {}", err);
-            },
+//            TTError::HTTPError(ref err) => {
+//                return write!(f, "HTTP Error: {}", err);
+//            },
             TTError::IOError(ref err) => {
                 return write!(f, "IO Error: {}", err);
             },
@@ -51,7 +51,7 @@ impl std::error::Error for TTError {
     fn description(&self) -> &str {
         match *self {
             TTError::CSVError(_) => "CSVError",
-            TTError::HTTPError(_) => "HTTPError",
+//            TTError::HTTPError(_) => "HTTPError",
             TTError::IOError(_) => "IOError",
             TTError::ProtobufError(_) => "ProtobufError",
             TTError::RenderError(_) => "RenderError",

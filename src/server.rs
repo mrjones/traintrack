@@ -472,7 +472,7 @@ impl PageType {
 }
 
 impl rustful::Handler for PageType {
-    fn handle_request(&self, rustful_context: rustful::Context, response: rustful::Response) {
+    fn handle(&self, rustful_context: rustful::Context, response: rustful::Response) {
         match self {
             &PageType::Dynamic(execute) => {
                 match rustful_context.global.get::<TTContext>() {
@@ -488,7 +488,7 @@ impl rustful::Handler for PageType {
                 }
             },
             &PageType::Static(ref file_path) => {
-                match response.send_file(file_path) {
+                match response.send_file_with_mime(file_path, |_| { return None }) {
                     Ok(_) => {},
                     Err(rustful::response::FileError::Open(io_err, mut response)) => {
                         error!("failed to open '{:?}': {}", file_path, io_err);
@@ -503,45 +503,59 @@ impl rustful::Handler for PageType {
     }
 }
 
+enum TTApi {
+    Simple {
+        page: PageType,
+    }
+
+}
 
 pub fn serve(context: TTContext, port: u16, static_dir: &str) {
     let global: rustful::server::Global = Box::new(context).into();
     assert!(!global.get::<TTContext>().is_none());
 
+    let mut router = rustful::DefaultRouter::<PageType>::new();
+    router.build().many(|mut node| {
+        node.path("debug").many(|mut node| {
+            node.then().on_get(PageType::Dynamic(dump_proto));
+        });
+    });
+
     let server_result = rustful::Server {
         host: port.into(),
         global: global,
         threads: Some(32),
-        handlers: insert_routes!{
-            rustful::TreeRouter::new() => {
-                Get: PageType::Dynamic(dashboard),
-                "/debug" => {
-                    Get: PageType::Dynamic(debug),
-                    "/dump_proto" => Get: PageType::Dynamic(dump_proto),
-                    "/fetch_now" => Get: PageType::Dynamic(fetch_now),
-                },
-                "/stations" => Get: PageType::Dynamic(list_stations),
-                "/hack559/:direction" => Get: PageType::Dynamic(hack559),
-                "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail),
-                "/station/:station_id" => Get: PageType::Dynamic(station_detail),
-                "/style.css" => Get: PageType::new_static_page(
-                    format!("{}/style.css", static_dir)),
-                "/hack559.js" => Get: PageType::new_static_page(
-                    format!("{}/hack559.js", static_dir)),
-                "/singlepage" => Get: PageType::new_static_page(
-                    format!("{}/singlepage.html", static_dir)),
-                "/singlepage/*" => Get: PageType::new_static_page(
-                    format!("{}/singlepage.html", static_dir)),
-                "/webclient.js" => Get: PageType::new_static_page(
-                    "./webclient/bin/webclient.js"),
-                "/api" => {
-                    "/lines" => Get: PageType::Dynamic(line_list_api),
-                    "/station/:station_id" => Get: PageType::Dynamic(station_detail_api),
-                    "/stations" => Get: PageType::Dynamic(station_list_api),
-                    "/stations/byline/:line_id" => Get: PageType::Dynamic(stations_byline_api),
-                },
-            }
-        },
+        handlers: router,
+//        handlers: insert_routes!{
+//            rustful::TreeRouter::new() => {
+//                Get: PageType::Dynamic(dashboard),
+//                "/debug" => {
+//                    Get: PageType::Dynamic(debug),
+//                    "/dump_proto" => Get: PageType::Dynamic(dump_proto),
+//                    "/fetch_now" => Get: PageType::Dynamic(fetch_now),
+//                },
+//                "/stations" => Get: PageType::Dynamic(list_stations),
+//                "/hack559/:direction" => Get: PageType::Dynamic(hack559),
+//                "/station/:station_id/:route_id" => Get: PageType::Dynamic(station_detail),
+//                "/station/:station_id" => Get: PageType::Dynamic(station_detail),
+//                "/style.css" => Get: PageType::new_static_page(
+//                    format!("{}/style.css", static_dir)),
+//                "/hack559.js" => Get: PageType::new_static_page(
+//                    format!("{}/hack559.js", static_dir)),
+//                "/singlepage" => Get: PageType::new_static_page(
+//                    format!("{}/singlepage.html", static_dir)),
+//                "/singlepage/*" => Get: PageType::new_static_page(
+//                    format!("{}/singlepage.html", static_dir)),
+//                "/webclient.js" => Get: PageType::new_static_page(
+//                    "./webclient/bin/webclient.js"),
+//                "/api" => {
+//                    "/lines" => Get: PageType::Dynamic(line_list_api),
+//                    "/station/:station_id" => Get: PageType::Dynamic(station_detail_api),
+//                    "/stations" => Get: PageType::Dynamic(station_list_api),
+//                    "/stations/byline/:line_id" => Get: PageType::Dynamic(stations_byline_api),
+//                },
+//            }
+//        },
         ..rustful::Server::default()
     }.run();
 
