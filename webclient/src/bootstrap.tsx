@@ -72,13 +72,13 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
         }
       });
 
-    return (<div>
+    return (<div className="stationPicker">
   <form onSubmit={this.handleSubmit.bind(this)}>
-    <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
-    <input type="submit" value="Jump"/>
   </form>
-  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter"/>
+  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
   <ul>{stationLis}</ul>
+    <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
+    <input type="submit" value="Jump (by ID)"/>
     </div>);
   }
 }
@@ -140,15 +140,18 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
   public render() {
     let stationPicker;
     let stationPickerToggle;
+    let className = "";
     if (this.state.stationPickerDisplayed) {
       stationPicker = <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} dataFetcher={this.props.dataFetcher} />;
-      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Hide picker</a>
+      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Hide stations</a>;
+      className = "jumpLink open";
     } else {
-      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Pick another station</a>
+      stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Jump to station</a>;
+      className = "jumpLink closed";
     }
     return (<div>
-      <div><ReactRouter.Link to={`/singlepage/lines`}>Browse Lines</ReactRouter.Link></div>
-      <div>{stationPickerToggle}</div>
+      <div className="jumpLink"><ReactRouter.Link to={`/singlepage/lines`}>Jump to line</ReactRouter.Link></div>
+      <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
       <StationBoard stationId={this.state.displayedStationId} />
     </div>);
@@ -262,14 +265,17 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 }
 
 ReactDOM.render(
-  <ReactRouter.BrowserRouter>
-    <ReactRouter.Switch>
-      <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
-      <ReactRouter.Route path='/singlepage/line/:lineId' component={LineViewRouterWrapper}/>
-      <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
-      <ReactRouter.Route path='/singlepage/'>
-        <OneStationView initialStationId="R32" dataFetcher={new DataFetcher()}/>
-      </ReactRouter.Route>
-    </ReactRouter.Switch>
-  </ReactRouter.BrowserRouter>,
+  <div>
+    <div className="app_title">TrainTrack</div>
+    <ReactRouter.BrowserRouter>
+      <ReactRouter.Switch>
+        <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
+        <ReactRouter.Route path='/singlepage/line/:lineId' component={LineViewRouterWrapper}/>
+        <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
+        <ReactRouter.Route path='/singlepage/'>
+          <OneStationView initialStationId="R32" dataFetcher={new DataFetcher()}/>
+        </ReactRouter.Route>
+      </ReactRouter.Switch>
+    </ReactRouter.BrowserRouter>
+  </div>,
   document.getElementById('tt_app'));

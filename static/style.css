@@ -30,3 +30,49 @@
 .past {
     color: #CCCCCC;
 }
+
+html {font-size: 1.375em;  /* 22px */}
+.app_title {
+    color: red;
+    font-weight: bold;
+    font-size: 200%;
+}
+
+.jumpLink {
+    font-size: 150%;
+    display: inline-block;
+    padding: .75em;
+    border: 1px solid black;
+    margin: .5em;
+    margin-left: 0;
+    background-color: blue;
+}
+
+.jumpLink.open {
+    background-color: green;
+}
+
+.jumpLink a {
+    color: white;
+    text-decoration: none;
+}
+
+.stationPicker {
+    margin: .5em;
+    border: 1px solid black;
+    padding: .75em;
+    background-color: gray;
+}
+
+.stationPicker input {
+    width: 100%;
+    font-size: 24pt;
+}
+
+/* Desktop-only tweaks*/
+@media (min-width: 1024px) {
+    html {font-size: 1em;}
+    .app_title {
+        color: blue;
+    }
+}
