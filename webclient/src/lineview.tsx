@@ -40,7 +40,7 @@ export default class LineView extends React.Component<LineViewProps, any> {
 
     return (<div>
               <h1>LineView: {this.props.lineId}</h1>
-              <ul>{stationLis}</ul>
+              <ul className="lineView">{stationLis}</ul>
             </div>);
   }
 }

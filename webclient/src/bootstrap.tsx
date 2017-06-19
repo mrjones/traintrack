@@ -150,7 +150,7 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
       className = "jumpLink closed";
     }
     return (<div>
-      <div className="jumpLink"><ReactRouter.Link to={`/singlepage/lines`}>Jump to line</ReactRouter.Link></div>
+      <div className="jumpLink"><ReactRouter.Link to={`/singlepage/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
       <StationBoard stationId={this.state.displayedStationId} />
@@ -251,16 +251,10 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
         return <StationLine data={line} key={key} />;
       });
 
-    return (<div>
-        <hr/>
-        <dl>
-          <dt>ID</dt>
-          <dd>{this.props.stationId}</dd>
-          <dt>Name</dt>
-          <dd>{this.state.stationName}</dd>
-        </dl>
-  {lineSet}
-    </div>);
+    return (<div className="stationInfo">
+            <h2>{this.state.stationName} ({this.props.stationId})</h2>
+            {lineSet}
+            </div>);
   };
 }
 

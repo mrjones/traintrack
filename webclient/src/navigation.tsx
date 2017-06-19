@@ -38,8 +38,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
     });
 
     return (<div>
-              <h1>LinePicker</h1>
-              <ul>{lineLis}</ul>
+              <ul className="lineList">{lineLis}</ul>
             </div>);
   }
 }
