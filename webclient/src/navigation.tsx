@@ -30,7 +30,11 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
 
   public render(): JSX.Element {
     let lineLis = this.state.lineList.line.map((line: proto.Line) => {
-      return <li key={line.name}>
+      let c = "#" + line.colorHex;
+      let liStyle = {
+        background: c,
+      };
+      return <li key={line.name} style={liStyle}>
         <ReactRouter.Link to={`/singlepage/line/${line.name}`}>
           {line.name}
         </ReactRouter.Link>
@@ -38,7 +42,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
     });
 
     return (<div>
-              <ul className="lineList">{lineLis}</ul>
+            <ul className="lineList">{lineLis}</ul>
             </div>);
   }
 }
