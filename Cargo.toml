@@ -23,7 +23,6 @@ rustful = { path = "../rustful" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
-tokio-core = "*"
 time = "*"
 tiny_http = "*"
 

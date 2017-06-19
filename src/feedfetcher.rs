@@ -4,7 +4,6 @@ extern crate protobuf;
 extern crate requests;
 extern crate std;
 extern crate time;
-extern crate tokio_core;
 
 use std::io::Read;
 use std::io::Write;
