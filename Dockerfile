@@ -7,6 +7,7 @@ COPY bin/server /deploy/server
 COPY templates /deploy/templates
 COPY static /deploy/static
 COPY data /deploy/data
+COPY webclient/bin/webclient.js /deploy/webclient.js
 RUN mkdir -p /deploy/log
 
 EXPOSE 3837
@@ -14,5 +15,6 @@ EXPOSE 3837
 ENTRYPOINT [ \
   "/deploy/server", \
   "--port", "3837", \
-  "--root-directory", "/deploy" \
+  "--root-directory", "/deploy", \
+  "--webclient-js-file", "/deploy/webclient.js" \
 ]

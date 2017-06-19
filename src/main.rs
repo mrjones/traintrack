@@ -75,6 +75,7 @@ fn main() {
     opts.optflag("t", "compile-templates-once", "If true, compiles HTML templates once at startup. Otherwise compiles them on every usage.");
     opts.optflag("d", "disable-background-fetch", "If true, won't periodically fetch feeds in the background..");
     opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
+    opts.optopt("w", "webclient-js-file", "The file to serve as webclient.js.", "JS_FILE");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -110,7 +111,10 @@ fn main() {
         fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
+    let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
+        "./webclient/bin/webclient.js".to_string());
+
     let server_context = server::TTContext::new(
         stops, fetcher, format!("{}/templates/", root_directory), compile_templates_once);
-    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref());
+    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }

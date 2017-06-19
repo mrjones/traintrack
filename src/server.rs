@@ -503,7 +503,7 @@ impl rustful::Handler for PageType {
     }
 }
 
-pub fn serve(context: TTContext, port: u16, static_dir: &str) {
+pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file: &str) {
     let global: rustful::server::Global = Box::new(context).into();
     assert!(!global.get::<TTContext>().is_none());
 
@@ -534,8 +534,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
             node.path("*").then().on_get(PageType::new_static_page(
                 format!("{}/singlepage.html", static_dir)));
         });
-        node.path("webclient.js").then().on_get(PageType::new_static_page(
-            "./webclient/bin/webclient.js"));
+        node.path("webclient.js").then().on_get(PageType::new_static_page(webclient_js_file));
         node.path("api").many(|mut node| {
             node.path("lines").then().on_get(PageType::Dynamic(line_list_api));
             node.path("station").many(|mut node| {

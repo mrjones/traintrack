@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: feedproxy
-        image: gcr.io/mrjones-gke/traintrack-feedproxy:2017-03-30.0
+        image: gcr.io/mrjones-gke/traintrack-feedproxy:2017-06-19.8
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
@@ -25,12 +25,3 @@ spec:
         args: [
           "--mta-api-key", "$(MTA_API_KEY)",
         ]
-apiVersion: v1
-kind: Service
-metadata:
-  name: traintrack-feedproxy-service
-spec:
-  ports:
-  - port: 3839
-  selector:
-    run: traintrack-feedproxy
