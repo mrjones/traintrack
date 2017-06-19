@@ -1,6 +1,7 @@
+import 'babel-polyfill';
 import * as proto from './webclient_api_pb';
 
-class Cached<T> {
+export class Cached<T> {
   public valid: boolean;
   public value: T;
 

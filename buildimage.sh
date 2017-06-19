@@ -25,8 +25,11 @@ mkdir -p bin
 cp target/release/traintrack bin/server
 cp target/release/feedproxy build/feedproxy/feedproxy
 
-# echo "=== Compiling JavaScript"
-# webpack
+echo "=== Compiling JavaScript/WebClient"
+pushd .
+cd webclient
+webpack -p
+popd
 
 echo "=== Creating frontend image"
 docker build -t $project:$tag .

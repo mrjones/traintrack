@@ -24,6 +24,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 time = "*"
+tiny_http = "*"
 
 [[bin]]
 name = "traintrack"
