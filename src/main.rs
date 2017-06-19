@@ -1,5 +1,4 @@
 extern crate chrono;
-extern crate futures;
 extern crate getopts;
 #[macro_use]
 extern crate log;

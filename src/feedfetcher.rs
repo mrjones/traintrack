@@ -1,5 +1,4 @@
 extern crate chrono;
-extern crate futures;
 extern crate log;
 extern crate protobuf;
 extern crate requests;
