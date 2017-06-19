@@ -511,6 +511,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str) {
     let server_result = rustful::Server {
         host: port.into(),
         global: global,
+        threads: Some(32),
         handlers: insert_routes!{
             rustful::TreeRouter::new() => {
                 Get: PageType::Dynamic(dashboard),

@@ -1,5 +1,4 @@
 extern crate csv;
-extern crate hyper;
 extern crate liquid;
 extern crate protobuf;
 extern crate serde_json;
@@ -10,7 +9,7 @@ pub type TTResult<T> = std::result::Result<T, TTError>;
 #[derive(Debug)]
 pub enum TTError {
     CSVError(csv::Error),
-    HTTPError(hyper::Error),
+//    HTTPError(hyper::Error),
     IOError(std::io::Error),
     ProtobufError(protobuf::ProtobufError),
     RenderError(liquid::Error),
@@ -78,11 +77,11 @@ impl From<csv::Error> for TTError {
     }
 }
 
-impl From<hyper::Error> for TTError {
-    fn from(err: hyper::Error) -> TTError {
-        return TTError::HTTPError(err);
-    }
-}
+//impl From<hyper::Error> for TTError {
+//    fn from(err: hyper::Error) -> TTError {
+//        return TTError::HTTPError(err);
+//    }
+//}
 
 impl From<protobuf::ProtobufError> for TTError {
     fn from(err: protobuf::ProtobufError) -> TTError {

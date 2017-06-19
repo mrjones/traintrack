@@ -1,4 +1,5 @@
 extern crate chrono;
+extern crate futures;
 extern crate getopts;
 #[macro_use]
 extern crate log;
@@ -7,11 +8,13 @@ extern crate log4rs;
 extern crate maplit;
 extern crate protobuf;
 extern crate protobuf_json;
+extern crate requests;
 extern crate rustc_serialize;
 #[macro_use]
 extern crate rustful;
 #[macro_use]
 extern crate serde_derive;
+extern crate tokio_core;
 
 mod feedfetcher;
 mod feedproxy_api;
