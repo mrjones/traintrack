@@ -10,8 +10,6 @@ chrono-tz = "*"
 csv = "*"
 futures = "*"
 getopts = "*"
-#hyper = "*"
-#hyper = { path = "../hyper" }
 liquid = "*"
 log = "*"
 log4rs = "*"

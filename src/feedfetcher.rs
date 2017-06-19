@@ -81,33 +81,9 @@ impl Fetcher {
         }
     }
 
-    /*
-    fn fetch_sync(&self, proxy_url: &str) -> Vec<u8> {
-        use futures::Future;
-        use futures::Stream;
-
-        // TODO(mrjones): Reuse core.
-        let mut core = tokio_core::reactor::Core::new().unwrap();
-        let handle = core.handle();
-        let client = hyper::Client::new(&handle);
-        let proxy_url = proxy_url.parse::<hyper::Uri>().unwrap();
-
-
-        //pub struct FutureResponse(Box<Future<Item=Response, Error=::Error> + 'static>);
-        let work = client.get(proxy_url)
-            .and_then(|response: hyper::client::Response| {
-                return response.body().fold(Vec::new(), |mut acc: Vec<u8>, chunk| {
-                    acc.extend(&chunk[..]);
-                    return futures::future::ok::<_, hyper::Error>(acc);
-                });
-            });
-
-        return core.run(&work).unwrap();
-    }*/
-
     fn fetch_once_remote(&self, proxy_url: &str) -> result::TTResult<gtfs_realtime::FeedMessage> {
 
-        let response = requests::get("http://httpbin.org/get").unwrap(); //handle error
+        let response = requests::get(proxy_url).unwrap(); //handle error
         assert_eq!(response.status_code(), requests::StatusCode::Ok);
 
         let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;
@@ -125,34 +101,6 @@ impl Fetcher {
 
         *self.latest_value.lock().unwrap() = fetch_result;
                 return Ok(proxy_response.take_feed());
-        /*
-        let response_to_feed: Fn(hyper::client::Response) -> result::TTResult<gtfs_realtime::FeedMessage> = |response: hyper::client::Response| {
-            response.body().fold(vec![], |mut acc: Vec<u8>, chunk| {
-                acc.extend_from_slice(&*chunk);
-                return futures::future::ok(acc);
-            }).map(|body| {
-                let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(&body).unwrap();  // TODO: figure out error handling
-
-                use chrono::TimeZone;
-                let fetch_result = Some(FetchResult{
-                    feed: proxy_response.get_feed().clone(),
-                    timestamp: chrono::UTC.timestamp(
-                        proxy_response.get_feed().get_header().get_timestamp() as i64, 0),
-                    last_good_fetch: Some(chrono::UTC.timestamp(
-                        proxy_response.get_last_good_fetch_timestamp(), 0)),
-                    last_any_fetch: Some(chrono::UTC.timestamp(
-                        proxy_response.get_last_attempted_fetch_timestamp(), 0)),
-                });
-
-//                *self.latest_value.lock().unwrap() = fetch_result;
-//                return Ok(proxy_response.take_feed());
-
-                return Ok(proxy_response.take_feed());
-            });
-        };
-
-        let work = t1.and_then(response_to_feed);
-*/
     }
 
     fn fetch_once_local(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
