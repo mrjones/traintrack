@@ -147,7 +147,8 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
       stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Pick another station</a>
     }
     return (<div>
-      {stationPickerToggle}
+      <div><ReactRouter.Link to={`/singlepage/lines`}>Browse Lines</ReactRouter.Link></div>
+      <div>{stationPickerToggle}</div>
       {stationPicker}
       <StationBoard stationId={this.state.displayedStationId} />
     </div>);
