@@ -254,6 +254,8 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 
     return (<div className="stationInfo">
             <h2>{this.state.stationName} ({this.props.stationId})</h2>
+            <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a>
+
             {lineSet}
             </div>);
   };

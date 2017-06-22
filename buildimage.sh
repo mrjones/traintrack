@@ -19,17 +19,17 @@ then
     push="true"
 fi
 
-#echo "=== Compiling binaries"
-#cargo build --color=never --release
-#mkdir -p bin
-#cp target/release/traintrack bin/server
-#cp target/release/feedproxy build/feedproxy/feedproxy
+echo "=== Compiling binaries"
+cargo build --color=never --release
+mkdir -p bin
+cp target/release/traintrack bin/server
+cp target/release/feedproxy build/feedproxy/feedproxy
 
-#echo "=== Compiling JavaScript/WebClient"
-#pushd .
-#cd webclient
-#webpack -p
-#popd
+echo "=== Compiling JavaScript/WebClient"
+pushd .
+cd webclient
+webpack -p
+popd
 
 echo "=== Creating frontend image"
 frontendLocalName="mrjones/traintrack"
