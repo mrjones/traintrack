@@ -110,6 +110,9 @@ export interface IStationStatus {
 
     /** StationStatus line */
     line?: ILineArrivals[];
+
+    /** StationStatus dataTimestamp */
+    dataTimestamp?: (number|Long);
 }
 
 /** Represents a StationStatus. */
@@ -126,6 +129,9 @@ export class StationStatus {
 
     /** StationStatus line. */
     public line: ILineArrivals[];
+
+    /** StationStatus dataTimestamp. */
+    public dataTimestamp: (number|Long);
 
     /**
      * Creates a new StationStatus instance using the specified properties.

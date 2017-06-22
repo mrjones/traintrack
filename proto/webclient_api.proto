@@ -14,6 +14,7 @@ message LineArrivals {
 message StationStatus {
   optional string name = 1;
   repeated LineArrivals line = 2;
+  optional int64 data_timestamp = 3;
 }
 
 message Station {

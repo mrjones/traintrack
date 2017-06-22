@@ -252,10 +252,11 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
         return <StationLine data={line} key={key} />;
       });
 
+    const dataTs = moment.unix(this.state.data.dataTimestamp as number);
+
     return (<div className="stationInfo">
             <h2>{this.state.stationName} ({this.props.stationId})</h2>
-            <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a>
-
+            <p>Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></p>
             {lineSet}
             </div>);
   };

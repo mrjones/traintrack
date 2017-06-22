@@ -274,6 +274,7 @@ $root.StationStatus = (function() {
      * @interface IStationStatus
      * @property {string} [name] StationStatus name
      * @property {Array.<ILineArrivals>} [line] StationStatus line
+     * @property {number|Long} [dataTimestamp] StationStatus dataTimestamp
      */
 
     /**
@@ -304,6 +305,12 @@ $root.StationStatus = (function() {
     StationStatus.prototype.line = $util.emptyArray;
 
     /**
+     * StationStatus dataTimestamp.
+     * @type {number|Long}
+     */
+    StationStatus.prototype.dataTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
      * Creates a new StationStatus instance using the specified properties.
      * @param {IStationStatus=} [properties] Properties to set
      * @returns {StationStatus} StationStatus instance
@@ -326,6 +333,8 @@ $root.StationStatus = (function() {
         if (message.line != null && message.line.length)
             for (var i = 0; i < message.line.length; ++i)
                 $root.LineArrivals.encode(message.line[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            writer.uint32(/* id 3, wireType 0 =*/24).int64(message.dataTimestamp);
         return writer;
     };
 
@@ -361,6 +370,9 @@ $root.StationStatus = (function() {
                 if (!(message.line && message.line.length))
                     message.line = [];
                 message.line.push($root.LineArrivals.decode(reader, reader.uint32()));
+                break;
+            case 3:
+                message.dataTimestamp = reader.int64();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -403,6 +415,9 @@ $root.StationStatus = (function() {
                     return "line." + error;
             }
         }
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
+                return "dataTimestamp: integer|Long expected";
         return null;
     };
 
@@ -427,6 +442,15 @@ $root.StationStatus = (function() {
                 message.line[i] = $root.LineArrivals.fromObject(object.line[i]);
             }
         }
+        if (object.dataTimestamp != null)
+            if ($util.Long)
+                (message.dataTimestamp = $util.Long.fromValue(object.dataTimestamp)).unsigned = false;
+            else if (typeof object.dataTimestamp === "string")
+                message.dataTimestamp = parseInt(object.dataTimestamp, 10);
+            else if (typeof object.dataTimestamp === "number")
+                message.dataTimestamp = object.dataTimestamp;
+            else if (typeof object.dataTimestamp === "object")
+                message.dataTimestamp = new $util.LongBits(object.dataTimestamp.low >>> 0, object.dataTimestamp.high >>> 0).toNumber();
         return message;
     };
 
@@ -442,8 +466,14 @@ $root.StationStatus = (function() {
         var object = {};
         if (options.arrays || options.defaults)
             object.line = [];
-        if (options.defaults)
+        if (options.defaults) {
             object.name = "";
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.dataTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.dataTimestamp = options.longs === String ? "0" : 0;
+        }
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
         if (message.line && message.line.length) {
@@ -451,6 +481,11 @@ $root.StationStatus = (function() {
             for (var j = 0; j < message.line.length; ++j)
                 object.line[j] = $root.LineArrivals.toObject(message.line[j], options);
         }
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            if (typeof message.dataTimestamp === "number")
+                object.dataTimestamp = options.longs === String ? String(message.dataTimestamp) : message.dataTimestamp;
+            else
+                object.dataTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.dataTimestamp) : options.longs === Number ? new $util.LongBits(message.dataTimestamp.low >>> 0, message.dataTimestamp.high >>> 0).toNumber() : message.dataTimestamp;
         return object;
     };
 

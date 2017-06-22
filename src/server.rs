@@ -175,6 +175,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
             response.mut_line().push(line);
         }
     }
+    response.set_data_timestamp(feed.timestamp.timestamp());
 
     return api_response(&response, tt_context, &rustful_context);
 }
