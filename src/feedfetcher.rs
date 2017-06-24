@@ -99,7 +99,7 @@ impl Fetcher {
                 }
             }
             Some(ref proxy_url) => {
-                match self.fetch_once_remote(proxy_url) {
+                match self.fetch_once_remote(proxy_url, 16) {
                     Ok(new_result) => { *self.latest_value.lock().unwrap() = Some(new_result); },
                     Err(err) => { error!("Error fetching from proxy: {}", err); },
                 }
@@ -107,9 +107,13 @@ impl Fetcher {
         }
     }
 
-    fn fetch_once_remote(&self, proxy_url: &str) -> result::TTResult<FetchResult> {
-
-        let response = requests::get(proxy_url).unwrap(); //handle error
+    fn fetch_once_remote(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
+        let mut feed_url = proxy_url.to_string();
+        if !feed_url.ends_with("/") {
+            feed_url.push_str("/");
+        }
+        feed_url.push_str(format!("feed/{}", feed_id).as_ref());
+        let response = requests::get(feed_url).unwrap(); //handle error
         assert_eq!(response.status_code(), requests::StatusCode::Ok);
 
         let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;

@@ -43,6 +43,7 @@ fn handle(feed_id_str: &str, fetcher: &feedfetcher::Fetcher) -> result::TTResult
     let mut reply_data = feedproxy_api::FeedProxyResponse::new();
     match fetcher.latest_value() {
         Some(data) => {
+            info!("Returning feed {}", feed_id);
             reply_data.set_feed(data.feed);
             if data.last_good_fetch.is_some() {
                 reply_data.set_last_good_fetch_timestamp(
@@ -103,7 +104,6 @@ fn main() {
 
         let url_clone = request.url().to_string();
         let url_parts: Vec<&str> = url_clone.split('/').collect();
-        info!("url_parts: {:?}", url_parts);
 
         if url_parts.len() == 3 && url_parts[1] == "feed" {
             // New style url /feed/<id>

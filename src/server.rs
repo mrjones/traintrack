@@ -122,7 +122,7 @@ impl TTContext {
 }
 
 fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
-    tt_context.fetcher.fetch_once()?;
+    tt_context.fetcher.fetch_once();
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
