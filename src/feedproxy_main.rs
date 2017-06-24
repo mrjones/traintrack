@@ -38,6 +38,29 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
         .unwrap();
 }
 
+fn handle(feed_id_str: &str, fetcher: &feedfetcher::Fetcher) -> result::TTResult<feedproxy_api::FeedProxyResponse> {
+    let feed_id = feed_id_str.parse::<i32>()?;
+    let mut reply_data = feedproxy_api::FeedProxyResponse::new();
+    match fetcher.latest_value() {
+        Some(data) => {
+            reply_data.set_feed(data.feed);
+            if data.last_good_fetch.is_some() {
+                reply_data.set_last_good_fetch_timestamp(
+                    data.last_good_fetch.unwrap().timestamp());
+            }
+            if data.last_any_fetch.is_some() {
+                reply_data.set_last_attempted_fetch_timestamp(
+                    data.last_any_fetch.unwrap().timestamp());
+            }
+
+            return Ok(reply_data);
+        },
+        None => {
+            return Err(result::TTError::Uncategorized("No data yet".to_string()));
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -75,30 +98,51 @@ fn main() {
     let server = tiny_http::Server::http(format!("0.0.0.0:{}", port)).unwrap();
 
     for request in server.incoming_requests() {
+        info!("Handing request for {}", request.url());
         let current_data = fetcher.latest_value();
 
-        let mut reply_data = feedproxy_api::FeedProxyResponse::new();
-        match current_data {
-            Some(data) => {
-                reply_data.set_feed(data.feed);
-                if data.last_good_fetch.is_some() {
-                    reply_data.set_last_good_fetch_timestamp(
-                        data.last_good_fetch.unwrap().timestamp());
-                }
-                if data.last_any_fetch.is_some() {
-                    reply_data.set_last_attempted_fetch_timestamp(
-                        data.last_any_fetch.unwrap().timestamp());
-                }
-            },
-            None => {}
+        let url_clone = request.url().to_string();
+        let url_parts: Vec<&str> = url_clone.split('/').collect();
+        info!("url_parts: {:?}", url_parts);
+
+        if url_parts.len() == 3 && url_parts[1] == "feed" {
+            // New style url /feed/<id>
+            match handle(url_parts[2], &fetcher) {
+                Ok(reply_proto) => {
+                    use protobuf::Message;
+                    let reply_bytes = reply_proto.write_to_bytes().unwrap();
+                    let response = tiny_http::Response::from_data(reply_bytes);
+                    request.respond(response).unwrap();
+                },
+                Err(err) => {
+                    let response = tiny_http::Response::from_data(
+                        format!("ERROR: {}", err).into_bytes());
+                    request.respond(response).unwrap();
+                },
+            }
+        } else {
+            // Legacy handler
+            let mut reply_data = feedproxy_api::FeedProxyResponse::new();
+            match current_data {
+                Some(data) => {
+                    reply_data.set_feed(data.feed);
+                    if data.last_good_fetch.is_some() {
+                        reply_data.set_last_good_fetch_timestamp(
+                            data.last_good_fetch.unwrap().timestamp());
+                    }
+                    if data.last_any_fetch.is_some() {
+                        reply_data.set_last_attempted_fetch_timestamp(
+                            data.last_any_fetch.unwrap().timestamp());
+                    }
+                },
+                None => {}
+            }
+            info!("REPLYING!");
+
+            use protobuf::Message;
+            let reply_bytes = reply_data.write_to_bytes().unwrap();
+            let response = tiny_http::Response::from_data(reply_bytes);
+            request.respond(response).unwrap();
         }
-
-//        println!("REPLYING: {:#?}", reply_data);
-        info!("REPLYING!");
-
-        use protobuf::Message;
-        let reply_bytes = reply_data.write_to_bytes().unwrap();
-        let response = tiny_http::Response::from_data(reply_bytes);
-        request.respond(response).unwrap();
     }
 }

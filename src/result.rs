@@ -14,6 +14,7 @@ pub enum TTError {
     ProtobufError(protobuf::ProtobufError),
     RenderError(liquid::Error),
     SerializationError(serde_json::Error),
+    ParseIntError(std::num::ParseIntError),
     Uncategorized(String),
 }
 
@@ -42,6 +43,9 @@ impl std::fmt::Display for TTError {
             TTError::SerializationError(ref err) => {
                 return write!(f, "Serialization Error: {}", err);
             },
+            TTError::ParseIntError(ref err) => {
+                return write!(f, "ParseInt Error: {}", err);
+            },
             TTError::Uncategorized(ref e) => std::fmt::Display::fmt(e, f),
         }
     }
@@ -56,6 +60,7 @@ impl std::error::Error for TTError {
             TTError::ProtobufError(_) => "ProtobufError",
             TTError::RenderError(_) => "RenderError",
             TTError::SerializationError(_) => "SerializationError",
+            TTError::ParseIntError(_) => "ParseIntError",
             TTError::Uncategorized(ref str) => str,
         }
     }
@@ -98,5 +103,11 @@ impl From<liquid::Error> for TTError {
 impl From<serde_json::Error> for TTError {
     fn from(err: serde_json::Error) -> TTError {
         return TTError::SerializationError(err);
+    }
+}
+
+impl From<std::num::ParseIntError> for TTError {
+    fn from(err: std::num::ParseIntError) -> TTError {
+        return TTError::ParseIntError(err);
     }
 }
