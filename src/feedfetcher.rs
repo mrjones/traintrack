@@ -58,6 +58,7 @@ impl Fetcher {
         let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
         trace!("Parsed: {:?}", feed.get_header());
 
+        /*
         use chrono::TimeZone;
         *self.latest_value.lock().unwrap() = Some(FetchResult{
             feed: feed.clone(),
@@ -67,19 +68,46 @@ impl Fetcher {
             last_good_fetch: fetch_timestamp,
             last_any_fetch: Some(chrono::UTC::now()),
         });
+         */
 
         return Ok(feed);
     }
 
-    pub fn fetch_once(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    pub fn fetch_once(&self) {
+        use chrono::TimeZone;
+
         info!("fetch_once");
         return match self.proxy_url {
-            None => self.fetch_once_local(),
-            Some(ref proxy_url) => self.fetch_once_remote(proxy_url),
+            None => {
+                match self.fetch_once_local(16) {
+                    Ok(new_feed) => {
+                        *self.latest_value.lock().unwrap() = Some(FetchResult{
+                            feed: new_feed.clone(),
+                            timestamp: chrono::UTC.timestamp(
+                                new_feed.get_header().get_timestamp() as i64, 0),
+                            // TODO(mrjones): This timestamp business is gross.
+                            // TODO(mrjones): Use the cached file's timestamp when using it
+                            last_good_fetch: Some(chrono::UTC::now()),
+                            last_any_fetch: Some(chrono::UTC::now()),
+                        });
+                    },
+                    Err(err) => {
+                        error!("Error fetching: {}", err);
+                        self.latest_value.lock().unwrap().as_mut().map(
+                            |mut r| r.last_any_fetch = Some(chrono::UTC::now()));
+                    }
+                }
+            }
+            Some(ref proxy_url) => {
+                match self.fetch_once_remote(proxy_url) {
+                    Ok(new_result) => { *self.latest_value.lock().unwrap() = Some(new_result); },
+                    Err(err) => { error!("Error fetching from proxy: {}", err); },
+                }
+            }
         }
     }
 
-    fn fetch_once_remote(&self, proxy_url: &str) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn fetch_once_remote(&self, proxy_url: &str) -> result::TTResult<FetchResult> {
 
         let response = requests::get(proxy_url).unwrap(); //handle error
         assert_eq!(response.status_code(), requests::StatusCode::Ok);
@@ -87,7 +115,7 @@ impl Fetcher {
         let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;
 
         use chrono::TimeZone;
-        let fetch_result = Some(FetchResult{
+        return Ok(FetchResult{
             feed: proxy_response.get_feed().clone(),
             timestamp: chrono::UTC.timestamp(
                 proxy_response.get_feed().get_header().get_timestamp() as i64, 0),
@@ -96,42 +124,42 @@ impl Fetcher {
             last_any_fetch: Some(chrono::UTC.timestamp(
                 proxy_response.get_last_attempted_fetch_timestamp(), 0)),
         });
-
-        *self.latest_value.lock().unwrap() = fetch_result;
-                return Ok(proxy_response.take_feed());
     }
 
-    fn fetch_once_local(&self) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn fetch_once_local(&self, feed_id: i32) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let last_successful_fetch = match self.latest_value.lock().unwrap().as_ref() {
             None => None,
             Some(ref result) => result.last_good_fetch,
         };
 
-        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id=16", self.mta_api_key);
+        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", self.mta_api_key, feed_id);
         debug!("Fetching URL: {}", url);
 
         let response = requests::get(url).unwrap(); // error
         let body = response.content();
         trace!("Response was {} bytes", body.len());
 
-        let mut file = std::fs::File::create("lastresponse.txt")?;
+        let lastresponse_fname = format!("lastresponse_{}.txt", feed_id);
+        let lastgood_fname = format!("lastgood_{}.txt", feed_id);
+
+        let mut file = std::fs::File::create(&lastresponse_fname)?;
         file.write_all(&body)?;
 
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
         // Just parse it at startup, and cache the object in memory.
         for (candidate, timestamp) in vec![
-            ("lastresponse.txt", Some(chrono::UTC::now())),
-            ("lastgood.txt", last_successful_fetch)] {
-            match self.feed_from_file(candidate, timestamp) {
+            (&lastresponse_fname, Some(chrono::UTC::now())),
+            (&lastgood_fname, last_successful_fetch)] {
+            match self.feed_from_file(&candidate, timestamp) {
                 Ok(feed) => {
-                    if candidate == "lastresponse.txt" {
-                        trace!("About to write lastgood.txt. {} bytes.",
-                              body.len());
-                        let mut file = std::fs::File::create("lastgood.txt")?;
+                    if candidate.to_string() == lastresponse_fname {
+                        trace!("About to write {}. {} bytes.",
+                              &lastgood_fname, body.len());
+                        let mut file = std::fs::File::create(&lastgood_fname)?;
                         file.write_all(&body)?;
-                        trace!("Succeeded writing lastgood.txt. {} bytes.",
-                              body.len());
+                        trace!("Succeeded writing {}. {} bytes.",
+                               &lastgood_fname, body.len());
                     }
                     return Ok(feed);
                 },
@@ -171,10 +199,7 @@ impl FetcherThread {
             .name("FetcherThread".to_string())
             .spawn(move || {
                 while *cancelled.lock().unwrap() != true {
-                    match f.fetch_once() {
-                        Ok(_) => {},
-                        Err(err) => error!("Error fetching feed: {}", err),
-                    }
+                    f.fetch_once();
                     std::thread::sleep(period);
                 }
             }).unwrap();

@@ -113,4 +113,8 @@ ul.lineView{
     .app_title {
         color: blue;
     }
+
+    .lineView li {
+        font-size: 100%;
+    }
 }
