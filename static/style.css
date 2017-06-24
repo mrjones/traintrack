@@ -80,10 +80,10 @@ html {font-size: 1.375em;  /* 22px */}
     height: 2em;
     text-align: center;
     line-height: 2em;
-    -webkit-text-stroke: 1px black;
 }
 
 .linelist a {
+    -webkit-text-stroke: 1px black;
     color: white;
     text-decoration: none;
 }
