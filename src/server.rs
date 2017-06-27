@@ -9,6 +9,7 @@ extern crate serde_json;
 extern crate std;
 
 use feedfetcher;
+use gtfs_realtime;
 use protobuf;
 use protobuf_json;
 use result;
@@ -112,8 +113,12 @@ impl TTContext {
         return Ok(body.as_bytes().to_vec());
     }
 
-    fn feed(&self) -> result::TTResult<feedfetcher::FetchResult> {
-        return match self.fetcher.latest_value(16) {
+    fn all_feeds(&self) -> result::TTResult<Vec<feedfetcher::FetchResult>> {
+        return Ok(self.fetcher.all_feeds());
+    }
+
+    fn feed(&self, feed_id: i32) -> result::TTResult<feedfetcher::FetchResult> {
+        return match self.fetcher.latest_value(feed_id) {
             Some(result) => Ok(result),
             None => Err(result::TTError::Uncategorized(
                 "No feed data yet".to_string())),
@@ -151,9 +156,12 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
         result::TTError::Uncategorized(
             format!("No station with ID {}", station_id)))?;
 
-    let feed = tt_context.feed()?;
+    let feed = tt_context.all_feeds()?;
+    let just_messages: Vec<gtfs_realtime::FeedMessage> =
+        feed.iter().map(|res| res.feed.clone()).collect();
+
     let trains_by_route =
-        utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
+        utils::all_upcoming_trains_vec(&station_id, &just_messages, &tt_context.stops);
 
     let mut response = webclient_api::StationStatus::new();
 //    response.set_name("PROTO".to_string());
@@ -175,7 +183,10 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
             response.mut_line().push(line);
         }
     }
-    response.set_data_timestamp(feed.timestamp.timestamp());
+
+    let min_ts = feed.iter().fold(
+        0, |acc, feed| std::cmp::min(acc, feed.timestamp.timestamp()));
+    response.set_data_timestamp(min_ts);
 
     return api_response(&response, tt_context, &rustful_context);
 }
@@ -228,7 +239,7 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
         result::TTError::Uncategorized(
             format!("No station with ID {}", station_id)))?;
-    let feed = tt_context.feed()?;
+    let feed = tt_context.feed(16)?;
 
     let tz = chrono_tz::America::New_York;
 

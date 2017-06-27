@@ -56,6 +56,10 @@ impl Fetcher {
         return self.latest_values.lock().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
+    pub fn all_feeds(&self) -> Vec<FetchResult> {
+        return self.latest_values.lock().unwrap().values().map(|v| v.clone()).collect();
+    }
+
     fn feed_from_file(&self, filename: &str, fetch_timestamp: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();

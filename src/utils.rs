@@ -48,28 +48,33 @@ fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool 
 }
 
 pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> {
+    return all_upcoming_trains_vec(stop_id, &vec![feed.clone()], stops);
+}
+
+pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> = std::collections::BTreeMap::new();
 
-    for entity in feed.get_entity() {
-        if entity.has_trip_update() {
-            let trip_update = entity.get_trip_update();
-            let trip = trip_update.get_trip();
+    for feed in feeds {
+        for entity in feed.get_entity() {
+            if entity.has_trip_update() {
+                let trip_update = entity.get_trip_update();
+                let trip = trip_update.get_trip();
+                for stop_time_update in trip_update.get_stop_time_update() {
+                    if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
+                        let direction = infer_direction_for_trip_id(trip.get_trip_id());
+                        let timestamp = chrono::Utc.timestamp(
+                            stop_time_update.get_arrival().get_time(), 0);
 
-            for stop_time_update in trip_update.get_stop_time_update() {
-                if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
-                    let direction = infer_direction_for_trip_id(trip.get_trip_id());
-                    let timestamp = chrono::Utc.timestamp(
-                        stop_time_update.get_arrival().get_time(), 0);
+                        if !upcoming.contains_key(trip.get_route_id()) {
+                            upcoming.insert(trip.get_route_id().to_string(), btreemap![]);
+                        }
+                        let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 
-                    if !upcoming.contains_key(trip.get_route_id()) {
-                        upcoming.insert(trip.get_route_id().to_string(), btreemap![]);
-                    }
-                    let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
-
-                    if route_trains.contains_key(&direction) {
-                        route_trains.get_mut(&direction).unwrap().push(timestamp);
-                    } else {
-                        route_trains.insert(direction, vec![timestamp]);
+                        if route_trains.contains_key(&direction) {
+                            route_trains.get_mut(&direction).unwrap().push(timestamp);
+                        } else {
+                            route_trains.insert(direction, vec![timestamp]);
+                        }
                     }
                 }
             }
