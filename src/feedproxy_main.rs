@@ -41,7 +41,7 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
 fn handle(feed_id_str: &str, fetcher: &feedfetcher::Fetcher) -> result::TTResult<feedproxy_api::FeedProxyResponse> {
     let feed_id = feed_id_str.parse::<i32>()?;
     let mut reply_data = feedproxy_api::FeedProxyResponse::new();
-    match fetcher.latest_value() {
+    match fetcher.latest_value(feed_id) {
         Some(data) => {
             info!("Returning feed {}", feed_id);
             reply_data.set_feed(data.feed);
@@ -100,7 +100,6 @@ fn main() {
 
     for request in server.incoming_requests() {
         info!("Handing request for {}", request.url());
-        let current_data = fetcher.latest_value();
 
         let url_clone = request.url().to_string();
         let url_parts: Vec<&str> = url_clone.split('/').collect();
@@ -121,6 +120,7 @@ fn main() {
                 },
             }
         } else {
+            let current_data = fetcher.latest_value(16);
             // Legacy handler
             let mut reply_data = feedproxy_api::FeedProxyResponse::new();
             match current_data {

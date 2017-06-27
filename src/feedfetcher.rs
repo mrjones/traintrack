@@ -15,14 +15,14 @@ use result;
 #[derive(Clone)]
 pub struct FetchResult {
     pub feed: gtfs_realtime::FeedMessage,
-    pub timestamp: chrono::datetime::DateTime<chrono::UTC>,
-    pub last_good_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
-    pub last_any_fetch: Option<chrono::datetime::DateTime<chrono::UTC>>,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+    pub last_good_fetch: Option<chrono::DateTime<chrono::Utc>>,
+    pub last_any_fetch: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 pub struct Fetcher {
     mta_api_key: String,
-    latest_value: std::sync::Mutex<Option<FetchResult>>,
+    latest_values: std::sync::Mutex<std::collections::HashMap<i32, FetchResult>>,
     proxy_url: Option<String>,
 }
 
@@ -31,7 +31,7 @@ impl Fetcher {
         info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
-            latest_value: std::sync::Mutex::new(None),
+            latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
             proxy_url: None,
         }
     }
@@ -40,16 +40,16 @@ impl Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
             mta_api_key: "".to_string(),
-            latest_value: std::sync::Mutex::new(None),
+            latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
             proxy_url: Some(proxy_url.to_string()),
         }
     }
 
-    pub fn latest_value(&self) -> Option<FetchResult> {
-        return self.latest_value.lock().unwrap().clone();
+    pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
+        return self.latest_values.lock().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
-    fn feed_from_file(&self, filename: &str, fetch_timestamp: Option<chrono::datetime::DateTime<chrono::UTC>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn feed_from_file(&self, filename: &str, fetch_timestamp: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
@@ -62,11 +62,11 @@ impl Fetcher {
         use chrono::TimeZone;
         *self.latest_value.lock().unwrap() = Some(FetchResult{
             feed: feed.clone(),
-            timestamp: chrono::UTC.timestamp(
+            timestamp: chrono::Utc.timestamp(
                 feed.get_header().get_timestamp() as i64, 0),
             // TODO(mrjones): This timestamp business is gross.
             last_good_fetch: fetch_timestamp,
-            last_any_fetch: Some(chrono::UTC::now()),
+            last_any_fetch: Some(chrono::Utc::now()),
         });
          */
 
@@ -75,32 +75,36 @@ impl Fetcher {
 
     pub fn fetch_once(&self) {
         use chrono::TimeZone;
+        let feed_id = 16;
 
         info!("fetch_once");
         return match self.proxy_url {
             None => {
-                match self.fetch_once_local(16) {
+                match self.fetch_once_local(feed_id) {
                     Ok(new_feed) => {
-                        *self.latest_value.lock().unwrap() = Some(FetchResult{
-                            feed: new_feed.clone(),
-                            timestamp: chrono::UTC.timestamp(
-                                new_feed.get_header().get_timestamp() as i64, 0),
-                            // TODO(mrjones): This timestamp business is gross.
-                            // TODO(mrjones): Use the cached file's timestamp when using it
-                            last_good_fetch: Some(chrono::UTC::now()),
-                            last_any_fetch: Some(chrono::UTC::now()),
-                        });
+                        self.latest_values.lock().unwrap().insert(
+                            feed_id,
+                            FetchResult{
+                                feed: new_feed.clone(),
+                                timestamp: chrono::Utc.timestamp(
+                                    new_feed.get_header().get_timestamp() as i64, 0),
+                                // TODO(mrjones): This timestamp business is gross.
+                                // TODO(mrjones): Use the cached file's timestamp when using it
+                                last_good_fetch: Some(chrono::Utc::now()),
+                                last_any_fetch: Some(chrono::Utc::now()),
+                            });
                     },
                     Err(err) => {
                         error!("Error fetching: {}", err);
-                        self.latest_value.lock().unwrap().as_mut().map(
-                            |mut r| r.last_any_fetch = Some(chrono::UTC::now()));
+                        self.latest_values.lock().unwrap().get_mut(&feed_id).as_mut().map(
+                            |mut r| r.last_any_fetch = Some(chrono::Utc::now()));
                     }
                 }
             }
             Some(ref proxy_url) => {
-                match self.fetch_once_remote(proxy_url, 16) {
-                    Ok(new_result) => { *self.latest_value.lock().unwrap() = Some(new_result); },
+                match self.fetch_once_remote(proxy_url, feed_id) {
+                    Ok(new_result) => { self.latest_values.lock().unwrap().insert(
+                        feed_id, new_result); }
                     Err(err) => { error!("Error fetching from proxy: {}", err); },
                 }
             }
@@ -121,17 +125,17 @@ impl Fetcher {
         use chrono::TimeZone;
         return Ok(FetchResult{
             feed: proxy_response.get_feed().clone(),
-            timestamp: chrono::UTC.timestamp(
+            timestamp: chrono::Utc.timestamp(
                 proxy_response.get_feed().get_header().get_timestamp() as i64, 0),
-            last_good_fetch: Some(chrono::UTC.timestamp(
+            last_good_fetch: Some(chrono::Utc.timestamp(
                 proxy_response.get_last_good_fetch_timestamp(), 0)),
-            last_any_fetch: Some(chrono::UTC.timestamp(
+            last_any_fetch: Some(chrono::Utc.timestamp(
                 proxy_response.get_last_attempted_fetch_timestamp(), 0)),
         });
     }
 
     fn fetch_once_local(&self, feed_id: i32) -> result::TTResult<gtfs_realtime::FeedMessage> {
-        let last_successful_fetch = match self.latest_value.lock().unwrap().as_ref() {
+        let last_successful_fetch = match self.latest_values.lock().unwrap().get(&feed_id) {
             None => None,
             Some(ref result) => result.last_good_fetch,
         };
@@ -153,7 +157,7 @@ impl Fetcher {
         // TODO(mrjones): Don't re-parse lastgood here:
         // Just parse it at startup, and cache the object in memory.
         for (candidate, timestamp) in vec![
-            (&lastresponse_fname, Some(chrono::UTC::now())),
+            (&lastresponse_fname, Some(chrono::Utc::now())),
             (&lastgood_fname, last_successful_fetch)] {
             match self.feed_from_file(&candidate, timestamp) {
                 Ok(feed) => {
