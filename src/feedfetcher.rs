@@ -23,26 +23,33 @@ pub struct FetchResult {
 pub struct Fetcher {
     mta_api_key: String,
     latest_values: std::sync::Mutex<std::collections::HashMap<i32, FetchResult>>,
+    feed_ids: Vec<i32>,
     proxy_url: Option<String>,
 }
 
 impl Fetcher {
-    pub fn new_local_fetcher(mta_api_key: &str) -> Fetcher {
+    pub fn new_local_fetcher(mta_api_key: &str, feed_ids: Vec<i32>) -> Fetcher {
         info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
+            feed_ids: feed_ids,
             proxy_url: None,
         }
     }
 
-    pub fn new_remote_fetcher(proxy_url: &str) -> Fetcher {
+    pub fn new_remote_fetcher(proxy_url: &str, feed_ids: Vec<i32>) -> Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
             mta_api_key: "".to_string(),
             latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
+            feed_ids: feed_ids,
             proxy_url: Some(proxy_url.to_string()),
         }
+    }
+
+    pub fn known_feed_ids(&self) -> Vec<i32> {
+        return self.latest_values.lock().unwrap().keys().map(|i| *i).collect();
     }
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
@@ -75,37 +82,39 @@ impl Fetcher {
 
     pub fn fetch_once(&self) {
         use chrono::TimeZone;
-        let feed_id = 16;
 
-        info!("fetch_once");
-        return match self.proxy_url {
-            None => {
-                match self.fetch_once_local(feed_id) {
-                    Ok(new_feed) => {
-                        self.latest_values.lock().unwrap().insert(
-                            feed_id,
-                            FetchResult{
-                                feed: new_feed.clone(),
-                                timestamp: chrono::Utc.timestamp(
-                                    new_feed.get_header().get_timestamp() as i64, 0),
-                                // TODO(mrjones): This timestamp business is gross.
-                                // TODO(mrjones): Use the cached file's timestamp when using it
-                                last_good_fetch: Some(chrono::Utc::now()),
-                                last_any_fetch: Some(chrono::Utc::now()),
-                            });
-                    },
-                    Err(err) => {
-                        error!("Error fetching: {}", err);
-                        self.latest_values.lock().unwrap().get_mut(&feed_id).as_mut().map(
-                            |mut r| r.last_any_fetch = Some(chrono::Utc::now()));
+        for feed_id in &self.feed_ids {
+            info!("Fetching feed #{}", feed_id);
+            let feed_id = *feed_id;
+            match self.proxy_url {
+                None => {
+                    match self.fetch_once_local(feed_id) {
+                        Ok(new_feed) => {
+                            self.latest_values.lock().unwrap().insert(
+                                feed_id,
+                                FetchResult{
+                                    feed: new_feed.clone(),
+                                    timestamp: chrono::Utc.timestamp(
+                                        new_feed.get_header().get_timestamp() as i64, 0),
+                                    // TODO(mrjones): This timestamp business is gross.
+                                    // TODO(mrjones): Use the cached file's timestamp when using it
+                                    last_good_fetch: Some(chrono::Utc::now()),
+                                    last_any_fetch: Some(chrono::Utc::now()),
+                                });
+                        },
+                        Err(err) => {
+                            error!("Error fetching: {}", err);
+                            self.latest_values.lock().unwrap().get_mut(&feed_id).as_mut().map(
+                                |mut r| r.last_any_fetch = Some(chrono::Utc::now()));
+                        }
                     }
                 }
-            }
-            Some(ref proxy_url) => {
-                match self.fetch_once_remote(proxy_url, feed_id) {
-                    Ok(new_result) => { self.latest_values.lock().unwrap().insert(
-                        feed_id, new_result); }
-                    Err(err) => { error!("Error fetching from proxy: {}", err); },
+                Some(ref proxy_url) => {
+                    match self.fetch_once_remote(proxy_url, feed_id) {
+                        Ok(new_result) => { self.latest_values.lock().unwrap().insert(
+                            feed_id, new_result); }
+                        Err(err) => { error!("Error fetching from proxy: {}", err); },
+                    }
                 }
             }
         }

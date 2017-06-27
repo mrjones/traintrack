@@ -91,7 +91,8 @@ fn main() {
         .map_or(3839, |s| s.parse::<u16>().expect("Could not parse --port"));
 
 
-    let fetcher = std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(&key));
+    let fetcher = std::sync::Arc::new(
+        feedfetcher::Fetcher::new_local_fetcher(&key, vec![16, 21]));
     let mut fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(
         fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));

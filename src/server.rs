@@ -450,9 +450,27 @@ fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8
     return Ok(tt_context.render("debug.html", &mut context)?);
 }
 
-fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn dump_feed_links(
+    tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+
+    let mut body = "<h1>Dump Proto</h1><ul>".to_string();
+    for feed_id in tt_context.fetcher.known_feed_ids() {
+        body.push_str(format!("<li><a href='/debug/dump_proto/{}'>/debug/dump_proto/{}</a></li>", feed_id, feed_id).as_ref());
+    }
+    body.push_str("</ul>");
+
+    return Ok(body.as_bytes().to_vec());
+}
+
+fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let desired_feed_str = rustful_context.variables.get("feed_id")
+        .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
+        .map(|x| x.to_string())?;
+
+    let desired_feed = desired_feed_str.parse::<i32>()?;
+
     let tz = chrono_tz::America::New_York;
-    return match tt_context.fetcher.latest_value(16) {
+    return match tt_context.fetcher.latest_value(desired_feed) {
         Some(feed) => Ok(format!(
             "Updated at: {}\n<pre>{:#?}</pre>",
             feed.timestamp.with_timezone(&tz).format("%v %r"),
@@ -513,7 +531,10 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
         node.then().on_get(PageType::Dynamic(dashboard));
         node.path("debug").many(|mut node| {
             node.then().on_get(PageType::Dynamic(debug));
-            node.path("dump_proto").then().on_get(PageType::Dynamic(dump_proto));
+            node.path("dump_proto").many(|mut node| {
+                node.then().on_get(PageType::Dynamic(dump_feed_links));
+                node.path(":feed_id").then().on_get(PageType::Dynamic(dump_proto));
+            });
             node.path("fetch_now").then().on_get(PageType::Dynamic(fetch_now));
         });
 
