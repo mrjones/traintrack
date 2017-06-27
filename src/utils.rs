@@ -23,7 +23,7 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>> {
+pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>> {
     let mut all_trains = all_upcoming_trains(stop_id, feed, stops);
     return all_trains.remove(route).unwrap_or(std::collections::BTreeMap::new());
 }
@@ -47,8 +47,8 @@ fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool 
      */
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> {
-    let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>> = std::collections::BTreeMap::new();
+pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> {
+    let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> = std::collections::BTreeMap::new();
 
     for entity in feed.get_entity() {
         if entity.has_trip_update() {
@@ -58,7 +58,7 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, sto
             for stop_time_update in trip_update.get_stop_time_update() {
                 if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
                     let direction = infer_direction_for_trip_id(trip.get_trip_id());
-                    let timestamp = chrono::UTC.timestamp(
+                    let timestamp = chrono::Utc.timestamp(
                         stop_time_update.get_arrival().get_time(), 0);
 
                     if !upcoming.contains_key(trip.get_route_id()) {

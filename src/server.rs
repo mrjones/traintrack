@@ -113,7 +113,7 @@ impl TTContext {
     }
 
     fn feed(&self) -> result::TTResult<feedfetcher::FetchResult> {
-        return match self.fetcher.latest_value() {
+        return match self.fetcher.latest_value(16) {
             Some(result) => Ok(result),
             None => Err(result::TTError::Uncategorized(
                 "No feed data yet".to_string())),
@@ -170,7 +170,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
                 &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
                 &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
             });
-            line.set_timestamp(stop_times.iter().map(chrono::datetime::DateTime::timestamp).collect());
+            line.set_timestamp(stop_times.iter().map(chrono::DateTime::timestamp).collect());
 
             response.mut_line().push(line);
         }
@@ -240,7 +240,7 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
         "id".to_string() => Value::Str(station.id.clone()),
     ]));
 
-    context.set_val("now", Value::Num(chrono::UTC::now().timestamp() as f32));
+    context.set_val("now", Value::Num(chrono::Utc::now().timestamp() as f32));
 
     let trains_by_route =
         utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
@@ -314,7 +314,7 @@ fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResul
 
 fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let feed;
-    match tt_context.fetcher.latest_value() {
+    match tt_context.fetcher.latest_value(16) {
         Some(f) => feed = f,
         None => {
             return Ok("Fetcher has no data!".as_bytes().to_vec());
@@ -324,7 +324,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     struct StationInfo {
         line: String,
         stop_id: String,
-        trains: std::collections::BTreeMap<utils::Direction, Vec<chrono::datetime::DateTime<chrono::UTC>>>,
+        trains: std::collections::BTreeMap<utils::Direction, Vec<chrono::DateTime<chrono::Utc>>>,
     }
     let mut station_infos = Vec::new();
 
@@ -348,7 +348,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
     context.set_val("update_timestamp", liquid::Value::Str(
         format!("{}", feed.timestamp.with_timezone(&tz).format("%v %r"))));
     context.set_val("update_timestamp_age_seconds", liquid::Value::Num(
-        (chrono::UTC::now().timestamp() - feed.timestamp.timestamp()) as f32));
+        (chrono::Utc::now().timestamp() - feed.timestamp.timestamp()) as f32));
     context.set_val("good_fetch_timestamp", liquid::Value::Str(
         format!("{:?}", feed.last_good_fetch.map(
             |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))))));
@@ -365,7 +365,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
             tt_context.stops.lookup_by_id(&station_info.stop_id).unwrap().name));
         for (ref direction, ref stop_times) in &station_info.trains {
             let lis: Vec<String> = stop_times.iter().map(|time| {
-                if time.lt(&chrono::UTC::now()) {
+                if time.lt(&chrono::Utc::now()) {
                     return format!("<li class='past'>{:?} {}</li>",
                                    direction,
                                    time.with_timezone(&tz).format("%H:%M %p"))
@@ -389,9 +389,9 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
 
 /*
 fn hack559(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
-    use chrono::datetime::DateTime;
+    use chrono::DateTime;
     use chrono::TimeZone;
-    use chrono::UTC;
+    use chrono::Utc;
     let direction = rustful_context.variables.get("direction").ok_or(
         result::TTError::Uncategorized("Missing direction".to_string()))?;
 
@@ -452,7 +452,7 @@ fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8
 
 fn dump_proto(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
     let tz = chrono_tz::America::New_York;
-    return match tt_context.fetcher.latest_value() {
+    return match tt_context.fetcher.latest_value(16) {
         Some(feed) => Ok(format!(
             "Updated at: {}\n<pre>{:#?}</pre>",
             feed.timestamp.with_timezone(&tz).format("%v %r"),
