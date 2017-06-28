@@ -185,7 +185,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
     }
 
     let min_ts = feed.iter().fold(
-        0, |acc, feed| std::cmp::min(acc, feed.timestamp.timestamp()));
+        i64::max_value(), |acc, feed| std::cmp::min(acc, feed.timestamp.timestamp()));
     response.set_data_timestamp(min_ts);
 
     return api_response(&response, tt_context, &rustful_context);

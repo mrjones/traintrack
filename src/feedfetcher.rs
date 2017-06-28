@@ -12,6 +12,8 @@ use feedproxy_api;
 use gtfs_realtime;
 use result;
 
+static FEED_IDS: &'static [i32] = &[1, 2, 16, 21];
+
 #[derive(Clone)]
 pub struct FetchResult {
     pub feed: gtfs_realtime::FeedMessage,
@@ -23,27 +25,24 @@ pub struct FetchResult {
 pub struct Fetcher {
     mta_api_key: String,
     latest_values: std::sync::Mutex<std::collections::HashMap<i32, FetchResult>>,
-    feed_ids: Vec<i32>,
     proxy_url: Option<String>,
 }
 
 impl Fetcher {
-    pub fn new_local_fetcher(mta_api_key: &str, feed_ids: Vec<i32>) -> Fetcher {
+    pub fn new_local_fetcher(mta_api_key: &str) -> Fetcher {
         info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
-            feed_ids: feed_ids,
             proxy_url: None,
         }
     }
 
-    pub fn new_remote_fetcher(proxy_url: &str, feed_ids: Vec<i32>) -> Fetcher {
+    pub fn new_remote_fetcher(proxy_url: &str) -> Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
             mta_api_key: "".to_string(),
             latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
-            feed_ids: feed_ids,
             proxy_url: Some(proxy_url.to_string()),
         }
     }
@@ -87,7 +86,7 @@ impl Fetcher {
     pub fn fetch_once(&self) {
         use chrono::TimeZone;
 
-        for feed_id in &self.feed_ids {
+        for feed_id in FEED_IDS {
             info!("Fetching feed #{}", feed_id);
             let feed_id = *feed_id;
             match self.proxy_url {

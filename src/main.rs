@@ -101,12 +101,9 @@ fn main() {
     let compile_templates_once = matches.opt_present("compile-templates-once");
     let disable_background_fetch = matches.opt_present("disable-background-fetch");
 
-    let feed_ids = vec![16, 21];
     let fetcher = match maybe_proxy_url {
-        None => std::sync::Arc::new(
-            feedfetcher::Fetcher::new_local_fetcher(&key, feed_ids)),
-        Some(ref url) => std::sync::Arc::new(
-            feedfetcher::Fetcher::new_remote_fetcher(url, feed_ids)),
+        None => std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(&key)),
+        Some(ref url) => std::sync::Arc::new(feedfetcher::Fetcher::new_remote_fetcher(url)),
     };
     let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {
