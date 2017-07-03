@@ -90,11 +90,15 @@ class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteCo
   constructor() {
     super();
     this.dataFetcher = new DataFetcher();
+
+    this.state = {
+      stationId: (this.props && this.props.match) ? this.props.match.params.initialStationId : "R32",
+    };
   }
 
   public render() {
     return <div>
-      <OneStationView initialStationId={this.props.match.params.initialStationId} dataFetcher={this.dataFetcher} />
+      <OneStationView initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />
     </div>
   }
 }
@@ -154,7 +158,7 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
       <div className="jumpLink"><ReactRouter.Link to={`/singlepage/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <StationBoard stationId={this.state.displayedStationId} />
+      <StationBoard stationId={this.state.displayedStationId} dataFetcher={this.props.dataFetcher}/>
     </div>);
   }
 }
@@ -209,6 +213,7 @@ class StationBoardState {
 
 class StationBoardProps {
   public stationId: string;
+  public dataFetcher: DataFetcher;
 }
 
 class StationBoard extends React.Component<StationBoardProps, StationBoardState> {
@@ -233,8 +238,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 
   private stationChanged() {
     const component = this;
-    let fetcher = new DataFetcher();
-    fetcher
+    this.props.dataFetcher
       .fetchStationStatus(this.props.stationId)
       .then((stationStatus: proto.StationStatus) => {
         component.setState({
@@ -270,9 +274,7 @@ ReactDOM.render(
         <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
         <ReactRouter.Route path='/singlepage/line/:lineId' component={LineViewRouterWrapper}/>
         <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
-        <ReactRouter.Route path='/singlepage/'>
-          <OneStationView initialStationId="R32" dataFetcher={new DataFetcher()}/>
-        </ReactRouter.Route>
+        <ReactRouter.Route path='/singlepage' component={OneStationViewWrapperForRouter}/>
       </ReactRouter.Switch>
     </ReactRouter.BrowserRouter>
   </div>,

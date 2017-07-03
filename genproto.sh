@@ -11,7 +11,7 @@ PBTS=./webclient/node_modules/protobufjs/bin/pbts
 #PBTS=~/src/protobuf.js/bin/pbts
 
 
-$PBJS -t static-module -w commonjs -o webclient/src/webclient_api_pb.js proto/webclient_api.proto 
+$PBJS -t static-module -w commonjs -o webclient/src/webclient_api_pb.js proto/webclient_api.proto
 
 $PBJS -t static-module proto/webclient_api.proto | $PBTS -o webclient/src/webclient_api_pb.d.ts -
 

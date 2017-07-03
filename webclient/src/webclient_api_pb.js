@@ -12,7 +12,7 @@ var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 /**
  * Direction enum.
  * @exports Direction
- * @enum {number}
+ * @enum {string}
  * @property {number} UPTOWN=0 UPTOWN value
  * @property {number} DOWNTOWN=1 DOWNTOWN value
  */
@@ -51,24 +51,33 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals line.
-     * @type {string}
+     * @member {string}line
+     * @memberof LineArrivals
+     * @instance
      */
     LineArrivals.prototype.line = "";
 
     /**
      * LineArrivals direction.
-     * @type {Direction}
+     * @member {Direction}direction
+     * @memberof LineArrivals
+     * @instance
      */
     LineArrivals.prototype.direction = 0;
 
     /**
      * LineArrivals timestamp.
-     * @type {Array.<number|Long>}
+     * @member {Array.<number|Long>}timestamp
+     * @memberof LineArrivals
+     * @instance
      */
     LineArrivals.prototype.timestamp = $util.emptyArray;
 
     /**
      * Creates a new LineArrivals instance using the specified properties.
+     * @function create
+     * @memberof LineArrivals
+     * @static
      * @param {ILineArrivals=} [properties] Properties to set
      * @returns {LineArrivals} LineArrivals instance
      */
@@ -78,6 +87,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Encodes the specified LineArrivals message. Does not implicitly {@link LineArrivals.verify|verify} messages.
+     * @function encode
+     * @memberof LineArrivals
+     * @static
      * @param {ILineArrivals} message LineArrivals message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -97,6 +109,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Encodes the specified LineArrivals message, length delimited. Does not implicitly {@link LineArrivals.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof LineArrivals
+     * @static
      * @param {ILineArrivals} message LineArrivals message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -107,6 +122,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Decodes a LineArrivals message from the specified reader or buffer.
+     * @function decode
+     * @memberof LineArrivals
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {LineArrivals} LineArrivals
@@ -146,6 +164,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Decodes a LineArrivals message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof LineArrivals
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {LineArrivals} LineArrivals
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -153,12 +174,15 @@ $root.LineArrivals = (function() {
      */
     LineArrivals.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a LineArrivals message.
+     * @function verify
+     * @memberof LineArrivals
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -188,6 +212,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Creates a LineArrivals message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof LineArrivals
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {LineArrivals} LineArrivals
      */
@@ -226,6 +253,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Creates a plain object from a LineArrivals message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof LineArrivals
+     * @static
      * @param {LineArrivals} message LineArrivals
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -257,6 +287,9 @@ $root.LineArrivals = (function() {
 
     /**
      * Converts this LineArrivals to JSON.
+     * @function toJSON
+     * @memberof LineArrivals
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     LineArrivals.prototype.toJSON = function toJSON() {
@@ -294,24 +327,33 @@ $root.StationStatus = (function() {
 
     /**
      * StationStatus name.
-     * @type {string}
+     * @member {string}name
+     * @memberof StationStatus
+     * @instance
      */
     StationStatus.prototype.name = "";
 
     /**
      * StationStatus line.
-     * @type {Array.<ILineArrivals>}
+     * @member {Array.<ILineArrivals>}line
+     * @memberof StationStatus
+     * @instance
      */
     StationStatus.prototype.line = $util.emptyArray;
 
     /**
      * StationStatus dataTimestamp.
-     * @type {number|Long}
+     * @member {number|Long}dataTimestamp
+     * @memberof StationStatus
+     * @instance
      */
     StationStatus.prototype.dataTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
      * Creates a new StationStatus instance using the specified properties.
+     * @function create
+     * @memberof StationStatus
+     * @static
      * @param {IStationStatus=} [properties] Properties to set
      * @returns {StationStatus} StationStatus instance
      */
@@ -321,6 +363,9 @@ $root.StationStatus = (function() {
 
     /**
      * Encodes the specified StationStatus message. Does not implicitly {@link StationStatus.verify|verify} messages.
+     * @function encode
+     * @memberof StationStatus
+     * @static
      * @param {IStationStatus} message StationStatus message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -340,6 +385,9 @@ $root.StationStatus = (function() {
 
     /**
      * Encodes the specified StationStatus message, length delimited. Does not implicitly {@link StationStatus.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof StationStatus
+     * @static
      * @param {IStationStatus} message StationStatus message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -350,6 +398,9 @@ $root.StationStatus = (function() {
 
     /**
      * Decodes a StationStatus message from the specified reader or buffer.
+     * @function decode
+     * @memberof StationStatus
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {StationStatus} StationStatus
@@ -384,6 +435,9 @@ $root.StationStatus = (function() {
 
     /**
      * Decodes a StationStatus message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof StationStatus
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {StationStatus} StationStatus
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -391,12 +445,15 @@ $root.StationStatus = (function() {
      */
     StationStatus.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a StationStatus message.
+     * @function verify
+     * @memberof StationStatus
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -423,6 +480,9 @@ $root.StationStatus = (function() {
 
     /**
      * Creates a StationStatus message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof StationStatus
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {StationStatus} StationStatus
      */
@@ -456,6 +516,9 @@ $root.StationStatus = (function() {
 
     /**
      * Creates a plain object from a StationStatus message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof StationStatus
+     * @static
      * @param {StationStatus} message StationStatus
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -491,6 +554,9 @@ $root.StationStatus = (function() {
 
     /**
      * Converts this StationStatus to JSON.
+     * @function toJSON
+     * @memberof StationStatus
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     StationStatus.prototype.toJSON = function toJSON() {
@@ -526,18 +592,25 @@ $root.Station = (function() {
 
     /**
      * Station id.
-     * @type {string}
+     * @member {string}id
+     * @memberof Station
+     * @instance
      */
     Station.prototype.id = "";
 
     /**
      * Station name.
-     * @type {string}
+     * @member {string}name
+     * @memberof Station
+     * @instance
      */
     Station.prototype.name = "";
 
     /**
      * Creates a new Station instance using the specified properties.
+     * @function create
+     * @memberof Station
+     * @static
      * @param {IStation=} [properties] Properties to set
      * @returns {Station} Station instance
      */
@@ -547,6 +620,9 @@ $root.Station = (function() {
 
     /**
      * Encodes the specified Station message. Does not implicitly {@link Station.verify|verify} messages.
+     * @function encode
+     * @memberof Station
+     * @static
      * @param {IStation} message Station message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -563,6 +639,9 @@ $root.Station = (function() {
 
     /**
      * Encodes the specified Station message, length delimited. Does not implicitly {@link Station.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof Station
+     * @static
      * @param {IStation} message Station message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -573,6 +652,9 @@ $root.Station = (function() {
 
     /**
      * Decodes a Station message from the specified reader or buffer.
+     * @function decode
+     * @memberof Station
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {Station} Station
@@ -602,6 +684,9 @@ $root.Station = (function() {
 
     /**
      * Decodes a Station message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof Station
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {Station} Station
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -609,12 +694,15 @@ $root.Station = (function() {
      */
     Station.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a Station message.
+     * @function verify
+     * @memberof Station
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -632,6 +720,9 @@ $root.Station = (function() {
 
     /**
      * Creates a Station message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof Station
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {Station} Station
      */
@@ -648,6 +739,9 @@ $root.Station = (function() {
 
     /**
      * Creates a plain object from a Station message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof Station
+     * @static
      * @param {Station} message Station
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -669,6 +763,9 @@ $root.Station = (function() {
 
     /**
      * Converts this Station to JSON.
+     * @function toJSON
+     * @memberof Station
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     Station.prototype.toJSON = function toJSON() {
@@ -704,12 +801,17 @@ $root.StationList = (function() {
 
     /**
      * StationList station.
-     * @type {Array.<IStation>}
+     * @member {Array.<IStation>}station
+     * @memberof StationList
+     * @instance
      */
     StationList.prototype.station = $util.emptyArray;
 
     /**
      * Creates a new StationList instance using the specified properties.
+     * @function create
+     * @memberof StationList
+     * @static
      * @param {IStationList=} [properties] Properties to set
      * @returns {StationList} StationList instance
      */
@@ -719,6 +821,9 @@ $root.StationList = (function() {
 
     /**
      * Encodes the specified StationList message. Does not implicitly {@link StationList.verify|verify} messages.
+     * @function encode
+     * @memberof StationList
+     * @static
      * @param {IStationList} message StationList message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -734,6 +839,9 @@ $root.StationList = (function() {
 
     /**
      * Encodes the specified StationList message, length delimited. Does not implicitly {@link StationList.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof StationList
+     * @static
      * @param {IStationList} message StationList message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -744,6 +852,9 @@ $root.StationList = (function() {
 
     /**
      * Decodes a StationList message from the specified reader or buffer.
+     * @function decode
+     * @memberof StationList
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {StationList} StationList
@@ -772,6 +883,9 @@ $root.StationList = (function() {
 
     /**
      * Decodes a StationList message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof StationList
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {StationList} StationList
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -779,12 +893,15 @@ $root.StationList = (function() {
      */
     StationList.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a StationList message.
+     * @function verify
+     * @memberof StationList
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -805,6 +922,9 @@ $root.StationList = (function() {
 
     /**
      * Creates a StationList message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof StationList
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {StationList} StationList
      */
@@ -827,6 +947,9 @@ $root.StationList = (function() {
 
     /**
      * Creates a plain object from a StationList message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof StationList
+     * @static
      * @param {StationList} message StationList
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -847,6 +970,9 @@ $root.StationList = (function() {
 
     /**
      * Converts this StationList to JSON.
+     * @function toJSON
+     * @memberof StationList
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     StationList.prototype.toJSON = function toJSON() {
@@ -882,18 +1008,25 @@ $root.Line = (function() {
 
     /**
      * Line name.
-     * @type {string}
+     * @member {string}name
+     * @memberof Line
+     * @instance
      */
     Line.prototype.name = "";
 
     /**
      * Line colorHex.
-     * @type {string}
+     * @member {string}colorHex
+     * @memberof Line
+     * @instance
      */
     Line.prototype.colorHex = "";
 
     /**
      * Creates a new Line instance using the specified properties.
+     * @function create
+     * @memberof Line
+     * @static
      * @param {ILine=} [properties] Properties to set
      * @returns {Line} Line instance
      */
@@ -903,6 +1036,9 @@ $root.Line = (function() {
 
     /**
      * Encodes the specified Line message. Does not implicitly {@link Line.verify|verify} messages.
+     * @function encode
+     * @memberof Line
+     * @static
      * @param {ILine} message Line message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -919,6 +1055,9 @@ $root.Line = (function() {
 
     /**
      * Encodes the specified Line message, length delimited. Does not implicitly {@link Line.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof Line
+     * @static
      * @param {ILine} message Line message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -929,6 +1068,9 @@ $root.Line = (function() {
 
     /**
      * Decodes a Line message from the specified reader or buffer.
+     * @function decode
+     * @memberof Line
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {Line} Line
@@ -958,6 +1100,9 @@ $root.Line = (function() {
 
     /**
      * Decodes a Line message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof Line
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {Line} Line
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -965,12 +1110,15 @@ $root.Line = (function() {
      */
     Line.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a Line message.
+     * @function verify
+     * @memberof Line
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -988,6 +1136,9 @@ $root.Line = (function() {
 
     /**
      * Creates a Line message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof Line
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {Line} Line
      */
@@ -1004,6 +1155,9 @@ $root.Line = (function() {
 
     /**
      * Creates a plain object from a Line message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof Line
+     * @static
      * @param {Line} message Line
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -1025,6 +1179,9 @@ $root.Line = (function() {
 
     /**
      * Converts this Line to JSON.
+     * @function toJSON
+     * @memberof Line
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     Line.prototype.toJSON = function toJSON() {
@@ -1060,12 +1217,17 @@ $root.LineList = (function() {
 
     /**
      * LineList line.
-     * @type {Array.<ILine>}
+     * @member {Array.<ILine>}line
+     * @memberof LineList
+     * @instance
      */
     LineList.prototype.line = $util.emptyArray;
 
     /**
      * Creates a new LineList instance using the specified properties.
+     * @function create
+     * @memberof LineList
+     * @static
      * @param {ILineList=} [properties] Properties to set
      * @returns {LineList} LineList instance
      */
@@ -1075,6 +1237,9 @@ $root.LineList = (function() {
 
     /**
      * Encodes the specified LineList message. Does not implicitly {@link LineList.verify|verify} messages.
+     * @function encode
+     * @memberof LineList
+     * @static
      * @param {ILineList} message LineList message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -1090,6 +1255,9 @@ $root.LineList = (function() {
 
     /**
      * Encodes the specified LineList message, length delimited. Does not implicitly {@link LineList.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof LineList
+     * @static
      * @param {ILineList} message LineList message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
@@ -1100,6 +1268,9 @@ $root.LineList = (function() {
 
     /**
      * Decodes a LineList message from the specified reader or buffer.
+     * @function decode
+     * @memberof LineList
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
      * @returns {LineList} LineList
@@ -1128,6 +1299,9 @@ $root.LineList = (function() {
 
     /**
      * Decodes a LineList message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof LineList
+     * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @returns {LineList} LineList
      * @throws {Error} If the payload is not a reader or valid buffer
@@ -1135,12 +1309,15 @@ $root.LineList = (function() {
      */
     LineList.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
-            reader = $Reader(reader);
+            reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
      * Verifies a LineList message.
+     * @function verify
+     * @memberof LineList
+     * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
@@ -1161,6 +1338,9 @@ $root.LineList = (function() {
 
     /**
      * Creates a LineList message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof LineList
+     * @static
      * @param {Object.<string,*>} object Plain object
      * @returns {LineList} LineList
      */
@@ -1183,6 +1363,9 @@ $root.LineList = (function() {
 
     /**
      * Creates a plain object from a LineList message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof LineList
+     * @static
      * @param {LineList} message LineList
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
@@ -1203,6 +1386,9 @@ $root.LineList = (function() {
 
     /**
      * Converts this LineList to JSON.
+     * @function toJSON
+     * @memberof LineList
+     * @instance
      * @returns {Object.<string,*>} JSON object
      */
     LineList.prototype.toJSON = function toJSON() {
