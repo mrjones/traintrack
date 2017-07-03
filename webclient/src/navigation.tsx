@@ -3,7 +3,24 @@ import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
-import { DataFetcher } from './datafetcher';
+import { DataFetcher, DebuggableResult } from './datafetcher';
+
+class ApiDebuggerProps {
+  public apiUrl: string;
+}
+
+class ApiDebuggerState { }
+
+class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerState> {
+
+  public render(): JSX.Element {
+    let jsonLink: string = this.props.apiUrl + "?format=json";
+
+    return <div>
+      API: <a href={jsonLink}>{jsonLink}</a>
+    </div>;
+  }
+};
 
 class LinePickerProps {
   public dataFetcher: DataFetcher;
@@ -11,6 +28,7 @@ class LinePickerProps {
 
 class LinePickerState {
   public lineList: proto.LineList;
+  public apiUrl: String;
 }
 
 export default class LinePicker extends React.Component<LinePickerProps, any> {
@@ -18,13 +36,14 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
     super(props);
     this.state = {
       lineList: new proto.LineList(),
+      apiUrl: "",
     };
   }
 
   public componentDidMount() {
     this.props.dataFetcher.fetchLineList()
-      .then((lineList: proto.LineList) => {
-        this.setState({lineList: lineList});
+      .then((res: DebuggableResult<proto.LineList>) => {
+        this.setState({lineList: res.data, apiUrl: res.apiUrl});
       });
   }
 
@@ -43,6 +62,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
 
     return (<div>
             <ul className="lineList">{lineLis}</ul>
+            <ApiDebugger apiUrl={this.state.apiUrl} />
             </div>);
   }
 }

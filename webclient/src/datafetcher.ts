@@ -21,6 +21,16 @@ export class Cached<T> {
 
 export default class Foo {};
 
+export class DebuggableResult<T> {
+  public data: T;
+  public apiUrl: String;
+
+  public constructor(data: T, apiUrl: String) {
+    this.data = data;
+    this.apiUrl = apiUrl;
+  }
+}
+
 export class DataFetcher {
   private stationCache: Cached<proto.StationList>;
   private lineListCache: Cached<proto.LineList>;
@@ -33,19 +43,20 @@ export class DataFetcher {
     this.stationsByLineCache = new Map<string, Cached<proto.StationList>>();
   }
 
-  public fetchLineList(): Promise<proto.LineList> {
-    return new Promise<proto.LineList>((resolve: (l: proto.LineList) => void) => {
+  public fetchLineList(): Promise<DebuggableResult<proto.LineList>> {
+    return new Promise<DebuggableResult<proto.LineList>>((resolve: (l: DebuggableResult<proto.LineList>) => void) => {
+      let apiUrl = "/api/lines";
       if (this.stationCache.valid) {
-        resolve(this.lineListCache.value);
+        resolve(new DebuggableResult(this.lineListCache.value, apiUrl));
         return;
       } else {
-        fetch("/api/lines").then((response: Response) => {
+        fetch(apiUrl).then((response: Response) => {
           return response.arrayBuffer();
         }).then((bodyBuffer: ArrayBuffer) => {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const lineList = proto.LineList.decode(bodyBytes);
           this.lineListCache.set(lineList);
-          resolve(lineList);
+          resolve(new DebuggableResult(lineList, apiUrl));
         });
       }
     });
