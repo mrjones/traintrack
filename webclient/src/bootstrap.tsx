@@ -4,8 +4,8 @@ import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
-import { DataFetcher } from './datafetcher';
-import { LinePickerRouterWrapper } from './navigation';
+import { DataFetcher, DebuggableResult } from './datafetcher';
+import { ApiDebugger, LinePickerRouterWrapper } from './navigation';
 import { LineViewRouterWrapper } from './lineview';
 
 class StationPickerState {
@@ -208,7 +208,7 @@ class StationLine extends React.Component<StationLineProps, undefined> {
 class StationBoardState {
   public stationId: string;
   public stationName: string;
-  public data: proto.StationStatus;
+  public data: DebuggableResult<proto.StationStatus>;
 };
 
 class StationBoardProps {
@@ -222,7 +222,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
     this.state = {
       stationId: "",
       stationName: "Loading...",
-      data: new proto.StationStatus(),
+      data: new DebuggableResult(new proto.StationStatus(), "unknown"),
     };
   }
 
@@ -240,28 +240,29 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
     const component = this;
     this.props.dataFetcher
       .fetchStationStatus(this.props.stationId)
-      .then((stationStatus: proto.StationStatus) => {
+      .then((stationStatus: DebuggableResult<proto.StationStatus>) => {
         component.setState({
           stationId: component.props.stationId,
-          stationName: stationStatus.name,
+          stationName: stationStatus.data.name,
           data: stationStatus,
         });
       });
   }
 
   public render() {
-    const lineSet = this.state.data.line.map(
+    const lineSet = this.state.data.data.line.map(
       (line: proto.LineArrivals) => {
         const key = this.props.stationId + "-" + line.line + "-" + line.direction;
         return <StationLine data={line} key={key} />;
       });
 
-    const dataTs = moment.unix(this.state.data.dataTimestamp as number);
+    const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
 
     return (<div className="stationInfo">
             <h2>{this.state.stationName} ({this.props.stationId})</h2>
             <p>Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></p>
             {lineSet}
+            <ApiDebugger apiUrl={this.state.data.apiUrl}/>
             </div>);
   };
 }

@@ -23,9 +23,9 @@ export default class Foo {};
 
 export class DebuggableResult<T> {
   public data: T;
-  public apiUrl: String;
+  public apiUrl: string;
 
-  public constructor(data: T, apiUrl: String) {
+  public constructor(data: T, apiUrl: string) {
     this.data = data;
     this.apiUrl = apiUrl;
   }
@@ -62,15 +62,15 @@ export class DataFetcher {
     });
   }
 
-  public fetchStationStatus(stationId: string): Promise<proto.StationStatus> {
-    return new Promise<proto.StationStatus>((resolve: (s: proto.StationStatus) => void) => {
+  public fetchStationStatus(stationId: string): Promise<DebuggableResult<proto.StationStatus>> {
+    return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
       const url = "/api/station/" + stationId;
       fetch(url).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationStatus = proto.StationStatus.decode(bodyBytes);
-        resolve(stationStatus);
+        resolve(new DebuggableResult(stationStatus, url));
       });
     });
   }

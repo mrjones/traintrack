@@ -11,7 +11,7 @@ class ApiDebuggerProps {
 
 class ApiDebuggerState { }
 
-class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerState> {
+export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerState> {
 
   public render(): JSX.Element {
     let jsonLink: string = this.props.apiUrl + "?format=json";
