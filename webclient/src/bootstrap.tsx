@@ -89,7 +89,7 @@ class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteCo
 
   constructor() {
     super();
-    this.dataFetcher = new DataFetcher();
+    this.dataFetcher = globalDataFetcher;
 
     this.state = {
       stationId: (this.props && this.props.match) ? this.props.match.params.initialStationId : "R32",
@@ -265,6 +265,8 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
             </div>);
   };
 }
+
+let globalDataFetcher = new DataFetcher();
 
 ReactDOM.render(
   <div>

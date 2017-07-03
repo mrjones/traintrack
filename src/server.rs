@@ -160,7 +160,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
     let just_messages: Vec<gtfs_realtime::FeedMessage> =
         feed.iter().map(|res| res.feed.clone()).collect();
 
-    let trains_by_route =
+    let upcoming =
         utils::all_upcoming_trains_vec(&station_id, &just_messages, &tt_context.stops);
 
     let mut response = webclient_api::StationStatus::new();
@@ -170,7 +170,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
 //    response.mut_line().push(line);
 
     response.set_name(station.name.clone());
-    for (route_id, trains) in trains_by_route.iter() {
+    for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
         for (direction, stop_times) in trains.iter() {
             let mut line = webclient_api::LineArrivals::new();
             line.set_line(route_id.clone());
@@ -184,9 +184,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
         }
     }
 
-    let min_ts = feed.iter().fold(
-        i64::max_value(), |acc, feed| std::cmp::min(acc, feed.timestamp.timestamp()));
-    response.set_data_timestamp(min_ts);
+    response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
 
     return api_response(&response, tt_context, &rustful_context);
 }
@@ -253,11 +251,11 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 
     context.set_val("now", Value::Num(chrono::Utc::now().timestamp() as f32));
 
-    let trains_by_route =
+    let upcoming =
         utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
     context.set_val(
         "routes",
-        Value::Array(trains_by_route.iter().filter_map(|(ref route, ref trains)| {
+        Value::Array(upcoming.trains_by_route_and_direction.iter().filter_map(|(ref route, ref trains)| {
             if desired_route.is_some() && desired_route != Some(route.to_string()) {
                 return None;
             }
@@ -346,11 +344,11 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         ("R", "R29"), // MetroTech
     ];
     for (route, stop) in pois {
-        let trains = utils::upcoming_trains(route, stop, &feed.feed, &tt_context.stops);
+        let upcoming = utils::upcoming_trains(route, stop, &feed.feed, &tt_context.stops);
         station_infos.push(StationInfo{
             line: route.to_string(),
             stop_id: stop.to_string(),
-            trains: trains,
+            trains: upcoming,
         });
     }
 

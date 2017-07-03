@@ -24,8 +24,8 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
 }
 
 pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>> {
-    let mut all_trains = all_upcoming_trains(stop_id, feed, stops);
-    return all_trains.remove(route).unwrap_or(std::collections::BTreeMap::new());
+    let mut upcoming = all_upcoming_trains(stop_id, feed, stops);
+    return upcoming.trains_by_route_and_direction.remove(route).unwrap_or(std::collections::BTreeMap::new());
 }
 
 fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
@@ -47,12 +47,19 @@ fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool 
      */
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> {
+pub struct UpcomingTrainsResult {
+    pub trains_by_route_and_direction:std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>>,
+    pub underlying_data_timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> UpcomingTrainsResult {
     return all_upcoming_trains_vec(stop_id, &vec![feed.clone()], stops);
 }
 
-pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> {
+pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> = std::collections::BTreeMap::new();
+
+    let mut min_relevant_ts = chrono::Utc::now().timestamp() as u64;
 
     for feed in feeds {
         for entity in feed.get_entity() {
@@ -61,6 +68,7 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
                 let trip = trip_update.get_trip();
                 for stop_time_update in trip_update.get_stop_time_update() {
                     if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
+                        min_relevant_ts = std::cmp::min(min_relevant_ts, feed.get_header().get_timestamp());
                         let direction = infer_direction_for_trip_id(trip.get_trip_id());
                         let timestamp = chrono::Utc.timestamp(
                             stop_time_update.get_arrival().get_time(), 0);
@@ -87,5 +95,8 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
             timestamps.sort();
         }
     }
-    return upcoming;
+    return UpcomingTrainsResult {
+        trains_by_route_and_direction: upcoming,
+        underlying_data_timestamp: chrono::Utc.timestamp(min_relevant_ts as i64, 0),
+    }
 }
