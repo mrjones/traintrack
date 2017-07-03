@@ -260,7 +260,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
 
     return (<div className="stationInfo">
             <h2>{this.state.stationName} ({this.props.stationId})</h2>
-            <p>Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></p>
+            <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
             {lineSet}
             <ApiDebugger apiUrl={this.state.data.apiUrl}/>
             </div>);
@@ -271,15 +271,17 @@ let globalDataFetcher = new DataFetcher();
 
 ReactDOM.render(
   <div>
-    <div className="app_title">TrainTrack</div>
-    <ReactRouter.BrowserRouter>
-      <ReactRouter.Switch>
-        <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
-        <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
-        <ReactRouter.Route path='/app/station/:initialStationId' component={OneStationViewWrapperForRouter} />
-    <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
-        <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
-      </ReactRouter.Switch>
-    </ReactRouter.BrowserRouter>
+    <div className="app_title"><span className="first">Train</span><span className="second">Track</span></div>
+    <div className="app_content">
+      <ReactRouter.BrowserRouter>
+        <ReactRouter.Switch>
+          <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
+          <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
+          <ReactRouter.Route path='/app/station/:initialStationId' component={OneStationViewWrapperForRouter} />
+      <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
+          <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
+        </ReactRouter.Switch>
+      </ReactRouter.BrowserRouter>
+    </div>
   </div>,
   document.getElementById('tt_app'));

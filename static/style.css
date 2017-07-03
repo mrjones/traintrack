@@ -31,21 +31,39 @@
     color: #CCCCCC;
 }
 
+body {
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+}
 html {font-size: 1.375em;  /* 22px */}
 .app_title {
-    color: red;
+    background-color: #FECE00;
+    padding: .1em;
+    color: #262228;
+    font-size: 150%;
+    text-transform: uppercase;
+    border-bottom: 1px solid #0375B4;
+}
+.app_title .second {
     font-weight: bold;
-    font-size: 200%;
+    color: #0375B4;
+}
+.app_title .second {
+    font-weight: bold;
+}
+
+.app_content {
+    padding: .5em;
 }
 
 .jumpLink {
-    font-size: 150%;
+    font-size: 200%;
     display: inline-block;
     padding: .75em;
-    border: 1px solid black;
-    margin: .5em;
-    margin-left: 0;
-    background-color: blue;
+    margin-right: .5em;
+    background-color: #0375B4;
+    text-transform: uppercase;
+    padding: 1em;
 }
 
 .jumpLink.open {
@@ -69,23 +87,35 @@ html {font-size: 1.375em;  /* 22px */}
     font-size: 24pt;
 }
 
+.stationInfo h2 {
+    margin: 0;
+    margin-top: .5em;
+}
+
+.pubTime {
+    font-size: 80%;
+    color: #999;
+    margin-bottom: 1em;
+}
+
 .lineList li {
     display: inline-block;
+    border: 1px solid black;
+    margin: .25em;
+}
+
+.linelist a {
+    display: inline-block;
+    -webkit-text-stroke: 1px black;
+    color: white;
+    text-decoration: none;
     font-size: 300%;
     font-weight: bold;
-    margin: .25em;
     padding: .25em;
-    border: 1px solid black;
     width: 2em;
     height: 2em;
     text-align: center;
     line-height: 2em;
-}
-
-.linelist a {
-    -webkit-text-stroke: 1px black;
-    color: white;
-    text-decoration: none;
 }
 
 ul.lineView{
@@ -110,11 +140,15 @@ ul.lineView{
 /* Desktop-only tweaks*/
 @media (min-width: 1024px) {
     html {font-size: 1em;}
-    .app_title {
-        color: blue;
+    .jumpLink {
+        padding: .5em;
+        font-size: 120%;
     }
-
     .lineView li {
         font-size: 100%;
     }
+    .lineList li {
+        font-size: 75%;
+    }
+
 }
