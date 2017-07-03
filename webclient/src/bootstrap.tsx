@@ -259,7 +259,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
     const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
 
     return (<div className="stationInfo">
-            <h2>{this.state.stationName} ({this.props.stationId})</h2>
+            <h2>{this.state.stationName}</h2>
             <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
             {lineSet}
             <ApiDebugger apiUrl={this.state.data.apiUrl}/>

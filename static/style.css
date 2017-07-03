@@ -38,11 +38,11 @@ body {
 html {font-size: 1.375em;  /* 22px */}
 .app_title {
     background-color: #FECE00;
-    padding: .1em;
     color: #262228;
     font-size: 150%;
     text-transform: uppercase;
     border-bottom: 1px solid #0375B4;
+    padding-left: .4em;
 }
 .app_title .second {
     font-weight: bold;
@@ -90,6 +90,7 @@ html {font-size: 1.375em;  /* 22px */}
 .stationInfo h2 {
     margin: 0;
     margin-top: .5em;
+    text-transform: uppercase;
 }
 
 .pubTime {
