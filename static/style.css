@@ -1,3 +1,15 @@
+/*
+ * Color Palette:
+ * Blue:   #0375B4
+ * Yellow: #FFCE00
+ * Green:  #007849
+ * Black:  #262228
+ */
+
+a {
+    color: #0375B4;
+}
+
 .routemenu a {
     display: inline-block;
     border: 1px solid black;
@@ -42,7 +54,7 @@ html {font-size: 1.375em;  /* 22px */}
     font-size: 150%;
     text-transform: uppercase;
     border-bottom: 1px solid #0375B4;
-    padding-left: .4em;
+    padding-left: 10pt;
 }
 .app_title .second {
     font-weight: bold;
@@ -53,14 +65,14 @@ html {font-size: 1.375em;  /* 22px */}
 }
 
 .app_content {
-    padding: .5em;
+    padding: 10pt;
 }
 
 .jumpLink {
     font-size: 200%;
     display: inline-block;
     padding: .75em;
-    margin-right: .5em;
+    margin-right: 10pt;
     background-color: #0375B4;
     text-transform: uppercase;
     padding: 1em;
@@ -89,14 +101,26 @@ html {font-size: 1.375em;  /* 22px */}
 
 .stationInfo h2 {
     margin: 0;
-    margin-top: .5em;
+    margin-top: 10pt;
     text-transform: uppercase;
 }
 
 .pubTime {
     font-size: 80%;
     color: #999;
-    margin-bottom: 1em;
+    margin-bottom: 10pt;
+}
+
+.pubTime a:hover {
+    text-decoration: none;
+}
+
+.stationLine ul {
+    margin-top: 0;
+}
+
+.stationLine .header {
+    font-weight: bold;
 }
 
 .lineList li {
@@ -151,5 +175,4 @@ ul.lineView{
     .lineList li {
         font-size: 75%;
     }
-
 }

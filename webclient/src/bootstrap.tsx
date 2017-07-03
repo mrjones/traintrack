@@ -198,8 +198,8 @@ class StationLine extends React.Component<StationLineProps, undefined> {
     );
 
     return (
-      <div>
-        <b>{this.props.data.line} - {directionName(this.props.data.direction)}</b>
+      <div className="stationLine">
+        <div className="header">{this.props.data.line} - {directionName(this.props.data.direction)}</div>
         <ul>{arrivals}</ul>
       </div>);
   }
