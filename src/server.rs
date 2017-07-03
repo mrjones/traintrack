@@ -1,7 +1,6 @@
 extern crate base64;
 extern crate chrono;
 extern crate chrono_tz;
-extern crate liquid;
 extern crate log;
 extern crate regex;
 extern crate rustful;
@@ -17,100 +16,17 @@ use stops;
 use utils;
 use webclient_api;
 
-struct TemplateRegistry {
-    compiled_templates: std::collections::HashMap<String, std::sync::Arc<liquid::Template>>,
-    compile_templates_once: bool,
-    templates_dir: std::path::PathBuf,
-}
-
-impl TemplateRegistry {
-    fn new<P: AsRef<std::path::Path>>(templates_dir: P,
-                                      compile_templates_once: bool) -> TemplateRegistry {
-        let templates;
-
-        if compile_templates_once {
-            let templates_dir = templates_dir.as_ref().to_path_buf();
-            let template_files = std::fs::read_dir(&templates_dir).expect(
-                format!("Couldn't not read templates dir: {:?}",
-                        templates_dir.as_path()).as_str());
-
-            templates = template_files.map(|template_file: std::io::Result<std::fs::DirEntry>| {
-                let template_filename = template_file.unwrap().file_name().into_string().unwrap();
-                let mut full_filename = templates_dir.clone();
-                full_filename.push(&template_filename);
-                return (template_filename,
-                        std::sync::Arc::new(
-                            TemplateRegistry::must_parse(full_filename.as_path())));
-            }).collect();
-        } else {
-            templates = std::collections::HashMap::new();
-        }
-
-        TemplateRegistry {
-            compiled_templates: templates,
-            compile_templates_once: compile_templates_once,
-            templates_dir: templates_dir.as_ref().to_path_buf(),
-        }
-    }
-
-    fn must_parse<P: AsRef<std::path::Path>>(filename: P) -> liquid::Template {
-        return TemplateRegistry::parse(&filename)
-            .expect(format!("Could not parse {:?}", filename.as_ref()).as_str());
-    }
-
-    fn parse<P: AsRef<std::path::Path>>(filename: P) -> result::TTResult<liquid::Template> {
-        info!("Parsing template file: {:?}", filename.as_ref());
-        return Ok(liquid::parse_file(&filename, Default::default())?);
-    }
-
-    fn get(&self, filename: &str) -> result::TTResult<std::sync::Arc<liquid::Template>> {
-        if self.compile_templates_once {
-            match self.compiled_templates.get(filename) {
-                Some(template) => {
-                    return Ok(template.clone());
-                },
-                None => {
-                    return Err(result::TTError::Uncategorized(
-                        format!("Unknown template: {}", filename)));
-                }
-            }
-        } else {
-            let mut full_filename = self.templates_dir.clone();
-            full_filename.push(filename);
-            return TemplateRegistry::parse(full_filename.as_path()).map(|tmpl| {
-                return std::sync::Arc::new(tmpl);
-            });
-        }
-    }
-}
-
 pub struct TTContext {
     stops: stops::Stops,
     fetcher: std::sync::Arc<feedfetcher::Fetcher>,
-    templates: TemplateRegistry,
 }
 
 impl TTContext {
-    pub fn new<P: AsRef<std::path::Path>>(stops: stops::Stops,
-                                          fetcher: std::sync::Arc<feedfetcher::Fetcher>,
-                                          templates_dir: P,
-                                          compile_templates_once: bool,
-    ) -> TTContext {
-
+    pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>) -> TTContext {
         return TTContext{
             stops: stops,
             fetcher: fetcher,
-            templates: TemplateRegistry::new(
-                templates_dir, compile_templates_once),
         }
-    }
-
-    fn render(&self, template_name: &str, mut context: &mut liquid::Context) -> result::TTResult<Vec<u8>> {
-        use server::liquid::Renderable;
-        let template = self.templates.get(template_name)?;
-        let output = template.render(&mut context)?;
-        let body = output.unwrap_or("No render result?".to_string());
-        return Ok(body.as_bytes().to_vec());
     }
 
     fn all_feeds(&self) -> result::TTResult<Vec<feedfetcher::FetchResult>> {
@@ -241,6 +157,36 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 
     let tz = chrono_tz::America::New_York;
 
+    let upcoming = utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
+    let mut body = format!("<html><head><title>Station {}</title><link rel='stylesheet' type='text/css' href='/style.css'/></head><body><h1>Station {}</h1>", station.name, station.name);
+
+    upcoming.trains_by_route_and_direction.iter().map(|(ref route, ref trains)| {
+        if desired_route.is_some() && desired_route != Some(route.to_string()) {
+            return;
+        }
+
+        body.push_str(&format!("<h2>{}</h2>", route));
+
+        trains.iter().map(|(ref direction, ref times)| {
+            body.push_str(&format!("<h3>{:?}</h3><ul>", direction));
+            times.iter().map(|time| {
+                let css_class;
+                if time < &chrono::Utc::now() {
+                    css_class = "class='past'" ;
+                } else {
+                    css_class = "";
+                };
+
+                body.push_str(&format!("<li {}>{}</li>", css_class, time.with_timezone(&tz).format("%H:%M %p")));
+            }).count();
+            body.push_str(&format!("</ul>"));
+        }).count();
+    }).count();
+
+    body.push_str("</body></html>");
+
+    return Ok(body.as_bytes().to_vec());
+/*
     use self::liquid::Value;
     let mut context = liquid::Context::new();
 
@@ -251,8 +197,6 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
 
     context.set_val("now", Value::Num(chrono::Utc::now().timestamp() as f32));
 
-    let upcoming =
-        utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
     context.set_val(
         "routes",
         Value::Array(upcoming.trains_by_route_and_direction.iter().filter_map(|(ref route, ref trains)| {
@@ -283,42 +227,11 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
         }).collect()));
 
     return tt_context.render("station_detail.html", &mut context);
+*/
 }
 
-fn list_stations(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
-
-    let mut routes = Vec::new();
-    for route in tt_context.stops.lines() {
-        let mut stops = Vec::new();
-        match tt_context.stops.stops_for_route(&route.id) {
-            Ok(stop_infos) => {
-                for stop in stop_infos {
-                    let mut props = std::collections::HashMap::new();
-                    props.insert("name".to_string(),
-                                 liquid::Value::Str(stop.name.clone()));
-                    props.insert("id".to_string(),
-                                 liquid::Value::Str(stop.id.clone()));
-                    stops.push(liquid::Value::Object(props));
-                }
-            },
-            Err(err) => {
-                error!("list_stations: {:?}", err);
-            }
-        }
-        let mut route_props = std::collections::HashMap::new();
-        route_props.insert("route_id".to_string(),
-                           liquid::Value::Str(route.id));
-        route_props.insert("route_color".to_string(),
-                           liquid::Value::Str(route.color));
-        route_props.insert("stops".to_string(),
-                           liquid::Value::Array(stops));
-        routes.push(liquid::Value::Object(route_props));
-    }
-
-    let mut context = liquid::Context::new();
-    context.set_val("routes", liquid::Value::Array(routes));
-
-    return tt_context.render("stoplist.html", &mut context);
+fn list_stations(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+    return Ok("<html><body><script language='javascript'>window.location = '/singlepage/lines';</script></body></html>".as_bytes().to_vec());
 }
 
 fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
@@ -352,20 +265,25 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         });
     }
 
-    let mut context = liquid::Context::new();
     let tz = chrono_tz::America::New_York;
-    context.set_val("update_timestamp", liquid::Value::Str(
-        format!("{}", feed.timestamp.with_timezone(&tz).format("%v %r"))));
-    context.set_val("update_timestamp_age_seconds", liquid::Value::Num(
-        (chrono::Utc::now().timestamp() - feed.timestamp.timestamp()) as f32));
-    context.set_val("good_fetch_timestamp", liquid::Value::Str(
-        format!("{:?}", feed.last_good_fetch.map(
-            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))))));
-    context.set_val("any_fetch_timestamp", liquid::Value::Str(
-        format!("{:?}", feed.last_any_fetch.map(
-            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))))));
 
-    let mut body = String::from_utf8(tt_context.render("dashboard.html", &mut context).unwrap()).unwrap();
+    let mut body = format!(
+        "<html><head><title>TrainTrack</title><link rel='stylesheet' type='text/css' href='/style.css' /></head>");
+
+    body.push_str("<h1>TrainTrack</h1><ul>");
+    vec!["/debug", "/stations", "/singlepage"].iter().map(
+        |u| body.push_str(&format!("<li><a href='{}'>{}</a></li>", u, u))).count();
+    body.push_str("</ul>");
+
+    body.push_str(&format!(
+        "<div>Data updated {} minutes ago (at {})<br/>Last attempted fetch at: {:?}<br/>Last successful fetch at: {:?}</div>",
+        (chrono::Utc::now().timestamp() - feed.timestamp.timestamp()) / 60,
+        feed.timestamp.with_timezone(&tz).format("%v %r"),
+        feed.last_good_fetch.map(
+            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r"))),
+        feed.last_any_fetch.map(
+            |ts| format!("{}", ts.with_timezone(&tz).format("%v %r")))));
+
 
     for station_info in station_infos {
         body.push_str(&format!(
@@ -454,9 +372,13 @@ fn hack559(tt_context: &TTContext, rustful_context: rustful::Context) -> result:
 }
 */
 
-fn debug(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
-    let mut context = liquid::Context::new();
-    return Ok(tt_context.render("debug.html", &mut context)?);
+fn debug(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let mut body = "<html><head><title>TTDebug</title></head><body><h1>Debug</h1><ul>".to_string();
+    vec!["dump_proto", "fetch_now"].iter().map(
+        |u| body.push_str(&format!("<li><a href='/debug/{}'>/{}</a></li>", u, u))).count();
+    body.push_str("</ul></body></html>");
+
+    return Ok(body.as_bytes().to_vec());
 }
 
 fn dump_feed_links(

@@ -1,5 +1,4 @@
 extern crate csv;
-extern crate liquid;
 extern crate protobuf;
 extern crate serde_json;
 extern crate std;
@@ -12,7 +11,7 @@ pub enum TTError {
 //    HTTPError(hyper::Error),
     IOError(std::io::Error),
     ProtobufError(protobuf::ProtobufError),
-    RenderError(liquid::Error),
+//    RenderError(liquid::Error),
     SerializationError(serde_json::Error),
     ParseIntError(std::num::ParseIntError),
     Uncategorized(String),
@@ -37,9 +36,9 @@ impl std::fmt::Display for TTError {
             TTError::ProtobufError(ref err) => {
                 return write!(f, "Protobuf Error: {}", err);
             },
-            TTError::RenderError(ref err) => {
-                return write!(f, "Render Error: {}", err);
-            },
+//            TTError::RenderError(ref err) => {
+//                return write!(f, "Render Error: {}", err);
+//            },
             TTError::SerializationError(ref err) => {
                 return write!(f, "Serialization Error: {}", err);
             },
@@ -58,7 +57,7 @@ impl std::error::Error for TTError {
 //            TTError::HTTPError(_) => "HTTPError",
             TTError::IOError(_) => "IOError",
             TTError::ProtobufError(_) => "ProtobufError",
-            TTError::RenderError(_) => "RenderError",
+//            TTError::RenderError(_) => "RenderError",
             TTError::SerializationError(_) => "SerializationError",
             TTError::ParseIntError(_) => "ParseIntError",
             TTError::Uncategorized(ref str) => str,
@@ -94,11 +93,11 @@ impl From<protobuf::ProtobufError> for TTError {
     }
 }
 
-impl From<liquid::Error> for TTError {
-    fn from(err: liquid::Error) -> TTError {
-        return TTError::RenderError(err);
-    }
-}
+//impl From<liquid::Error> for TTError {
+//    fn from(err: liquid::Error) -> TTError {
+//        return TTError::RenderError(err);
+//    }
+//}
 
 impl From<serde_json::Error> for TTError {
     fn from(err: serde_json::Error) -> TTError {

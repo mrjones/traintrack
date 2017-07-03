@@ -67,11 +67,10 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
-    opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
+    opts.optopt("r", "root-directory", "Root directory where static, and data directories can ve found", "ROOT_DIR");
     opts.optopt("g", "gtfs-directory", "Location of stops.txt, trips.txt, etc. files.", "GTFS_DIRECTIORY");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
-    opts.optflag("t", "compile-templates-once", "If true, compiles HTML templates once at startup. Otherwise compiles them on every usage.");
     opts.optflag("d", "disable-background-fetch", "If true, won't periodically fetch feeds in the background..");
     opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
     opts.optopt("w", "webclient-js-file", "The file to serve as webclient.js.", "JS_FILE");
@@ -97,7 +96,6 @@ fn main() {
 
     let maybe_proxy_url = matches.opt_str("proxy-url");
 
-    let compile_templates_once = matches.opt_present("compile-templates-once");
     let disable_background_fetch = matches.opt_present("disable-background-fetch");
 
     let fetcher = match maybe_proxy_url {
@@ -113,7 +111,6 @@ fn main() {
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
 
-    let server_context = server::TTContext::new(
-        stops, fetcher, format!("{}/templates/", root_directory), compile_templates_once);
+    let server_context = server::TTContext::new(stops, fetcher);
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }
