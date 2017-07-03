@@ -32,7 +32,7 @@ export default class LineView extends React.Component<LineViewProps, any> {
   public render(): JSX.Element {
     let stationLis = this.state.stationList.station.map((station: proto.Station) => {
       return <li key={station.name}>
-        <ReactRouter.Link to={`/singlepage/station/${station.id}`}>
+        <ReactRouter.Link to={`/app/station/${station.id}`}>
           {station.name}
         </ReactRouter.Link>
       </li>;

@@ -54,7 +54,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
         background: c,
       };
       return <li key={line.name} style={liStyle}>
-        <ReactRouter.Link to={`/singlepage/line/${line.name}`}>
+        <ReactRouter.Link to={`/app/line/${line.name}`}>
           {line.name}
         </ReactRouter.Link>
       </li>;

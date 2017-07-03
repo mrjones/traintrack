@@ -64,7 +64,7 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
             // TODO(mrjones): Inject the link URL for flexibility
-            return <li key={station.id}><ReactRouter.Link to={`/singlepage/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
+            return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
           } else if (!done) {
             done = true;
             return <li>...</li>;
@@ -87,12 +87,12 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
 class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   private dataFetcher: DataFetcher;
 
-  constructor() {
-    super();
+  constructor(props: ReactRouter.RouteComponentProps<any>) {
+    super(props);
     this.dataFetcher = globalDataFetcher;
 
     this.state = {
-      stationId: (this.props && this.props.match) ? this.props.match.params.initialStationId : "R32",
+      stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32",
     };
   }
 
@@ -155,7 +155,7 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
       className = "jumpLink closed";
     }
     return (<div>
-      <div className="jumpLink"><ReactRouter.Link to={`/singlepage/lines`}>Pick by line</ReactRouter.Link></div>
+      <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
       <StationBoard stationId={this.state.displayedStationId} dataFetcher={this.props.dataFetcher}/>
@@ -274,10 +274,11 @@ ReactDOM.render(
     <div className="app_title">TrainTrack</div>
     <ReactRouter.BrowserRouter>
       <ReactRouter.Switch>
-        <ReactRouter.Route path='/singlepage/lines' component={LinePickerRouterWrapper}/>
-        <ReactRouter.Route path='/singlepage/line/:lineId' component={LineViewRouterWrapper}/>
-        <ReactRouter.Route path='/singlepage/station/:initialStationId' component={OneStationViewWrapperForRouter} />
-        <ReactRouter.Route path='/singlepage' component={OneStationViewWrapperForRouter}/>
+        <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
+        <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
+        <ReactRouter.Route path='/app/station/:initialStationId' component={OneStationViewWrapperForRouter} />
+    <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
+        <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
       </ReactRouter.Switch>
     </ReactRouter.BrowserRouter>
   </div>,

@@ -160,6 +160,8 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     let upcoming = utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
     let mut body = format!("<html><head><title>Station {}</title><link rel='stylesheet' type='text/css' href='/style.css'/></head><body><h1>Station {}</h1>", station.name, station.name);
 
+    body.push_str(&format!("<div><b><a href='/app/station/{}'>NEW VERSION OF THIS PAGE</a></b></div>", station_id));
+
     upcoming.trains_by_route_and_direction.iter().map(|(ref route, ref trains)| {
         if desired_route.is_some() && desired_route != Some(route.to_string()) {
             return;
@@ -186,52 +188,10 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     body.push_str("</body></html>");
 
     return Ok(body.as_bytes().to_vec());
-/*
-    use self::liquid::Value;
-    let mut context = liquid::Context::new();
-
-    context.set_val("station", Value::Object(hashmap![
-        "name".to_string() => Value::Str(station.name.clone()),
-        "id".to_string() => Value::Str(station.id.clone()),
-    ]));
-
-    context.set_val("now", Value::Num(chrono::Utc::now().timestamp() as f32));
-
-    context.set_val(
-        "routes",
-        Value::Array(upcoming.trains_by_route_and_direction.iter().filter_map(|(ref route, ref trains)| {
-            if desired_route.is_some() && desired_route != Some(route.to_string()) {
-                return None;
-            }
-            return Some(Value::Object(hashmap![
-                "id".to_string() => Value::Str(route.to_string()),
-                "trains_by_direction".to_string() =>
-                    Value::Array(
-                        trains.iter().map(|(ref direction, ref times)| {
-                            return Value::Object(hashmap![
-                                "direction".to_string() =>
-                                    Value::Str(format!("{:?}", direction)),
-                                "arrivals".to_string() =>
-                                    Value::Array(times.iter().map(|time| {
-                                        return Value::Object(
-                                            hashmap![
-                                                String::from("pretty_time") =>
-                                                    Value::Str(format!("{}",time.with_timezone(&tz).format("%H:%M %p"))),
-                                                String::from("timestamp") =>
-                                                    Value::Num(time.timestamp() as f32),
-                                            ]);
-                                    }).collect()),
-                            ]);
-                        }).collect()),
-            ]));
-        }).collect()));
-
-    return tt_context.render("station_detail.html", &mut context);
-*/
 }
 
 fn list_stations(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
-    return Ok("<html><body><script language='javascript'>window.location = '/singlepage/lines';</script></body></html>".as_bytes().to_vec());
+    return Ok("<html><body><script language='javascript'>window.location = '/app/lines';</script></body></html>".as_bytes().to_vec());
 }
 
 fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
@@ -271,7 +231,7 @@ fn dashboard(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Ve
         "<html><head><title>TrainTrack</title><link rel='stylesheet' type='text/css' href='/style.css' /></head>");
 
     body.push_str("<h1>TrainTrack</h1><ul>");
-    vec!["/debug", "/stations", "/singlepage"].iter().map(
+    vec!["/debug", "/stations", "/app"].iter().map(
         |u| body.push_str(&format!("<li><a href='{}'>{}</a></li>", u, u))).count();
     body.push_str("</ul>");
 
@@ -459,7 +419,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
 
     let mut router = rustful::DefaultRouter::<PageType>::new();
     router.build().many(|mut node| {
-        node.then().on_get(PageType::Dynamic(dashboard));
+        node.then().on_get(PageType::new_static_page(
+            format!("{}/singlepage.html", static_dir)));
         node.path("debug").many(|mut node| {
             node.then().on_get(PageType::Dynamic(debug));
             node.path("dump_proto").many(|mut node| {
@@ -481,7 +442,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
                     format!("{}/style.css", static_dir)));
         node.path("hack559.js").then().on_get(PageType::new_static_page(
                     format!("{}/hack559.js", static_dir)));
-        node.path("singlepage").many(|mut node| {
+        node.path("app").many(|mut node| {
             node.then().on_get(PageType::new_static_page(
                 format!("{}/singlepage.html", static_dir)));
             node.path("*").then().on_get(PageType::new_static_page(
