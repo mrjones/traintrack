@@ -207,7 +207,7 @@ impl Stops {
                 stops_by_route: stops_by_route,
                 routes: routes,
             });
-        } else {
+        } else if logic == StopsLogic::GTFS {
             info!("Parsing stops.txt");
             let mut stops_file = gtfs_directory.clone();
             stops_file.push("stops.txt");
@@ -279,6 +279,8 @@ impl Stops {
                 stops_by_route: stops_by_route,
                 routes: routes,
             });
+        } else {
+            return Err(result::quick_err("Uknown stops logic"));
         }
     }
 }

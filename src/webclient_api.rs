@@ -9,6 +9,7 @@
 
 #![allow(box_pointers)]
 #![allow(dead_code)]
+#![allow(missing_docs)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -20,7 +21,7 @@
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 
-#[derive(Clone,Default)]
+#[derive(PartialEq,Clone,Default)]
 pub struct LineArrivals {
     // message fields
     line: ::protobuf::SingularField<::std::string::String>,
@@ -28,7 +29,7 @@ pub struct LineArrivals {
     timestamp: ::std::vec::Vec<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -45,15 +46,7 @@ impl LineArrivals {
             ptr: 0 as *const LineArrivals,
         };
         unsafe {
-            instance.get(|| {
-                LineArrivals {
-                    line: ::protobuf::SingularField::none(),
-                    direction: ::std::option::Option::None,
-                    timestamp: ::std::vec::Vec::new(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(LineArrivals::new)
         }
     }
 
@@ -77,7 +70,7 @@ impl LineArrivals {
     pub fn mut_line(&mut self) -> &mut ::std::string::String {
         if self.line.is_none() {
             self.line.set_default();
-        };
+        }
         self.line.as_mut().unwrap()
     }
 
@@ -91,6 +84,14 @@ impl LineArrivals {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_line_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.line
+    }
+
+    fn mut_line_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.line
     }
 
     // optional .Direction direction = 2;
@@ -110,6 +111,14 @@ impl LineArrivals {
 
     pub fn get_direction(&self) -> Direction {
         self.direction.unwrap_or(Direction::UPTOWN)
+    }
+
+    fn get_direction_for_reflect(&self) -> &::std::option::Option<Direction> {
+        &self.direction
+    }
+
+    fn mut_direction_for_reflect(&mut self) -> &mut ::std::option::Option<Direction> {
+        &mut self.direction
     }
 
     // repeated int64 timestamp = 3;
@@ -136,6 +145,14 @@ impl LineArrivals {
     pub fn get_timestamp(&self) -> &[i64] {
         &self.timestamp
     }
+
+    fn get_timestamp_for_reflect(&self) -> &::std::vec::Vec<i64> {
+        &self.timestamp
+    }
+
+    fn mut_timestamp_for_reflect(&mut self) -> &mut ::std::vec::Vec<i64> {
+        &mut self.timestamp
+    }
 }
 
 impl ::protobuf::Message for LineArrivals {
@@ -144,24 +161,24 @@ impl ::protobuf::Message for LineArrivals {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line)?;
                 },
                 2 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    };
-                    let tmp = try!(is.read_enum());
+                    }
+                    let tmp = is.read_enum()?;
                     self.direction = ::std::option::Option::Some(tmp);
                 },
                 3 => {
-                    try!(::protobuf::rt::read_repeated_int64_into(wire_type, is, &mut self.timestamp));
+                    ::protobuf::rt::read_repeated_int64_into(wire_type, is, &mut self.timestamp)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -172,12 +189,12 @@ impl ::protobuf::Message for LineArrivals {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.line {
-            my_size += ::protobuf::rt::string_size(1, &value);
-        };
-        for value in &self.direction {
-            my_size += ::protobuf::rt::enum_size(2, *value);
-        };
+        if let Some(ref v) = self.line.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(v) = self.direction {
+            my_size += ::protobuf::rt::enum_size(2, v);
+        }
         for value in &self.timestamp {
             my_size += ::protobuf::rt::value_size(3, *value, ::protobuf::wire_format::WireTypeVarint);
         };
@@ -187,16 +204,16 @@ impl ::protobuf::Message for LineArrivals {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(v) = self.line.as_ref() {
-            try!(os.write_string(1, &v));
-        };
+        if let Some(ref v) = self.line.as_ref() {
+            os.write_string(1, &v)?;
+        }
         if let Some(v) = self.direction {
-            try!(os.write_enum(2, v.value()));
-        };
+            os.write_enum(2, v.value())?;
+        }
         for v in &self.timestamp {
-            try!(os.write_int64(3, *v));
+            os.write_int64(3, *v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -212,12 +229,14 @@ impl ::protobuf::Message for LineArrivals {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<LineArrivals>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -238,19 +257,20 @@ impl ::protobuf::MessageStatic for LineArrivals {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "line",
-                    LineArrivals::has_line,
-                    LineArrivals::get_line,
+                    LineArrivals::get_line_for_reflect,
+                    LineArrivals::mut_line_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<Direction>>(
                     "direction",
-                    LineArrivals::has_direction,
-                    LineArrivals::get_direction,
+                    LineArrivals::get_direction_for_reflect,
+                    LineArrivals::mut_direction_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_repeated_i64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_vec_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "timestamp",
-                    LineArrivals::get_timestamp,
+                    LineArrivals::get_timestamp_for_reflect,
+                    LineArrivals::mut_timestamp_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<LineArrivals>(
                     "LineArrivals",
@@ -271,22 +291,19 @@ impl ::protobuf::Clear for LineArrivals {
     }
 }
 
-impl ::std::cmp::PartialEq for LineArrivals {
-    fn eq(&self, other: &LineArrivals) -> bool {
-        self.line == other.line &&
-        self.direction == other.direction &&
-        self.timestamp == other.timestamp &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for LineArrivals {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for LineArrivals {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct StationStatus {
     // message fields
     name: ::protobuf::SingularField<::std::string::String>,
@@ -294,7 +311,7 @@ pub struct StationStatus {
     data_timestamp: ::std::option::Option<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -311,15 +328,7 @@ impl StationStatus {
             ptr: 0 as *const StationStatus,
         };
         unsafe {
-            instance.get(|| {
-                StationStatus {
-                    name: ::protobuf::SingularField::none(),
-                    line: ::protobuf::RepeatedField::new(),
-                    data_timestamp: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(StationStatus::new)
         }
     }
 
@@ -343,7 +352,7 @@ impl StationStatus {
     pub fn mut_name(&mut self) -> &mut ::std::string::String {
         if self.name.is_none() {
             self.name.set_default();
-        };
+        }
         self.name.as_mut().unwrap()
     }
 
@@ -357,6 +366,14 @@ impl StationStatus {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
     }
 
     // repeated .LineArrivals line = 2;
@@ -384,6 +401,14 @@ impl StationStatus {
         &self.line
     }
 
+    fn get_line_for_reflect(&self) -> &::protobuf::RepeatedField<LineArrivals> {
+        &self.line
+    }
+
+    fn mut_line_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<LineArrivals> {
+        &mut self.line
+    }
+
     // optional int64 data_timestamp = 3;
 
     pub fn clear_data_timestamp(&mut self) {
@@ -402,32 +427,45 @@ impl StationStatus {
     pub fn get_data_timestamp(&self) -> i64 {
         self.data_timestamp.unwrap_or(0)
     }
+
+    fn get_data_timestamp_for_reflect(&self) -> &::std::option::Option<i64> {
+        &self.data_timestamp
+    }
+
+    fn mut_data_timestamp_for_reflect(&mut self) -> &mut ::std::option::Option<i64> {
+        &mut self.data_timestamp
+    }
 }
 
 impl ::protobuf::Message for StationStatus {
     fn is_initialized(&self) -> bool {
+        for v in &self.line {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
         true
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 2 => {
-                    try!(::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.line));
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.line)?;
                 },
                 3 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    };
-                    let tmp = try!(is.read_int64());
+                    }
+                    let tmp = is.read_int64()?;
                     self.data_timestamp = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -438,34 +476,34 @@ impl ::protobuf::Message for StationStatus {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(1, &value);
-        };
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
         for value in &self.line {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
-        for value in &self.data_timestamp {
-            my_size += ::protobuf::rt::value_size(3, *value, ::protobuf::wire_format::WireTypeVarint);
-        };
+        if let Some(v) = self.data_timestamp {
+            my_size += ::protobuf::rt::value_size(3, v, ::protobuf::wire_format::WireTypeVarint);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(1, &v));
-        };
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(1, &v)?;
+        }
         for v in &self.line {
-            try!(os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited));
-            try!(os.write_raw_varint32(v.get_cached_size()));
-            try!(v.write_to_with_cached_sizes(os));
+            os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
         };
         if let Some(v) = self.data_timestamp {
-            try!(os.write_int64(3, v));
-        };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+            os.write_int64(3, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -481,12 +519,14 @@ impl ::protobuf::Message for StationStatus {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<StationStatus>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -507,19 +547,20 @@ impl ::protobuf::MessageStatic for StationStatus {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    StationStatus::has_name,
-                    StationStatus::get_name,
+                    StationStatus::get_name_for_reflect,
+                    StationStatus::mut_name_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_repeated_message_accessor(
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<LineArrivals>>(
                     "line",
-                    StationStatus::get_line,
+                    StationStatus::get_line_for_reflect,
+                    StationStatus::mut_line_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_i64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "data_timestamp",
-                    StationStatus::has_data_timestamp,
-                    StationStatus::get_data_timestamp,
+                    StationStatus::get_data_timestamp_for_reflect,
+                    StationStatus::mut_data_timestamp_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<StationStatus>(
                     "StationStatus",
@@ -540,29 +581,26 @@ impl ::protobuf::Clear for StationStatus {
     }
 }
 
-impl ::std::cmp::PartialEq for StationStatus {
-    fn eq(&self, other: &StationStatus) -> bool {
-        self.name == other.name &&
-        self.line == other.line &&
-        self.data_timestamp == other.data_timestamp &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for StationStatus {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for StationStatus {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct Station {
     // message fields
     id: ::protobuf::SingularField<::std::string::String>,
     name: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -579,14 +617,7 @@ impl Station {
             ptr: 0 as *const Station,
         };
         unsafe {
-            instance.get(|| {
-                Station {
-                    id: ::protobuf::SingularField::none(),
-                    name: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(Station::new)
         }
     }
 
@@ -610,7 +641,7 @@ impl Station {
     pub fn mut_id(&mut self) -> &mut ::std::string::String {
         if self.id.is_none() {
             self.id.set_default();
-        };
+        }
         self.id.as_mut().unwrap()
     }
 
@@ -624,6 +655,14 @@ impl Station {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_id_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.id
+    }
+
+    fn mut_id_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.id
     }
 
     // optional string name = 2;
@@ -646,7 +685,7 @@ impl Station {
     pub fn mut_name(&mut self) -> &mut ::std::string::String {
         if self.name.is_none() {
             self.name.set_default();
-        };
+        }
         self.name.as_mut().unwrap()
     }
 
@@ -661,6 +700,14 @@ impl Station {
             None => "",
         }
     }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
 }
 
 impl ::protobuf::Message for Station {
@@ -669,17 +716,17 @@ impl ::protobuf::Message for Station {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.id));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.id)?;
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -690,25 +737,25 @@ impl ::protobuf::Message for Station {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
-            my_size += ::protobuf::rt::string_size(1, &value);
-        };
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(2, &value);
-        };
+        if let Some(ref v) = self.id.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(v) = self.id.as_ref() {
-            try!(os.write_string(1, &v));
-        };
-        if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(2, &v));
-        };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        if let Some(ref v) = self.id.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -724,12 +771,14 @@ impl ::protobuf::Message for Station {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<Station>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -750,15 +799,15 @@ impl ::protobuf::MessageStatic for Station {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "id",
-                    Station::has_id,
-                    Station::get_id,
+                    Station::get_id_for_reflect,
+                    Station::mut_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    Station::has_name,
-                    Station::get_name,
+                    Station::get_name_for_reflect,
+                    Station::mut_name_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<Station>(
                     "Station",
@@ -778,27 +827,25 @@ impl ::protobuf::Clear for Station {
     }
 }
 
-impl ::std::cmp::PartialEq for Station {
-    fn eq(&self, other: &Station) -> bool {
-        self.id == other.id &&
-        self.name == other.name &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for Station {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for Station {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct StationList {
     // message fields
     station: ::protobuf::RepeatedField<Station>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -815,13 +862,7 @@ impl StationList {
             ptr: 0 as *const StationList,
         };
         unsafe {
-            instance.get(|| {
-                StationList {
-                    station: ::protobuf::RepeatedField::new(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(StationList::new)
         }
     }
 
@@ -849,22 +890,35 @@ impl StationList {
     pub fn get_station(&self) -> &[Station] {
         &self.station
     }
+
+    fn get_station_for_reflect(&self) -> &::protobuf::RepeatedField<Station> {
+        &self.station
+    }
+
+    fn mut_station_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<Station> {
+        &mut self.station
+    }
 }
 
 impl ::protobuf::Message for StationList {
     fn is_initialized(&self) -> bool {
+        for v in &self.station {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
         true
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.station));
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.station)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -886,11 +940,11 @@ impl ::protobuf::Message for StationList {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         for v in &self.station {
-            try!(os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited));
-            try!(os.write_raw_varint32(v.get_cached_size()));
-            try!(v.write_to_with_cached_sizes(os));
+            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -906,12 +960,14 @@ impl ::protobuf::Message for StationList {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<StationList>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -932,9 +988,10 @@ impl ::protobuf::MessageStatic for StationList {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_message_accessor(
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Station>>(
                     "station",
-                    StationList::get_station,
+                    StationList::get_station_for_reflect,
+                    StationList::mut_station_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<StationList>(
                     "StationList",
@@ -953,27 +1010,26 @@ impl ::protobuf::Clear for StationList {
     }
 }
 
-impl ::std::cmp::PartialEq for StationList {
-    fn eq(&self, other: &StationList) -> bool {
-        self.station == other.station &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for StationList {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for StationList {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct Line {
     // message fields
     name: ::protobuf::SingularField<::std::string::String>,
     color_hex: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -990,14 +1046,7 @@ impl Line {
             ptr: 0 as *const Line,
         };
         unsafe {
-            instance.get(|| {
-                Line {
-                    name: ::protobuf::SingularField::none(),
-                    color_hex: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(Line::new)
         }
     }
 
@@ -1021,7 +1070,7 @@ impl Line {
     pub fn mut_name(&mut self) -> &mut ::std::string::String {
         if self.name.is_none() {
             self.name.set_default();
-        };
+        }
         self.name.as_mut().unwrap()
     }
 
@@ -1035,6 +1084,14 @@ impl Line {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
     }
 
     // optional string color_hex = 2;
@@ -1057,7 +1114,7 @@ impl Line {
     pub fn mut_color_hex(&mut self) -> &mut ::std::string::String {
         if self.color_hex.is_none() {
             self.color_hex.set_default();
-        };
+        }
         self.color_hex.as_mut().unwrap()
     }
 
@@ -1072,6 +1129,14 @@ impl Line {
             None => "",
         }
     }
+
+    fn get_color_hex_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.color_hex
+    }
+
+    fn mut_color_hex_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.color_hex
+    }
 }
 
 impl ::protobuf::Message for Line {
@@ -1080,17 +1145,17 @@ impl ::protobuf::Message for Line {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.color_hex));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.color_hex)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1101,25 +1166,25 @@ impl ::protobuf::Message for Line {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(1, &value);
-        };
-        for value in &self.color_hex {
-            my_size += ::protobuf::rt::string_size(2, &value);
-        };
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.color_hex.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(1, &v));
-        };
-        if let Some(v) = self.color_hex.as_ref() {
-            try!(os.write_string(2, &v));
-        };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.color_hex.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1135,12 +1200,14 @@ impl ::protobuf::Message for Line {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<Line>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1161,15 +1228,15 @@ impl ::protobuf::MessageStatic for Line {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    Line::has_name,
-                    Line::get_name,
+                    Line::get_name_for_reflect,
+                    Line::mut_name_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "color_hex",
-                    Line::has_color_hex,
-                    Line::get_color_hex,
+                    Line::get_color_hex_for_reflect,
+                    Line::mut_color_hex_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<Line>(
                     "Line",
@@ -1189,27 +1256,25 @@ impl ::protobuf::Clear for Line {
     }
 }
 
-impl ::std::cmp::PartialEq for Line {
-    fn eq(&self, other: &Line) -> bool {
-        self.name == other.name &&
-        self.color_hex == other.color_hex &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for Line {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for Line {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct LineList {
     // message fields
     line: ::protobuf::RepeatedField<Line>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -1226,13 +1291,7 @@ impl LineList {
             ptr: 0 as *const LineList,
         };
         unsafe {
-            instance.get(|| {
-                LineList {
-                    line: ::protobuf::RepeatedField::new(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(LineList::new)
         }
     }
 
@@ -1260,22 +1319,35 @@ impl LineList {
     pub fn get_line(&self) -> &[Line] {
         &self.line
     }
+
+    fn get_line_for_reflect(&self) -> &::protobuf::RepeatedField<Line> {
+        &self.line
+    }
+
+    fn mut_line_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<Line> {
+        &mut self.line
+    }
 }
 
 impl ::protobuf::Message for LineList {
     fn is_initialized(&self) -> bool {
+        for v in &self.line {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
         true
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.line));
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.line)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1297,11 +1369,11 @@ impl ::protobuf::Message for LineList {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         for v in &self.line {
-            try!(os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited));
-            try!(os.write_raw_varint32(v.get_cached_size()));
-            try!(v.write_to_with_cached_sizes(os));
+            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1317,12 +1389,14 @@ impl ::protobuf::Message for LineList {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<LineList>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1343,9 +1417,10 @@ impl ::protobuf::MessageStatic for LineList {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_message_accessor(
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Line>>(
                     "line",
-                    LineList::get_line,
+                    LineList::get_line_for_reflect,
+                    LineList::mut_line_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<LineList>(
                     "LineList",
@@ -1364,16 +1439,15 @@ impl ::protobuf::Clear for LineList {
     }
 }
 
-impl ::std::cmp::PartialEq for LineList {
-    fn eq(&self, other: &LineList) -> bool {
-        self.line == other.line &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for LineList {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for LineList {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
 }
 
@@ -1404,7 +1478,7 @@ impl ::protobuf::ProtobufEnum for Direction {
         values
     }
 
-    fn enum_descriptor_static(_: Option<Direction>) -> &'static ::protobuf::reflect::EnumDescriptor {
+    fn enum_descriptor_static(_: ::std::option::Option<Direction>) -> &'static ::protobuf::reflect::EnumDescriptor {
         static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
             ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
@@ -1420,107 +1494,80 @@ impl ::protobuf::ProtobufEnum for Direction {
 impl ::std::marker::Copy for Direction {
 }
 
-static file_descriptor_proto_data: &'static [u8] = &[
-    0x0a, 0x13, 0x77, 0x65, 0x62, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x70, 0x69, 0x2e,
-    0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x6a, 0x0a, 0x0c, 0x4c, 0x69, 0x6e, 0x65, 0x41, 0x72, 0x72,
-    0x69, 0x76, 0x61, 0x6c, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x18, 0x01, 0x20,
-    0x01, 0x28, 0x09, 0x52, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x12, 0x28, 0x0a, 0x09, 0x64, 0x69, 0x72,
-    0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0a, 0x2e, 0x44,
-    0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74,
-    0x69, 0x6f, 0x6e, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
-    0x18, 0x03, 0x20, 0x03, 0x28, 0x03, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
-    0x70, 0x22, 0x6d, 0x0a, 0x0d, 0x53, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74,
-    0x75, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-    0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x21, 0x0a, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x18, 0x02,
-    0x20, 0x03, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x4c, 0x69, 0x6e, 0x65, 0x41, 0x72, 0x72, 0x69, 0x76,
-    0x61, 0x6c, 0x73, 0x52, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x61, 0x74,
-    0x61, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28,
-    0x03, 0x52, 0x0d, 0x64, 0x61, 0x74, 0x61, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
-    0x22, 0x2d, 0x0a, 0x07, 0x53, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x0e, 0x0a, 0x02, 0x69,
-    0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e,
-    0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22,
-    0x31, 0x0a, 0x0b, 0x53, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x22,
-    0x0a, 0x07, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
-    0x08, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x73, 0x74, 0x61, 0x74, 0x69,
-    0x6f, 0x6e, 0x22, 0x37, 0x0a, 0x04, 0x4c, 0x69, 0x6e, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61,
-    0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1b,
-    0x0a, 0x09, 0x63, 0x6f, 0x6c, 0x6f, 0x72, 0x5f, 0x68, 0x65, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28,
-    0x09, 0x52, 0x08, 0x63, 0x6f, 0x6c, 0x6f, 0x72, 0x48, 0x65, 0x78, 0x22, 0x25, 0x0a, 0x08, 0x4c,
-    0x69, 0x6e, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x04, 0x6c, 0x69, 0x6e, 0x65, 0x18,
-    0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x05, 0x2e, 0x4c, 0x69, 0x6e, 0x65, 0x52, 0x04, 0x6c, 0x69,
-    0x6e, 0x65, 0x2a, 0x25, 0x0a, 0x09, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12,
-    0x0a, 0x0a, 0x06, 0x55, 0x50, 0x54, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x44,
-    0x4f, 0x57, 0x4e, 0x54, 0x4f, 0x57, 0x4e, 0x10, 0x01, 0x4a, 0xc8, 0x08, 0x0a, 0x06, 0x12, 0x04,
-    0x00, 0x00, 0x23, 0x01, 0x0a, 0x08, 0x0a, 0x01, 0x0c, 0x12, 0x03, 0x00, 0x00, 0x12, 0x0a, 0x0a,
-    0x0a, 0x02, 0x05, 0x00, 0x12, 0x04, 0x02, 0x00, 0x05, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x05, 0x00,
-    0x01, 0x12, 0x03, 0x02, 0x05, 0x0e, 0x0a, 0x0b, 0x0a, 0x04, 0x05, 0x00, 0x02, 0x00, 0x12, 0x03,
-    0x03, 0x02, 0x0d, 0x0a, 0x0c, 0x0a, 0x05, 0x05, 0x00, 0x02, 0x00, 0x01, 0x12, 0x03, 0x03, 0x02,
-    0x08, 0x0a, 0x0c, 0x0a, 0x05, 0x05, 0x00, 0x02, 0x00, 0x02, 0x12, 0x03, 0x03, 0x0b, 0x0c, 0x0a,
-    0x0b, 0x0a, 0x04, 0x05, 0x00, 0x02, 0x01, 0x12, 0x03, 0x04, 0x02, 0x0f, 0x0a, 0x0c, 0x0a, 0x05,
-    0x05, 0x00, 0x02, 0x01, 0x01, 0x12, 0x03, 0x04, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x05, 0x00,
-    0x02, 0x01, 0x02, 0x12, 0x03, 0x04, 0x0d, 0x0e, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x00, 0x12, 0x04,
-    0x07, 0x00, 0x0b, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x00, 0x01, 0x12, 0x03, 0x07, 0x08, 0x14,
-    0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x00, 0x02, 0x00, 0x12, 0x03, 0x08, 0x02, 0x1b, 0x0a, 0x0c, 0x0a,
-    0x05, 0x04, 0x00, 0x02, 0x00, 0x04, 0x12, 0x03, 0x08, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x00, 0x02, 0x00, 0x05, 0x12, 0x03, 0x08, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02,
-    0x00, 0x01, 0x12, 0x03, 0x08, 0x12, 0x16, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x00, 0x03,
-    0x12, 0x03, 0x08, 0x19, 0x1a, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x00, 0x02, 0x01, 0x12, 0x03, 0x09,
-    0x02, 0x23, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x01, 0x04, 0x12, 0x03, 0x09, 0x02, 0x0a,
-    0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x01, 0x06, 0x12, 0x03, 0x09, 0x0b, 0x14, 0x0a, 0x0c,
-    0x0a, 0x05, 0x04, 0x00, 0x02, 0x01, 0x01, 0x12, 0x03, 0x09, 0x15, 0x1e, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x00, 0x02, 0x01, 0x03, 0x12, 0x03, 0x09, 0x21, 0x22, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x00,
-    0x02, 0x02, 0x12, 0x03, 0x0a, 0x02, 0x1f, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x02, 0x04,
-    0x12, 0x03, 0x0a, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x02, 0x05, 0x12, 0x03,
-    0x0a, 0x0b, 0x10, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x02, 0x01, 0x12, 0x03, 0x0a, 0x11,
-    0x1a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x02, 0x03, 0x12, 0x03, 0x0a, 0x1d, 0x1e, 0x0a,
-    0x0a, 0x0a, 0x02, 0x04, 0x01, 0x12, 0x04, 0x0d, 0x00, 0x11, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04,
-    0x01, 0x01, 0x12, 0x03, 0x0d, 0x08, 0x15, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x01, 0x02, 0x00, 0x12,
-    0x03, 0x0e, 0x02, 0x1b, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x00, 0x04, 0x12, 0x03, 0x0e,
-    0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x00, 0x05, 0x12, 0x03, 0x0e, 0x0b, 0x11,
-    0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x00, 0x01, 0x12, 0x03, 0x0e, 0x12, 0x16, 0x0a, 0x0c,
-    0x0a, 0x05, 0x04, 0x01, 0x02, 0x00, 0x03, 0x12, 0x03, 0x0e, 0x19, 0x1a, 0x0a, 0x0b, 0x0a, 0x04,
-    0x04, 0x01, 0x02, 0x01, 0x12, 0x03, 0x0f, 0x02, 0x21, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02,
-    0x01, 0x04, 0x12, 0x03, 0x0f, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x06,
-    0x12, 0x03, 0x0f, 0x0b, 0x17, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x01, 0x12, 0x03,
-    0x0f, 0x18, 0x1c, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x03, 0x12, 0x03, 0x0f, 0x1f,
-    0x20, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x01, 0x02, 0x02, 0x12, 0x03, 0x10, 0x02, 0x24, 0x0a, 0x0c,
-    0x0a, 0x05, 0x04, 0x01, 0x02, 0x02, 0x04, 0x12, 0x03, 0x10, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x01, 0x02, 0x02, 0x05, 0x12, 0x03, 0x10, 0x0b, 0x10, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01,
-    0x02, 0x02, 0x01, 0x12, 0x03, 0x10, 0x11, 0x1f, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x02,
-    0x03, 0x12, 0x03, 0x10, 0x22, 0x23, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x02, 0x12, 0x04, 0x13, 0x00,
-    0x16, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x02, 0x01, 0x12, 0x03, 0x13, 0x08, 0x0f, 0x0a, 0x0b,
-    0x0a, 0x04, 0x04, 0x02, 0x02, 0x00, 0x12, 0x03, 0x14, 0x02, 0x19, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x02, 0x02, 0x00, 0x04, 0x12, 0x03, 0x14, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x02, 0x02,
-    0x00, 0x05, 0x12, 0x03, 0x14, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x02, 0x02, 0x00, 0x01,
-    0x12, 0x03, 0x14, 0x12, 0x14, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x02, 0x02, 0x00, 0x03, 0x12, 0x03,
-    0x14, 0x17, 0x18, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x02, 0x02, 0x01, 0x12, 0x03, 0x15, 0x02, 0x1b,
-    0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x02, 0x02, 0x01, 0x04, 0x12, 0x03, 0x15, 0x02, 0x0a, 0x0a, 0x0c,
-    0x0a, 0x05, 0x04, 0x02, 0x02, 0x01, 0x05, 0x12, 0x03, 0x15, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x02, 0x02, 0x01, 0x01, 0x12, 0x03, 0x15, 0x12, 0x16, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x02,
-    0x02, 0x01, 0x03, 0x12, 0x03, 0x15, 0x19, 0x1a, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x03, 0x12, 0x04,
-    0x18, 0x00, 0x1a, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x03, 0x01, 0x12, 0x03, 0x18, 0x08, 0x13,
-    0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x03, 0x02, 0x00, 0x12, 0x03, 0x19, 0x02, 0x1f, 0x0a, 0x0c, 0x0a,
-    0x05, 0x04, 0x03, 0x02, 0x00, 0x04, 0x12, 0x03, 0x19, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x03, 0x02, 0x00, 0x06, 0x12, 0x03, 0x19, 0x0b, 0x12, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x03, 0x02,
-    0x00, 0x01, 0x12, 0x03, 0x19, 0x13, 0x1a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x03, 0x02, 0x00, 0x03,
-    0x12, 0x03, 0x19, 0x1d, 0x1e, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x04, 0x12, 0x04, 0x1c, 0x00, 0x1f,
-    0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x04, 0x01, 0x12, 0x03, 0x1c, 0x08, 0x0c, 0x0a, 0x0b, 0x0a,
-    0x04, 0x04, 0x04, 0x02, 0x00, 0x12, 0x03, 0x1d, 0x02, 0x1b, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04,
-    0x02, 0x00, 0x04, 0x12, 0x03, 0x1d, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x00,
-    0x05, 0x12, 0x03, 0x1d, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x00, 0x01, 0x12,
-    0x03, 0x1d, 0x12, 0x16, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x00, 0x03, 0x12, 0x03, 0x1d,
-    0x19, 0x1a, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x04, 0x02, 0x01, 0x12, 0x03, 0x1e, 0x02, 0x20, 0x0a,
-    0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02, 0x01, 0x04, 0x12, 0x03, 0x1e, 0x02, 0x0a, 0x0a, 0x0c, 0x0a,
-    0x05, 0x04, 0x04, 0x02, 0x01, 0x05, 0x12, 0x03, 0x1e, 0x0b, 0x11, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x04, 0x02, 0x01, 0x01, 0x12, 0x03, 0x1e, 0x12, 0x1b, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x04, 0x02,
-    0x01, 0x03, 0x12, 0x03, 0x1e, 0x1e, 0x1f, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x05, 0x12, 0x04, 0x21,
-    0x00, 0x23, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x05, 0x01, 0x12, 0x03, 0x21, 0x08, 0x10, 0x0a,
-    0x0b, 0x0a, 0x04, 0x04, 0x05, 0x02, 0x00, 0x12, 0x03, 0x22, 0x02, 0x19, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x05, 0x02, 0x00, 0x04, 0x12, 0x03, 0x22, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x05,
-    0x02, 0x00, 0x06, 0x12, 0x03, 0x22, 0x0b, 0x0f, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x05, 0x02, 0x00,
-    0x01, 0x12, 0x03, 0x22, 0x10, 0x14, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x05, 0x02, 0x00, 0x03, 0x12,
-    0x03, 0x22, 0x17, 0x18,
-];
+impl ::protobuf::reflect::ProtobufValue for Direction {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
+static file_descriptor_proto_data: &'static [u8] = b"\
+    \n\x13webclient_api.proto\"j\n\x0cLineArrivals\x12\x12\n\x04line\x18\x01\
+    \x20\x01(\tR\x04line\x12(\n\tdirection\x18\x02\x20\x01(\x0e2\n.Direction\
+    R\tdirection\x12\x1c\n\ttimestamp\x18\x03\x20\x03(\x03R\ttimestamp\"m\n\
+    \rStationStatus\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\x12!\n\x04\
+    line\x18\x02\x20\x03(\x0b2\r.LineArrivalsR\x04line\x12%\n\x0edata_timest\
+    amp\x18\x03\x20\x01(\x03R\rdataTimestamp\"-\n\x07Station\x12\x0e\n\x02id\
+    \x18\x01\x20\x01(\tR\x02id\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\
+    \"1\n\x0bStationList\x12\"\n\x07station\x18\x01\x20\x03(\x0b2\x08.Statio\
+    nR\x07station\"7\n\x04Line\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\
+    \x12\x1b\n\tcolor_hex\x18\x02\x20\x01(\tR\x08colorHex\"%\n\x08LineList\
+    \x12\x19\n\x04line\x18\x01\x20\x03(\x0b2\x05.LineR\x04line*%\n\tDirectio\
+    n\x12\n\n\x06UPTOWN\x10\0\x12\x0c\n\x08DOWNTOWN\x10\x01J\xc8\x08\n\x06\
+    \x12\x04\0\0#\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\n\n\x02\x05\0\x12\
+    \x04\x02\0\x05\x01\n\n\n\x03\x05\0\x01\x12\x03\x02\x05\x0e\n\x0b\n\x04\
+    \x05\0\x02\0\x12\x03\x03\x02\r\n\x0c\n\x05\x05\0\x02\0\x01\x12\x03\x03\
+    \x02\x08\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x03\x0b\x0c\n\x0b\n\x04\x05\
+    \0\x02\x01\x12\x03\x04\x02\x0f\n\x0c\n\x05\x05\0\x02\x01\x01\x12\x03\x04\
+    \x02\n\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x04\r\x0e\n\n\n\x02\x04\0\
+    \x12\x04\x07\0\x0b\x01\n\n\n\x03\x04\0\x01\x12\x03\x07\x08\x14\n\x0b\n\
+    \x04\x04\0\x02\0\x12\x03\x08\x02\x1b\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\
+    \x08\x02\n\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x08\x0b\x11\n\x0c\n\x05\
+    \x04\0\x02\0\x01\x12\x03\x08\x12\x16\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\
+    \x08\x19\x1a\n\x0b\n\x04\x04\0\x02\x01\x12\x03\t\x02#\n\x0c\n\x05\x04\0\
+    \x02\x01\x04\x12\x03\t\x02\n\n\x0c\n\x05\x04\0\x02\x01\x06\x12\x03\t\x0b\
+    \x14\n\x0c\n\x05\x04\0\x02\x01\x01\x12\x03\t\x15\x1e\n\x0c\n\x05\x04\0\
+    \x02\x01\x03\x12\x03\t!\"\n\x0b\n\x04\x04\0\x02\x02\x12\x03\n\x02\x1f\n\
+    \x0c\n\x05\x04\0\x02\x02\x04\x12\x03\n\x02\n\n\x0c\n\x05\x04\0\x02\x02\
+    \x05\x12\x03\n\x0b\x10\n\x0c\n\x05\x04\0\x02\x02\x01\x12\x03\n\x11\x1a\n\
+    \x0c\n\x05\x04\0\x02\x02\x03\x12\x03\n\x1d\x1e\n\n\n\x02\x04\x01\x12\x04\
+    \r\0\x11\x01\n\n\n\x03\x04\x01\x01\x12\x03\r\x08\x15\n\x0b\n\x04\x04\x01\
+    \x02\0\x12\x03\x0e\x02\x1b\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\x0e\x02\
+    \n\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\x0e\x0b\x11\n\x0c\n\x05\x04\x01\
+    \x02\0\x01\x12\x03\x0e\x12\x16\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x0e\
+    \x19\x1a\n\x0b\n\x04\x04\x01\x02\x01\x12\x03\x0f\x02!\n\x0c\n\x05\x04\
+    \x01\x02\x01\x04\x12\x03\x0f\x02\n\n\x0c\n\x05\x04\x01\x02\x01\x06\x12\
+    \x03\x0f\x0b\x17\n\x0c\n\x05\x04\x01\x02\x01\x01\x12\x03\x0f\x18\x1c\n\
+    \x0c\n\x05\x04\x01\x02\x01\x03\x12\x03\x0f\x1f\x20\n\x0b\n\x04\x04\x01\
+    \x02\x02\x12\x03\x10\x02$\n\x0c\n\x05\x04\x01\x02\x02\x04\x12\x03\x10\
+    \x02\n\n\x0c\n\x05\x04\x01\x02\x02\x05\x12\x03\x10\x0b\x10\n\x0c\n\x05\
+    \x04\x01\x02\x02\x01\x12\x03\x10\x11\x1f\n\x0c\n\x05\x04\x01\x02\x02\x03\
+    \x12\x03\x10\"#\n\n\n\x02\x04\x02\x12\x04\x13\0\x16\x01\n\n\n\x03\x04\
+    \x02\x01\x12\x03\x13\x08\x0f\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x14\x02\
+    \x19\n\x0c\n\x05\x04\x02\x02\0\x04\x12\x03\x14\x02\n\n\x0c\n\x05\x04\x02\
+    \x02\0\x05\x12\x03\x14\x0b\x11\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\x14\
+    \x12\x14\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x14\x17\x18\n\x0b\n\x04\
+    \x04\x02\x02\x01\x12\x03\x15\x02\x1b\n\x0c\n\x05\x04\x02\x02\x01\x04\x12\
+    \x03\x15\x02\n\n\x0c\n\x05\x04\x02\x02\x01\x05\x12\x03\x15\x0b\x11\n\x0c\
+    \n\x05\x04\x02\x02\x01\x01\x12\x03\x15\x12\x16\n\x0c\n\x05\x04\x02\x02\
+    \x01\x03\x12\x03\x15\x19\x1a\n\n\n\x02\x04\x03\x12\x04\x18\0\x1a\x01\n\n\
+    \n\x03\x04\x03\x01\x12\x03\x18\x08\x13\n\x0b\n\x04\x04\x03\x02\0\x12\x03\
+    \x19\x02\x1f\n\x0c\n\x05\x04\x03\x02\0\x04\x12\x03\x19\x02\n\n\x0c\n\x05\
+    \x04\x03\x02\0\x06\x12\x03\x19\x0b\x12\n\x0c\n\x05\x04\x03\x02\0\x01\x12\
+    \x03\x19\x13\x1a\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x19\x1d\x1e\n\n\n\
+    \x02\x04\x04\x12\x04\x1c\0\x1f\x01\n\n\n\x03\x04\x04\x01\x12\x03\x1c\x08\
+    \x0c\n\x0b\n\x04\x04\x04\x02\0\x12\x03\x1d\x02\x1b\n\x0c\n\x05\x04\x04\
+    \x02\0\x04\x12\x03\x1d\x02\n\n\x0c\n\x05\x04\x04\x02\0\x05\x12\x03\x1d\
+    \x0b\x11\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03\x1d\x12\x16\n\x0c\n\x05\
+    \x04\x04\x02\0\x03\x12\x03\x1d\x19\x1a\n\x0b\n\x04\x04\x04\x02\x01\x12\
+    \x03\x1e\x02\x20\n\x0c\n\x05\x04\x04\x02\x01\x04\x12\x03\x1e\x02\n\n\x0c\
+    \n\x05\x04\x04\x02\x01\x05\x12\x03\x1e\x0b\x11\n\x0c\n\x05\x04\x04\x02\
+    \x01\x01\x12\x03\x1e\x12\x1b\n\x0c\n\x05\x04\x04\x02\x01\x03\x12\x03\x1e\
+    \x1e\x1f\n\n\n\x02\x04\x05\x12\x04!\0#\x01\n\n\n\x03\x04\x05\x01\x12\x03\
+    !\x08\x10\n\x0b\n\x04\x04\x05\x02\0\x12\x03\"\x02\x19\n\x0c\n\x05\x04\
+    \x05\x02\0\x04\x12\x03\"\x02\n\n\x0c\n\x05\x04\x05\x02\0\x06\x12\x03\"\
+    \x0b\x0f\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03\"\x10\x14\n\x0c\n\x05\x04\
+    \x05\x02\0\x03\x12\x03\"\x17\x18\
+";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {
     lock: ::protobuf::lazy::ONCE_INIT,

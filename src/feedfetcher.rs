@@ -59,7 +59,7 @@ impl Fetcher {
         return self.latest_values.lock().unwrap().values().map(|v| v.clone()).collect();
     }
 
-    fn feed_from_file(&self, filename: &str, fetch_timestamp: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
@@ -132,7 +132,7 @@ impl Fetcher {
         let response = requests::get(feed_url).unwrap(); //handle error
         assert_eq!(response.status_code(), requests::StatusCode::Ok);
 
-        let mut proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;
+        let proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;
 
         use chrono::TimeZone;
         return Ok(FetchResult{
@@ -208,9 +208,9 @@ impl FetcherThread {
         };
     }
 
-    pub fn cancel(&self) {
-        *self.cancelled.lock().unwrap() = true;
-    }
+//    pub fn cancel(&self) {
+//        *self.cancelled.lock().unwrap() = true;
+//    }
 
     pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<Fetcher>, period: std::time::Duration) {
         let f = fetcher.clone();
@@ -227,10 +227,10 @@ impl FetcherThread {
         self.handle = Some(handle);
     }
 
-    pub fn join(&mut self) {
-        match self.handle.take() {
-            Some(handle) => handle.join().unwrap(),
-            None => {},
-        }
-    }
+//    pub fn join(&mut self) {
+//        match self.handle.take() {
+//            Some(handle) => handle.join().unwrap(),
+//            None => {},
+//        }
+//    }
 }

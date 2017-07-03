@@ -10,7 +10,6 @@ extern crate protobuf_json;
 extern crate requests;
 extern crate rustc_serialize;
 extern crate rustful;
-extern crate serde_derive;
 
 mod feedfetcher;
 mod feedproxy_api;
