@@ -23,11 +23,6 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-pub fn upcoming_trains(route: &str, stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>> {
-    let mut upcoming = all_upcoming_trains(stop_id, feed, stops);
-    return upcoming.trains_by_route_and_direction.remove(route).unwrap_or(std::collections::BTreeMap::new());
-}
-
 fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
     return candidate_id == desired_id ||
         candidate_id == format!("{}N", desired_id) ||
