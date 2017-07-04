@@ -404,6 +404,9 @@ export interface ILine {
 
     /** Line colorHex */
     colorHex?: string;
+
+    /** Line active */
+    active?: boolean;
 }
 
 /** Represents a Line. */
@@ -420,6 +423,9 @@ export class Line {
 
     /** Line colorHex. */
     public colorHex: string;
+
+    /** Line active. */
+    public active: boolean;
 
     /**
      * Creates a new Line instance using the specified properties.
@@ -586,4 +592,5 @@ export class LineList {
 export enum Direction {
     UPTOWN,
     DOWNTOWN,
+    UNKNOWN,
 }

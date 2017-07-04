@@ -30,6 +30,7 @@ message StationList {
 message Line {
   optional string name = 1;
   optional string color_hex = 2;
+  optional bool active = 3;
 }
 
 message LineList {

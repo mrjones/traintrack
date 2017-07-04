@@ -3,6 +3,7 @@ extern crate std;
 
 use chrono::TimeZone;
 
+use feedfetcher;
 use gtfs_realtime;
 use stops;
 
@@ -12,14 +13,35 @@ pub enum Direction {
     DOWNTOWN,
 }
 
+pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::HashSet<String> {
+    let mut active_lines = std::collections::HashSet::new();
+
+    for ref feed in feeds {
+        for entity in feed.feed.get_entity() {
+            if entity.has_trip_update() {
+                active_lines.insert(entity.get_trip_update().get_trip().get_route_id().to_string());
+            }
+        }
+    }
+
+    return active_lines;
+}
+
 pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     // TODO(mrjones): Read the NYCT extension and determine this properly
     let trip_id: String = trip_id.to_string();
-    let lastchar: String = trip_id.chars().rev().take(1).collect();
-    return match lastchar.as_ref() {
+
+
+    let parts: Vec<&str> = trip_id.split("..").collect();
+    if parts.len() != 2 || parts[1].len() == 0 {
+        panic!("Couldn't split on '..': {}", trip_id);
+    }
+
+    let indicator_char: String = parts[1].chars().take(1).collect();
+    return match indicator_char.as_ref() {
         "N" => Direction::UPTOWN,
         "S" => Direction::DOWNTOWN,
-        chr => panic!("Unexpcted direction {}", chr),
+        chr => panic!("Unexpcted direction '{}'. Full string: {}", chr, trip_id),
     }
 }
 

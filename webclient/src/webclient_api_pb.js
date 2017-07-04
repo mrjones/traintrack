@@ -15,11 +15,13 @@ var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
  * @enum {string}
  * @property {number} UPTOWN=0 UPTOWN value
  * @property {number} DOWNTOWN=1 DOWNTOWN value
+ * @property {number} UNKNOWN=2 UNKNOWN value
  */
 $root.Direction = (function() {
     var valuesById = {}, values = Object.create(valuesById);
     values[valuesById[0] = "UPTOWN"] = 0;
     values[valuesById[1] = "DOWNTOWN"] = 1;
+    values[valuesById[2] = "UNKNOWN"] = 2;
     return values;
 })();
 
@@ -212,6 +214,7 @@ $root.LineArrivals = (function() {
                 return "direction: enum value expected";
             case 0:
             case 1:
+            case 2:
                 break;
             }
         if (message.timestamp != null && message.hasOwnProperty("timestamp")) {
@@ -249,6 +252,10 @@ $root.LineArrivals = (function() {
         case "DOWNTOWN":
         case 1:
             message.direction = 1;
+            break;
+        case "UNKNOWN":
+        case 2:
+            message.direction = 2;
             break;
         }
         if (object.timestamp) {
@@ -1012,6 +1019,7 @@ $root.Line = (function() {
      * @interface ILine
      * @property {string} [name] Line name
      * @property {string} [colorHex] Line colorHex
+     * @property {boolean} [active] Line active
      */
 
     /**
@@ -1045,6 +1053,14 @@ $root.Line = (function() {
     Line.prototype.colorHex = "";
 
     /**
+     * Line active.
+     * @member {boolean}active
+     * @memberof Line
+     * @instance
+     */
+    Line.prototype.active = false;
+
+    /**
      * Creates a new Line instance using the specified properties.
      * @function create
      * @memberof Line
@@ -1072,6 +1088,8 @@ $root.Line = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
         if (message.colorHex != null && message.hasOwnProperty("colorHex"))
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.colorHex);
+        if (message.active != null && message.hasOwnProperty("active"))
+            writer.uint32(/* id 3, wireType 0 =*/24).bool(message.active);
         return writer;
     };
 
@@ -1111,6 +1129,9 @@ $root.Line = (function() {
                 break;
             case 2:
                 message.colorHex = reader.string();
+                break;
+            case 3:
+                message.active = reader.bool();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -1153,6 +1174,9 @@ $root.Line = (function() {
         if (message.colorHex != null && message.hasOwnProperty("colorHex"))
             if (!$util.isString(message.colorHex))
                 return "colorHex: string expected";
+        if (message.active != null && message.hasOwnProperty("active"))
+            if (typeof message.active !== "boolean")
+                return "active: boolean expected";
         return null;
     };
 
@@ -1172,6 +1196,8 @@ $root.Line = (function() {
             message.name = String(object.name);
         if (object.colorHex != null)
             message.colorHex = String(object.colorHex);
+        if (object.active != null)
+            message.active = Boolean(object.active);
         return message;
     };
 
@@ -1191,11 +1217,14 @@ $root.Line = (function() {
         if (options.defaults) {
             object.name = "";
             object.colorHex = "";
+            object.active = false;
         }
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
         if (message.colorHex != null && message.hasOwnProperty("colorHex"))
             object.colorHex = message.colorHex;
+        if (message.active != null && message.hasOwnProperty("active"))
+            object.active = message.active;
         return object;
     };
 

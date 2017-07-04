@@ -53,7 +53,9 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
       let liStyle = {
         background: c,
       };
-      return <li key={line.name} style={liStyle}>
+
+      let className = line.active ? "active" : "inactive";
+      return <li key={line.name} style={liStyle} className={className}>
         <ReactRouter.Link to={`/app/line/${line.name}`}>
           {line.name}
         </ReactRouter.Link>

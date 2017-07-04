@@ -126,6 +126,10 @@ html {font-size: 1.375em;  /* 22px */}
     margin-bottom: .5em;
 }
 
+.lineList li.inactive {
+    opacity: .2;
+}
+
 .lineList li {
     display: inline-block;
     border: 1px solid black;

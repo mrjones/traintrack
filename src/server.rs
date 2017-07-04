@@ -144,11 +144,14 @@ fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context
 }
 
 fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+    let active_lines = utils::active_lines(&tt_context.all_feeds()?);
+
     let mut response = webclient_api::LineList::new();
     for &ref line in tt_context.stops.lines().iter() {
         let mut line_proto = webclient_api::Line::new();
         line_proto.set_name(line.id.clone());
         line_proto.set_color_hex(line.color.clone());
+        line_proto.set_active(active_lines.contains(&line.id));
         response.mut_line().push(line_proto);
     }
 
