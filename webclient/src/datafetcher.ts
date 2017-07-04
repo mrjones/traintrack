@@ -24,10 +24,12 @@ export default class Foo {};
 export class DebuggableResult<T> {
   public data: T;
   public apiUrl: string;
+  public debugInfo?: proto.IDebugInfo;
 
-  public constructor(data: T, apiUrl: string) {
+  public constructor(data: T, apiUrl: string, debugInfo?: proto.IDebugInfo) {
     this.data = data;
     this.apiUrl = apiUrl;
+    this.debugInfo = debugInfo;
   }
 }
 
@@ -47,7 +49,7 @@ export class DataFetcher {
     return new Promise<DebuggableResult<proto.LineList>>((resolve: (l: DebuggableResult<proto.LineList>) => void) => {
       let apiUrl = "/api/lines";
       if (this.stationCache.valid) {
-        resolve(new DebuggableResult(this.lineListCache.value, apiUrl));
+        resolve(new DebuggableResult(this.lineListCache.value, apiUrl, this.lineListCache.value.debugInfo));
         return;
       } else {
         fetch(apiUrl).then((response: Response) => {
@@ -56,7 +58,7 @@ export class DataFetcher {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const lineList = proto.LineList.decode(bodyBytes);
           this.lineListCache.set(lineList);
-          resolve(new DebuggableResult(lineList, apiUrl));
+          resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo));
         });
       }
     });
@@ -70,7 +72,7 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationStatus = proto.StationStatus.decode(bodyBytes);
-        resolve(new DebuggableResult(stationStatus, url));
+        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo));
       });
     });
   }

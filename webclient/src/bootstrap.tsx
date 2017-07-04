@@ -5,7 +5,7 @@ import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { ApiDebugger } from './debug';
+import { ApiDebugger, ApiRequestInfo } from './debug';
 import { LinePickerRouterWrapper } from './navigation';
 import { LineViewRouterWrapper } from './lineview';
 
@@ -268,7 +268,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
             <h2>{this.state.stationName}</h2>
             <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
             {lineSet}
-            <ApiDebugger apiUrl={this.state.data.apiUrl}/>
+            <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.debugInfo)}/>
             </div>);
   };
 }

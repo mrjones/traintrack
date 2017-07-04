@@ -3,7 +3,7 @@ import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
-import { ApiDebugger } from './debug';
+import { ApiDebugger, ApiRequestInfo } from './debug';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 
 class LinePickerProps {
@@ -20,14 +20,14 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
     super(props);
     this.state = {
       lineList: new proto.LineList(),
-      apiUrl: "",
+      apiInfo: new ApiRequestInfo("", null),
     };
   }
 
   public componentDidMount() {
     this.props.dataFetcher.fetchLineList()
       .then((res: DebuggableResult<proto.LineList>) => {
-        this.setState({lineList: res.data, apiUrl: res.apiUrl});
+        this.setState({lineList: res.data, apiInfo: new ApiRequestInfo(res.apiUrl, res.debugInfo)});
       });
   }
 
@@ -48,7 +48,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
 
     return (<div>
             <ul className="lineList">{lineLis}</ul>
-            <ApiDebugger apiUrl={this.state.apiUrl} />
+            <ApiDebugger requestInfo={this.state.apiInfo} />
             </div>);
   }
 }
