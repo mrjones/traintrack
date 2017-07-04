@@ -5,7 +5,8 @@ import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { ApiDebugger, LinePickerRouterWrapper } from './navigation';
+import { ApiDebugger } from './debug';
+import { LinePickerRouterWrapper } from './navigation';
 import { LineViewRouterWrapper } from './lineview';
 
 class StationPickerState {

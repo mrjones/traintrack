@@ -3,24 +3,8 @@ import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
+import { ApiDebugger } from './debug';
 import { DataFetcher, DebuggableResult } from './datafetcher';
-
-class ApiDebuggerProps {
-  public apiUrl: string;
-}
-
-class ApiDebuggerState { }
-
-export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerState> {
-
-  public render(): JSX.Element {
-    let jsonLink: string = this.props.apiUrl + "?format=textproto";
-
-    return <div>
-      API: <a href={jsonLink}>{jsonLink}</a>
-    </div>;
-  }
-};
 
 class LinePickerProps {
   public dataFetcher: DataFetcher;
