@@ -124,6 +124,8 @@ html {font-size: 1.375em;  /* 22px */}
     border-bottom: 1px solid #999999;
     padding: .2em;
     margin-bottom: .5em;
+    text-shadow: 0px 0px 1px black;
+    color: white;
 }
 
 .lineList li.inactive {
