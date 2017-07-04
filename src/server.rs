@@ -86,6 +86,11 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
 //    line.set_line("LINE".to_string());
 //    response.mut_line().push(line);
 
+    let mut colors_by_route = std::collections::HashMap::new();
+    for ref route in tt_context.stops.lines() {
+        colors_by_route.insert(route.id.clone(), route.color.clone());
+    }
+
     response.set_name(station.name.clone());
     for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
         for (direction, stop_times) in trains.iter() {
@@ -96,6 +101,10 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
                 &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
             });
             line.set_timestamp(stop_times.iter().map(chrono::DateTime::timestamp).collect());
+
+            if let Some(color) = colors_by_route.get(route_id) {
+                line.set_line_color_hex(color.to_string());
+            }
 
             response.mut_line().push(line);
         }

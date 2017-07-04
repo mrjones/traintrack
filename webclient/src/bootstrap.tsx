@@ -197,9 +197,14 @@ class StationLine extends React.Component<StationLineProps, undefined> {
       }
     );
 
+    let lineStyle = {
+      //      borderBottom: "2px solid #" + this.props.data.lineColorHex,
+      background: "#" + this.props.data.lineColorHex,
+    };
+
     return (
       <div className="stationLine">
-        <div className="header">{this.props.data.line} - {directionName(this.props.data.direction)}</div>
+        <div className="header" style={lineStyle}>{this.props.data.line} - {directionName(this.props.data.direction)}</div>
         <ul>{arrivals}</ul>
       </div>);
   }

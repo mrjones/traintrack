@@ -121,6 +121,9 @@ html {font-size: 1.375em;  /* 22px */}
 
 .stationLine .header {
     font-weight: bold;
+    border-bottom: 1px solid #999999;
+    padding: .2em;
+    margin-bottom: .5em;
 }
 
 .lineList li {

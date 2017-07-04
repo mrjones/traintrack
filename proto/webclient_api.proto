@@ -9,6 +9,7 @@ message LineArrivals {
   optional string line = 1;
   optional Direction direction = 2;
   repeated int64 timestamp = 3;
+  optional string line_color_hex = 4;
 }
 
 message StationStatus {

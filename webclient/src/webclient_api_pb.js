@@ -32,6 +32,7 @@ $root.LineArrivals = (function() {
      * @property {string} [line] LineArrivals line
      * @property {Direction} [direction] LineArrivals direction
      * @property {Array.<number|Long>} [timestamp] LineArrivals timestamp
+     * @property {string} [lineColorHex] LineArrivals lineColorHex
      */
 
     /**
@@ -74,6 +75,14 @@ $root.LineArrivals = (function() {
     LineArrivals.prototype.timestamp = $util.emptyArray;
 
     /**
+     * LineArrivals lineColorHex.
+     * @member {string}lineColorHex
+     * @memberof LineArrivals
+     * @instance
+     */
+    LineArrivals.prototype.lineColorHex = "";
+
+    /**
      * Creates a new LineArrivals instance using the specified properties.
      * @function create
      * @memberof LineArrivals
@@ -104,6 +113,8 @@ $root.LineArrivals = (function() {
         if (message.timestamp != null && message.timestamp.length)
             for (var i = 0; i < message.timestamp.length; ++i)
                 writer.uint32(/* id 3, wireType 0 =*/24).int64(message.timestamp[i]);
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            writer.uint32(/* id 4, wireType 2 =*/34).string(message.lineColorHex);
         return writer;
     };
 
@@ -153,6 +164,9 @@ $root.LineArrivals = (function() {
                         message.timestamp.push(reader.int64());
                 } else
                     message.timestamp.push(reader.int64());
+                break;
+            case 4:
+                message.lineColorHex = reader.string();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -207,6 +221,9 @@ $root.LineArrivals = (function() {
                 if (!$util.isInteger(message.timestamp[i]) && !(message.timestamp[i] && $util.isInteger(message.timestamp[i].low) && $util.isInteger(message.timestamp[i].high)))
                     return "timestamp: integer|Long[] expected";
         }
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            if (!$util.isString(message.lineColorHex))
+                return "lineColorHex: string expected";
         return null;
     };
 
@@ -248,6 +265,8 @@ $root.LineArrivals = (function() {
                 else if (typeof object.timestamp[i] === "object")
                     message.timestamp[i] = new $util.LongBits(object.timestamp[i].low >>> 0, object.timestamp[i].high >>> 0).toNumber();
         }
+        if (object.lineColorHex != null)
+            message.lineColorHex = String(object.lineColorHex);
         return message;
     };
 
@@ -269,6 +288,7 @@ $root.LineArrivals = (function() {
         if (options.defaults) {
             object.line = "";
             object.direction = options.enums === String ? "UPTOWN" : 0;
+            object.lineColorHex = "";
         }
         if (message.line != null && message.hasOwnProperty("line"))
             object.line = message.line;
@@ -282,6 +302,8 @@ $root.LineArrivals = (function() {
                 else
                     object.timestamp[j] = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp[j]) : options.longs === Number ? new $util.LongBits(message.timestamp[j].low >>> 0, message.timestamp[j].high >>> 0).toNumber() : message.timestamp[j];
         }
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            object.lineColorHex = message.lineColorHex;
         return object;
     };
 

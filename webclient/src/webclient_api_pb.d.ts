@@ -11,6 +11,9 @@ export interface ILineArrivals {
 
     /** LineArrivals timestamp */
     timestamp?: (number|Long)[];
+
+    /** LineArrivals lineColorHex */
+    lineColorHex?: string;
 }
 
 /** Represents a LineArrivals. */
@@ -30,6 +33,9 @@ export class LineArrivals {
 
     /** LineArrivals timestamp. */
     public timestamp: (number|Long)[];
+
+    /** LineArrivals lineColorHex. */
+    public lineColorHex: string;
 
     /**
      * Creates a new LineArrivals instance using the specified properties.
