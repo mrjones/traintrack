@@ -1,5 +1,95 @@
 import * as $protobuf from "protobufjs";
 
+/** Properties of a DebugInfo. */
+export interface IDebugInfo {
+
+    /** DebugInfo processingTimeMs */
+    processingTimeMs?: (number|Long);
+}
+
+/** Represents a DebugInfo. */
+export class DebugInfo {
+
+    /**
+     * Constructs a new DebugInfo.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: IDebugInfo);
+
+    /** DebugInfo processingTimeMs. */
+    public processingTimeMs: (number|Long);
+
+    /**
+     * Creates a new DebugInfo instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns DebugInfo instance
+     */
+    public static create(properties?: IDebugInfo): DebugInfo;
+
+    /**
+     * Encodes the specified DebugInfo message. Does not implicitly {@link DebugInfo.verify|verify} messages.
+     * @param message DebugInfo message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: IDebugInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified DebugInfo message, length delimited. Does not implicitly {@link DebugInfo.verify|verify} messages.
+     * @param message DebugInfo message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: IDebugInfo, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a DebugInfo message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns DebugInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): DebugInfo;
+
+    /**
+     * Decodes a DebugInfo message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns DebugInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): DebugInfo;
+
+    /**
+     * Verifies a DebugInfo message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a DebugInfo message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns DebugInfo
+     */
+    public static fromObject(object: { [k: string]: any }): DebugInfo;
+
+    /**
+     * Creates a plain object from a DebugInfo message. Also converts values to other types if specified.
+     * @param message DebugInfo
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: DebugInfo, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this DebugInfo to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
+
 /** Properties of a LineArrivals. */
 export interface ILineArrivals {
 
@@ -14,6 +104,9 @@ export interface ILineArrivals {
 
     /** LineArrivals lineColorHex */
     lineColorHex?: string;
+
+    /** LineArrivals debugInfo */
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a LineArrivals. */
@@ -36,6 +129,9 @@ export class LineArrivals {
 
     /** LineArrivals lineColorHex. */
     public lineColorHex: string;
+
+    /** LineArrivals debugInfo. */
+    public debugInfo?: (IDebugInfo|null);
 
     /**
      * Creates a new LineArrivals instance using the specified properties.
@@ -119,6 +215,9 @@ export interface IStationStatus {
 
     /** StationStatus dataTimestamp */
     dataTimestamp?: (number|Long);
+
+    /** StationStatus debugInfo */
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a StationStatus. */
@@ -138,6 +237,9 @@ export class StationStatus {
 
     /** StationStatus dataTimestamp. */
     public dataTimestamp: (number|Long);
+
+    /** StationStatus debugInfo. */
+    public debugInfo?: (IDebugInfo|null);
 
     /**
      * Creates a new StationStatus instance using the specified properties.
@@ -311,6 +413,9 @@ export interface IStationList {
 
     /** StationList station */
     station?: IStation[];
+
+    /** StationList debugInfo */
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a StationList. */
@@ -324,6 +429,9 @@ export class StationList {
 
     /** StationList station. */
     public station: IStation[];
+
+    /** StationList debugInfo. */
+    public debugInfo?: (IDebugInfo|null);
 
     /**
      * Creates a new StationList instance using the specified properties.
@@ -503,6 +611,9 @@ export interface ILineList {
 
     /** LineList line */
     line?: ILine[];
+
+    /** LineList debugInfo */
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a LineList. */
@@ -516,6 +627,9 @@ export class LineList {
 
     /** LineList line. */
     public line: ILine[];
+
+    /** LineList debugInfo. */
+    public debugInfo?: (IDebugInfo|null);
 
     /**
      * Creates a new LineList instance using the specified properties.
@@ -592,5 +706,4 @@ export class LineList {
 export enum Direction {
     UPTOWN,
     DOWNTOWN,
-    UNKNOWN,
 }

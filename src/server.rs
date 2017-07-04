@@ -42,13 +42,39 @@ impl TTContext {
     }
 }
 
-fn fetch_now(tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+struct RequestTimer {
+    start_time: chrono::DateTime<chrono::Utc>,
+}
+
+impl RequestTimer {
+    fn new() -> RequestTimer {
+        return RequestTimer {
+            start_time: chrono::Utc::now(),
+        };
+    }
+}
+
+fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     tt_context.fetcher.fetch_once();
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
-fn api_response<M: protobuf::Message>(data: &M, _: &TTContext, rustful_context: &rustful::Context) -> result::TTResult<Vec<u8>> {
+type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
+
+fn api_response<M: protobuf::Message>(data: &mut M, _: &TTContext, rustful_context: &rustful::Context, timer: RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     use std::borrow::Borrow;
+
+    match debug_getter {
+        Some(f) => {
+            let mut debug_info = f(data);
+            let now = chrono::Utc::now();
+            let start_ms = timer.start_time.timestamp() * 1000 + timer.start_time.timestamp_subsec_millis() as i64;
+            let now_ms = now.timestamp() * 1000 + now.timestamp_subsec_millis() as i64;
+
+            debug_info.set_processing_time_ms(now_ms - start_ms);
+        },
+        None => {},
+    }
 
     let format: Option<String> = rustful_context.query.get("format")
         .map(|x| String::from(x.borrow()));
@@ -62,10 +88,9 @@ fn api_response<M: protobuf::Message>(data: &M, _: &TTContext, rustful_context: 
             return r;
         }
     }
-
 }
 
-fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
     let station_id = station_id.into_owned();
@@ -112,10 +137,10 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context)
 
     response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
 
-    return api_response(&response, tt_context, &rustful_context);
+    return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::StationStatus::mut_debug_info));
 }
 
-fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
     let mut response = webclient_api::StationList::new();
     for &ref stop in tt_context.stops.iter() {
         let mut station = webclient_api::Station::new();
@@ -124,10 +149,10 @@ fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -
         response.mut_station().push(station);
     }
 
-    return api_response(&response, tt_context, &rustful_context);
+    return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::StationList::mut_debug_info));
 }
 
-fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
     let desired_line = rustful_context.variables.get("line_id")
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
@@ -140,10 +165,10 @@ fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context
         response.mut_station().push(station);
     }
 
-    return api_response(&response, tt_context, &rustful_context);
+    return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::StationList::mut_debug_info));
 }
 
-fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
     let active_lines = utils::active_lines(&tt_context.all_feeds()?);
 
     let mut response = webclient_api::LineList::new();
@@ -155,10 +180,10 @@ fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context) -> r
         response.mut_line().push(line_proto);
     }
 
-    return api_response(&response, tt_context, &rustful_context);
+    return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::LineList::mut_debug_info));
 }
 
-fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let station_id = rustful_context.variables.get("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
     let desired_route = rustful_context.variables.get("route_id").map(|x| x.to_string());
@@ -203,11 +228,11 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context) -> 
     return Ok(body.as_bytes().to_vec());
 }
 
-fn list_stations(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn list_stations(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     return Ok("<html><body><script language='javascript'>window.location = '/app/lines';</script></body></html>".as_bytes().to_vec());
 }
 
-fn debug(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn debug(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let mut body = "<html><head><title>TTDebug</title></head><body><h1>Debug</h1><ul>".to_string();
     vec!["dump_proto", "fetch_now"].iter().map(
         |u| body.push_str(&format!("<li><a href='/debug/{}'>/{}</a></li>", u, u))).count();
@@ -217,7 +242,7 @@ fn debug(_: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
 }
 
 fn dump_feed_links(
-    tt_context: &TTContext, _: rustful::Context) -> result::TTResult<Vec<u8>> {
+    tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
 
     let mut body = "<h1>Dump Proto</h1><ul>".to_string();
     for feed_id in tt_context.fetcher.known_feed_ids() {
@@ -228,7 +253,7 @@ fn dump_feed_links(
     return Ok(body.as_bytes().to_vec());
 }
 
-fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> result::TTResult<Vec<u8>> {
+fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let desired_feed_str = rustful_context.variables.get("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
         .map(|x| x.to_string())?;
@@ -246,7 +271,7 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context) -> resu
 }
 
 enum PageType {
-    Dynamic(fn(&TTContext, rustful::Context) -> result::TTResult<Vec<u8>>),
+    Dynamic(fn(&TTContext, rustful::Context, RequestTimer) -> result::TTResult<Vec<u8>>),
     Static(std::path::PathBuf),
 }
 
@@ -262,7 +287,7 @@ impl rustful::Handler for PageType {
             &PageType::Dynamic(execute) => {
                 match rustful_context.global.get::<TTContext>() {
                     Some(ref tt_context) => {
-                        match execute(tt_context, rustful_context) {
+                        match execute(tt_context, rustful_context, RequestTimer::new()) {
                             Ok(body) => response.send(body),
                             Err(err) => response.send(format!("ERROR: {}", err)),
                         }

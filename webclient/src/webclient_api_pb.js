@@ -15,14 +15,212 @@ var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
  * @enum {string}
  * @property {number} UPTOWN=0 UPTOWN value
  * @property {number} DOWNTOWN=1 DOWNTOWN value
- * @property {number} UNKNOWN=2 UNKNOWN value
  */
 $root.Direction = (function() {
     var valuesById = {}, values = Object.create(valuesById);
     values[valuesById[0] = "UPTOWN"] = 0;
     values[valuesById[1] = "DOWNTOWN"] = 1;
-    values[valuesById[2] = "UNKNOWN"] = 2;
     return values;
+})();
+
+$root.DebugInfo = (function() {
+
+    /**
+     * Properties of a DebugInfo.
+     * @exports IDebugInfo
+     * @interface IDebugInfo
+     * @property {number|Long} [processingTimeMs] DebugInfo processingTimeMs
+     */
+
+    /**
+     * Constructs a new DebugInfo.
+     * @exports DebugInfo
+     * @classdesc Represents a DebugInfo.
+     * @constructor
+     * @param {IDebugInfo=} [properties] Properties to set
+     */
+    function DebugInfo(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * DebugInfo processingTimeMs.
+     * @member {number|Long}processingTimeMs
+     * @memberof DebugInfo
+     * @instance
+     */
+    DebugInfo.prototype.processingTimeMs = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
+     * Creates a new DebugInfo instance using the specified properties.
+     * @function create
+     * @memberof DebugInfo
+     * @static
+     * @param {IDebugInfo=} [properties] Properties to set
+     * @returns {DebugInfo} DebugInfo instance
+     */
+    DebugInfo.create = function create(properties) {
+        return new DebugInfo(properties);
+    };
+
+    /**
+     * Encodes the specified DebugInfo message. Does not implicitly {@link DebugInfo.verify|verify} messages.
+     * @function encode
+     * @memberof DebugInfo
+     * @static
+     * @param {IDebugInfo} message DebugInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DebugInfo.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
+            writer.uint32(/* id 1, wireType 0 =*/8).int64(message.processingTimeMs);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified DebugInfo message, length delimited. Does not implicitly {@link DebugInfo.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof DebugInfo
+     * @static
+     * @param {IDebugInfo} message DebugInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DebugInfo.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a DebugInfo message from the specified reader or buffer.
+     * @function decode
+     * @memberof DebugInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {DebugInfo} DebugInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DebugInfo.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.DebugInfo();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.processingTimeMs = reader.int64();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a DebugInfo message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof DebugInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {DebugInfo} DebugInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DebugInfo.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a DebugInfo message.
+     * @function verify
+     * @memberof DebugInfo
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    DebugInfo.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
+            if (!$util.isInteger(message.processingTimeMs) && !(message.processingTimeMs && $util.isInteger(message.processingTimeMs.low) && $util.isInteger(message.processingTimeMs.high)))
+                return "processingTimeMs: integer|Long expected";
+        return null;
+    };
+
+    /**
+     * Creates a DebugInfo message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof DebugInfo
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {DebugInfo} DebugInfo
+     */
+    DebugInfo.fromObject = function fromObject(object) {
+        if (object instanceof $root.DebugInfo)
+            return object;
+        var message = new $root.DebugInfo();
+        if (object.processingTimeMs != null)
+            if ($util.Long)
+                (message.processingTimeMs = $util.Long.fromValue(object.processingTimeMs)).unsigned = false;
+            else if (typeof object.processingTimeMs === "string")
+                message.processingTimeMs = parseInt(object.processingTimeMs, 10);
+            else if (typeof object.processingTimeMs === "number")
+                message.processingTimeMs = object.processingTimeMs;
+            else if (typeof object.processingTimeMs === "object")
+                message.processingTimeMs = new $util.LongBits(object.processingTimeMs.low >>> 0, object.processingTimeMs.high >>> 0).toNumber();
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a DebugInfo message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof DebugInfo
+     * @static
+     * @param {DebugInfo} message DebugInfo
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    DebugInfo.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults)
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.processingTimeMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.processingTimeMs = options.longs === String ? "0" : 0;
+        if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
+            if (typeof message.processingTimeMs === "number")
+                object.processingTimeMs = options.longs === String ? String(message.processingTimeMs) : message.processingTimeMs;
+            else
+                object.processingTimeMs = options.longs === String ? $util.Long.prototype.toString.call(message.processingTimeMs) : options.longs === Number ? new $util.LongBits(message.processingTimeMs.low >>> 0, message.processingTimeMs.high >>> 0).toNumber() : message.processingTimeMs;
+        return object;
+    };
+
+    /**
+     * Converts this DebugInfo to JSON.
+     * @function toJSON
+     * @memberof DebugInfo
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    DebugInfo.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return DebugInfo;
 })();
 
 $root.LineArrivals = (function() {
@@ -35,6 +233,7 @@ $root.LineArrivals = (function() {
      * @property {Direction} [direction] LineArrivals direction
      * @property {Array.<number|Long>} [timestamp] LineArrivals timestamp
      * @property {string} [lineColorHex] LineArrivals lineColorHex
+     * @property {IDebugInfo} [debugInfo] LineArrivals debugInfo
      */
 
     /**
@@ -85,6 +284,14 @@ $root.LineArrivals = (function() {
     LineArrivals.prototype.lineColorHex = "";
 
     /**
+     * LineArrivals debugInfo.
+     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @memberof LineArrivals
+     * @instance
+     */
+    LineArrivals.prototype.debugInfo = null;
+
+    /**
      * Creates a new LineArrivals instance using the specified properties.
      * @function create
      * @memberof LineArrivals
@@ -117,6 +324,8 @@ $root.LineArrivals = (function() {
                 writer.uint32(/* id 3, wireType 0 =*/24).int64(message.timestamp[i]);
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             writer.uint32(/* id 4, wireType 2 =*/34).string(message.lineColorHex);
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
         return writer;
     };
 
@@ -170,6 +379,9 @@ $root.LineArrivals = (function() {
             case 4:
                 message.lineColorHex = reader.string();
                 break;
+            case 5:
+                message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
+                break;
             default:
                 reader.skipType(tag & 7);
                 break;
@@ -214,7 +426,6 @@ $root.LineArrivals = (function() {
                 return "direction: enum value expected";
             case 0:
             case 1:
-            case 2:
                 break;
             }
         if (message.timestamp != null && message.hasOwnProperty("timestamp")) {
@@ -227,6 +438,11 @@ $root.LineArrivals = (function() {
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             if (!$util.isString(message.lineColorHex))
                 return "lineColorHex: string expected";
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
+            var error = $root.DebugInfo.verify(message.debugInfo);
+            if (error)
+                return "debugInfo." + error;
+        }
         return null;
     };
 
@@ -253,10 +469,6 @@ $root.LineArrivals = (function() {
         case 1:
             message.direction = 1;
             break;
-        case "UNKNOWN":
-        case 2:
-            message.direction = 2;
-            break;
         }
         if (object.timestamp) {
             if (!Array.isArray(object.timestamp))
@@ -274,6 +486,11 @@ $root.LineArrivals = (function() {
         }
         if (object.lineColorHex != null)
             message.lineColorHex = String(object.lineColorHex);
+        if (object.debugInfo != null) {
+            if (typeof object.debugInfo !== "object")
+                throw TypeError(".LineArrivals.debugInfo: object expected");
+            message.debugInfo = $root.DebugInfo.fromObject(object.debugInfo);
+        }
         return message;
     };
 
@@ -296,6 +513,7 @@ $root.LineArrivals = (function() {
             object.line = "";
             object.direction = options.enums === String ? "UPTOWN" : 0;
             object.lineColorHex = "";
+            object.debugInfo = null;
         }
         if (message.line != null && message.hasOwnProperty("line"))
             object.line = message.line;
@@ -311,6 +529,8 @@ $root.LineArrivals = (function() {
         }
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             object.lineColorHex = message.lineColorHex;
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
         return object;
     };
 
@@ -337,6 +557,7 @@ $root.StationStatus = (function() {
      * @property {string} [name] StationStatus name
      * @property {Array.<ILineArrivals>} [line] StationStatus line
      * @property {number|Long} [dataTimestamp] StationStatus dataTimestamp
+     * @property {IDebugInfo} [debugInfo] StationStatus debugInfo
      */
 
     /**
@@ -379,6 +600,14 @@ $root.StationStatus = (function() {
     StationStatus.prototype.dataTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
+     * StationStatus debugInfo.
+     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @memberof StationStatus
+     * @instance
+     */
+    StationStatus.prototype.debugInfo = null;
+
+    /**
      * Creates a new StationStatus instance using the specified properties.
      * @function create
      * @memberof StationStatus
@@ -409,6 +638,8 @@ $root.StationStatus = (function() {
                 $root.LineArrivals.encode(message.line[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
             writer.uint32(/* id 3, wireType 0 =*/24).int64(message.dataTimestamp);
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
         return writer;
     };
 
@@ -453,6 +684,9 @@ $root.StationStatus = (function() {
                 break;
             case 3:
                 message.dataTimestamp = reader.int64();
+                break;
+            case 4:
+                message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -504,6 +738,11 @@ $root.StationStatus = (function() {
         if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
             if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
                 return "dataTimestamp: integer|Long expected";
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
+            error = $root.DebugInfo.verify(message.debugInfo);
+            if (error)
+                return "debugInfo." + error;
+        }
         return null;
     };
 
@@ -540,6 +779,11 @@ $root.StationStatus = (function() {
                 message.dataTimestamp = object.dataTimestamp;
             else if (typeof object.dataTimestamp === "object")
                 message.dataTimestamp = new $util.LongBits(object.dataTimestamp.low >>> 0, object.dataTimestamp.high >>> 0).toNumber();
+        if (object.debugInfo != null) {
+            if (typeof object.debugInfo !== "object")
+                throw TypeError(".StationStatus.debugInfo: object expected");
+            message.debugInfo = $root.DebugInfo.fromObject(object.debugInfo);
+        }
         return message;
     };
 
@@ -565,6 +809,7 @@ $root.StationStatus = (function() {
                 object.dataTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
             } else
                 object.dataTimestamp = options.longs === String ? "0" : 0;
+            object.debugInfo = null;
         }
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
@@ -578,6 +823,8 @@ $root.StationStatus = (function() {
                 object.dataTimestamp = options.longs === String ? String(message.dataTimestamp) : message.dataTimestamp;
             else
                 object.dataTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.dataTimestamp) : options.longs === Number ? new $util.LongBits(message.dataTimestamp.low >>> 0, message.dataTimestamp.high >>> 0).toNumber() : message.dataTimestamp;
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
         return object;
     };
 
@@ -811,6 +1058,7 @@ $root.StationList = (function() {
      * @exports IStationList
      * @interface IStationList
      * @property {Array.<IStation>} [station] StationList station
+     * @property {IDebugInfo} [debugInfo] StationList debugInfo
      */
 
     /**
@@ -835,6 +1083,14 @@ $root.StationList = (function() {
      * @instance
      */
     StationList.prototype.station = $util.emptyArray;
+
+    /**
+     * StationList debugInfo.
+     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @memberof StationList
+     * @instance
+     */
+    StationList.prototype.debugInfo = null;
 
     /**
      * Creates a new StationList instance using the specified properties.
@@ -863,6 +1119,8 @@ $root.StationList = (function() {
         if (message.station != null && message.station.length)
             for (var i = 0; i < message.station.length; ++i)
                 $root.Station.encode(message.station[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
         return writer;
     };
 
@@ -901,6 +1159,9 @@ $root.StationList = (function() {
                 if (!(message.station && message.station.length))
                     message.station = [];
                 message.station.push($root.Station.decode(reader, reader.uint32()));
+                break;
+            case 5:
+                message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -946,6 +1207,11 @@ $root.StationList = (function() {
                     return "station." + error;
             }
         }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
+            error = $root.DebugInfo.verify(message.debugInfo);
+            if (error)
+                return "debugInfo." + error;
+        }
         return null;
     };
 
@@ -971,6 +1237,11 @@ $root.StationList = (function() {
                 message.station[i] = $root.Station.fromObject(object.station[i]);
             }
         }
+        if (object.debugInfo != null) {
+            if (typeof object.debugInfo !== "object")
+                throw TypeError(".StationList.debugInfo: object expected");
+            message.debugInfo = $root.DebugInfo.fromObject(object.debugInfo);
+        }
         return message;
     };
 
@@ -989,11 +1260,15 @@ $root.StationList = (function() {
         var object = {};
         if (options.arrays || options.defaults)
             object.station = [];
+        if (options.defaults)
+            object.debugInfo = null;
         if (message.station && message.station.length) {
             object.station = [];
             for (var j = 0; j < message.station.length; ++j)
                 object.station[j] = $root.Station.toObject(message.station[j], options);
         }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
         return object;
     };
 
@@ -1249,6 +1524,7 @@ $root.LineList = (function() {
      * @exports ILineList
      * @interface ILineList
      * @property {Array.<ILine>} [line] LineList line
+     * @property {IDebugInfo} [debugInfo] LineList debugInfo
      */
 
     /**
@@ -1273,6 +1549,14 @@ $root.LineList = (function() {
      * @instance
      */
     LineList.prototype.line = $util.emptyArray;
+
+    /**
+     * LineList debugInfo.
+     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @memberof LineList
+     * @instance
+     */
+    LineList.prototype.debugInfo = null;
 
     /**
      * Creates a new LineList instance using the specified properties.
@@ -1301,6 +1585,8 @@ $root.LineList = (function() {
         if (message.line != null && message.line.length)
             for (var i = 0; i < message.line.length; ++i)
                 $root.Line.encode(message.line[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
         return writer;
     };
 
@@ -1339,6 +1625,9 @@ $root.LineList = (function() {
                 if (!(message.line && message.line.length))
                     message.line = [];
                 message.line.push($root.Line.decode(reader, reader.uint32()));
+                break;
+            case 4:
+                message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -1384,6 +1673,11 @@ $root.LineList = (function() {
                     return "line." + error;
             }
         }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
+            error = $root.DebugInfo.verify(message.debugInfo);
+            if (error)
+                return "debugInfo." + error;
+        }
         return null;
     };
 
@@ -1409,6 +1703,11 @@ $root.LineList = (function() {
                 message.line[i] = $root.Line.fromObject(object.line[i]);
             }
         }
+        if (object.debugInfo != null) {
+            if (typeof object.debugInfo !== "object")
+                throw TypeError(".LineList.debugInfo: object expected");
+            message.debugInfo = $root.DebugInfo.fromObject(object.debugInfo);
+        }
         return message;
     };
 
@@ -1427,11 +1726,15 @@ $root.LineList = (function() {
         var object = {};
         if (options.arrays || options.defaults)
             object.line = [];
+        if (options.defaults)
+            object.debugInfo = null;
         if (message.line && message.line.length) {
             object.line = [];
             for (var j = 0; j < message.line.length; ++j)
                 object.line[j] = $root.Line.toObject(message.line[j], options);
         }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
         return object;
     };
 

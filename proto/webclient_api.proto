@@ -5,17 +5,25 @@ enum Direction {
   DOWNTOWN = 1;
 }
 
+message DebugInfo {
+  optional int64 processing_time_ms = 1;
+}
+
 message LineArrivals {
   optional string line = 1;
   optional Direction direction = 2;
   repeated int64 timestamp = 3;
   optional string line_color_hex = 4;
+
+  optional DebugInfo debug_info = 5;
 }
 
 message StationStatus {
   optional string name = 1;
   repeated LineArrivals line = 2;
   optional int64 data_timestamp = 3;
+
+  optional DebugInfo debug_info = 4;
 }
 
 message Station {
@@ -25,6 +33,8 @@ message Station {
 
 message StationList {
   repeated Station station = 1;
+
+  optional DebugInfo debug_info = 5;
 }
 
 message Line {
@@ -35,4 +45,6 @@ message Line {
 
 message LineList {
   repeated Line line = 1;
+
+  optional DebugInfo debug_info = 4;
 }
