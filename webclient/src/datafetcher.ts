@@ -77,28 +77,32 @@ export class DataFetcher {
     });
   }
 
-  public fetchStationList(): Promise<proto.StationList> {
-    return new Promise<proto.StationList>((resolve: (s: proto.StationList) => void) => {
+  public fetchStationList(): Promise<DebuggableResult<proto.StationList>> {
+    return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
+      let url = "/api/stations";
+
       if (this.stationCache.valid) {
         console.log("Using cached station list");
-        resolve(this.stationCache.value);
+        resolve(new DebuggableResult(this.stationCache.value, url, this.stationCache.value.debugInfo));
         return;
       } else {
         console.log("Requesting station list");
-        fetch("/api/stations").then((response: Response) => {
+        fetch(url).then((response: Response) => {
           return response.arrayBuffer();
         }).then((bodyBuffer: ArrayBuffer) => {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const stationList = proto.StationList.decode(bodyBytes);
           this.stationCache.set(stationList);
-          resolve(stationList);
+          resolve(new DebuggableResult(stationList, url, stationList.debugInfo));
         });
       }
     });
   }
 
-  public fetchStationsForLine(lineId: string): Promise<proto.StationList> {
-    return new Promise<proto.StationList>((resolve: (s: proto.StationList) => void) => {
+  public fetchStationsForLine(lineId: string): Promise<DebuggableResult<proto.StationList>> {
+    return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
+      let url = "/api/stations/byline/" + lineId;
+
       if (!this.stationsByLineCache.has(lineId)) {
         this.stationsByLineCache.set(lineId, new Cached<proto.StationList>());
       }
@@ -106,16 +110,16 @@ export class DataFetcher {
       let cached = this.stationsByLineCache.get(lineId);
 
       if (cached.valid) {
-        resolve(cached.value);
+        resolve(new DebuggableResult(cached.value, url, cached.value.debugInfo));
         return;
       } else {
-        fetch("/api/stations/byline/" + lineId).then((response: Response) => {
+        fetch(url).then((response: Response) => {
           return response.arrayBuffer();
         }).then((bodyBuffer: ArrayBuffer) => {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const stationList = proto.StationList.decode(bodyBytes);
           cached.set(stationList);
-          resolve(stationList);
+          resolve(new DebuggableResult(stationList, url, stationList.debugInfo));
         });
       }
     });

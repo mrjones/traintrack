@@ -33,8 +33,8 @@ class StationPicker extends React.Component<StationPickerProps, StationPickerSta
   }
 
   public componentDidMount() {
-    this.props.dataFetcher.fetchStationList().then((stationList: proto.StationList) => {
-      this.setState({allStations: stationList});
+    this.props.dataFetcher.fetchStationList().then((stationList: DebuggableResult<proto.StationList>) => {
+      this.setState({allStations: stationList.data});
     });
   }
 
