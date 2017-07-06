@@ -64,8 +64,23 @@ fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool 
      */
 }
 
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
+pub struct Arrival {
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+    pub trip_id: String,
+}
+
+impl Arrival {
+    pub fn new(timestamp: chrono::DateTime<chrono::Utc>, trip_id: &str) -> Arrival {
+        return Arrival{
+            timestamp: timestamp,
+            trip_id: trip_id.to_string(),
+        };
+    }
+}
+
 pub struct UpcomingTrainsResult {
-    pub trains_by_route_and_direction:std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>>,
+    pub trains_by_route_and_direction:std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>>,
     pub underlying_data_timestamp: chrono::DateTime<chrono::Utc>,
 }
 
@@ -74,7 +89,7 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, sto
 }
 
 pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
-    let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<chrono::DateTime<chrono::Utc>>>> = std::collections::BTreeMap::new();
+    let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>> = std::collections::BTreeMap::new();
 
     let mut min_relevant_ts = chrono::Utc::now().timestamp() as u64;
 
@@ -96,9 +111,9 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
                         let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 
                         if route_trains.contains_key(&direction) {
-                            route_trains.get_mut(&direction).unwrap().push(timestamp);
+                            route_trains.get_mut(&direction).unwrap().push(Arrival::new(timestamp, trip.get_trip_id()));
                         } else {
-                            route_trains.insert(direction, vec![timestamp]);
+                            route_trains.insert(direction, vec![Arrival::new(timestamp, trip.get_trip_id())]);
                         }
                     }
                 }

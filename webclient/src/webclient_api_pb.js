@@ -223,6 +223,229 @@ $root.DebugInfo = (function() {
     return DebugInfo;
 })();
 
+$root.Arrival = (function() {
+
+    /**
+     * Properties of an Arrival.
+     * @exports IArrival
+     * @interface IArrival
+     * @property {number|Long} [timestamp] Arrival timestamp
+     * @property {string} [tripId] Arrival tripId
+     */
+
+    /**
+     * Constructs a new Arrival.
+     * @exports Arrival
+     * @classdesc Represents an Arrival.
+     * @constructor
+     * @param {IArrival=} [properties] Properties to set
+     */
+    function Arrival(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Arrival timestamp.
+     * @member {number|Long}timestamp
+     * @memberof Arrival
+     * @instance
+     */
+    Arrival.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
+     * Arrival tripId.
+     * @member {string}tripId
+     * @memberof Arrival
+     * @instance
+     */
+    Arrival.prototype.tripId = "";
+
+    /**
+     * Creates a new Arrival instance using the specified properties.
+     * @function create
+     * @memberof Arrival
+     * @static
+     * @param {IArrival=} [properties] Properties to set
+     * @returns {Arrival} Arrival instance
+     */
+    Arrival.create = function create(properties) {
+        return new Arrival(properties);
+    };
+
+    /**
+     * Encodes the specified Arrival message. Does not implicitly {@link Arrival.verify|verify} messages.
+     * @function encode
+     * @memberof Arrival
+     * @static
+     * @param {IArrival} message Arrival message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Arrival.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            writer.uint32(/* id 1, wireType 0 =*/8).int64(message.timestamp);
+        if (message.tripId != null && message.hasOwnProperty("tripId"))
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.tripId);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified Arrival message, length delimited. Does not implicitly {@link Arrival.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof Arrival
+     * @static
+     * @param {IArrival} message Arrival message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Arrival.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes an Arrival message from the specified reader or buffer.
+     * @function decode
+     * @memberof Arrival
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {Arrival} Arrival
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Arrival.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.Arrival();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.timestamp = reader.int64();
+                break;
+            case 2:
+                message.tripId = reader.string();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes an Arrival message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof Arrival
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {Arrival} Arrival
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Arrival.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies an Arrival message.
+     * @function verify
+     * @memberof Arrival
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Arrival.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (!$util.isInteger(message.timestamp) && !(message.timestamp && $util.isInteger(message.timestamp.low) && $util.isInteger(message.timestamp.high)))
+                return "timestamp: integer|Long expected";
+        if (message.tripId != null && message.hasOwnProperty("tripId"))
+            if (!$util.isString(message.tripId))
+                return "tripId: string expected";
+        return null;
+    };
+
+    /**
+     * Creates an Arrival message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof Arrival
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {Arrival} Arrival
+     */
+    Arrival.fromObject = function fromObject(object) {
+        if (object instanceof $root.Arrival)
+            return object;
+        var message = new $root.Arrival();
+        if (object.timestamp != null)
+            if ($util.Long)
+                (message.timestamp = $util.Long.fromValue(object.timestamp)).unsigned = false;
+            else if (typeof object.timestamp === "string")
+                message.timestamp = parseInt(object.timestamp, 10);
+            else if (typeof object.timestamp === "number")
+                message.timestamp = object.timestamp;
+            else if (typeof object.timestamp === "object")
+                message.timestamp = new $util.LongBits(object.timestamp.low >>> 0, object.timestamp.high >>> 0).toNumber();
+        if (object.tripId != null)
+            message.tripId = String(object.tripId);
+        return message;
+    };
+
+    /**
+     * Creates a plain object from an Arrival message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof Arrival
+     * @static
+     * @param {Arrival} message Arrival
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Arrival.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.timestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.timestamp = options.longs === String ? "0" : 0;
+            object.tripId = "";
+        }
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (typeof message.timestamp === "number")
+                object.timestamp = options.longs === String ? String(message.timestamp) : message.timestamp;
+            else
+                object.timestamp = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp) : options.longs === Number ? new $util.LongBits(message.timestamp.low >>> 0, message.timestamp.high >>> 0).toNumber() : message.timestamp;
+        if (message.tripId != null && message.hasOwnProperty("tripId"))
+            object.tripId = message.tripId;
+        return object;
+    };
+
+    /**
+     * Converts this Arrival to JSON.
+     * @function toJSON
+     * @memberof Arrival
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Arrival.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return Arrival;
+})();
+
 $root.LineArrivals = (function() {
 
     /**
@@ -231,8 +454,8 @@ $root.LineArrivals = (function() {
      * @interface ILineArrivals
      * @property {string} [line] LineArrivals line
      * @property {Direction} [direction] LineArrivals direction
-     * @property {Array.<number|Long>} [timestamp] LineArrivals timestamp
      * @property {string} [lineColorHex] LineArrivals lineColorHex
+     * @property {Array.<IArrival>} [arrivals] LineArrivals arrivals
      * @property {IDebugInfo} [debugInfo] LineArrivals debugInfo
      */
 
@@ -244,7 +467,7 @@ $root.LineArrivals = (function() {
      * @param {ILineArrivals=} [properties] Properties to set
      */
     function LineArrivals(properties) {
-        this.timestamp = [];
+        this.arrivals = [];
         if (properties)
             for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
@@ -268,20 +491,20 @@ $root.LineArrivals = (function() {
     LineArrivals.prototype.direction = 0;
 
     /**
-     * LineArrivals timestamp.
-     * @member {Array.<number|Long>}timestamp
-     * @memberof LineArrivals
-     * @instance
-     */
-    LineArrivals.prototype.timestamp = $util.emptyArray;
-
-    /**
      * LineArrivals lineColorHex.
      * @member {string}lineColorHex
      * @memberof LineArrivals
      * @instance
      */
     LineArrivals.prototype.lineColorHex = "";
+
+    /**
+     * LineArrivals arrivals.
+     * @member {Array.<IArrival>}arrivals
+     * @memberof LineArrivals
+     * @instance
+     */
+    LineArrivals.prototype.arrivals = $util.emptyArray;
 
     /**
      * LineArrivals debugInfo.
@@ -319,13 +542,13 @@ $root.LineArrivals = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.line);
         if (message.direction != null && message.hasOwnProperty("direction"))
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.direction);
-        if (message.timestamp != null && message.timestamp.length)
-            for (var i = 0; i < message.timestamp.length; ++i)
-                writer.uint32(/* id 3, wireType 0 =*/24).int64(message.timestamp[i]);
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             writer.uint32(/* id 4, wireType 2 =*/34).string(message.lineColorHex);
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+        if (message.arrivals != null && message.arrivals.length)
+            for (var i = 0; i < message.arrivals.length; ++i)
+                $root.Arrival.encode(message.arrivals[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
         return writer;
     };
 
@@ -366,18 +589,13 @@ $root.LineArrivals = (function() {
             case 2:
                 message.direction = reader.int32();
                 break;
-            case 3:
-                if (!(message.timestamp && message.timestamp.length))
-                    message.timestamp = [];
-                if ((tag & 7) === 2) {
-                    var end2 = reader.uint32() + reader.pos;
-                    while (reader.pos < end2)
-                        message.timestamp.push(reader.int64());
-                } else
-                    message.timestamp.push(reader.int64());
-                break;
             case 4:
                 message.lineColorHex = reader.string();
+                break;
+            case 6:
+                if (!(message.arrivals && message.arrivals.length))
+                    message.arrivals = [];
+                message.arrivals.push($root.Arrival.decode(reader, reader.uint32()));
                 break;
             case 5:
                 message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
@@ -428,18 +646,20 @@ $root.LineArrivals = (function() {
             case 1:
                 break;
             }
-        if (message.timestamp != null && message.hasOwnProperty("timestamp")) {
-            if (!Array.isArray(message.timestamp))
-                return "timestamp: array expected";
-            for (var i = 0; i < message.timestamp.length; ++i)
-                if (!$util.isInteger(message.timestamp[i]) && !(message.timestamp[i] && $util.isInteger(message.timestamp[i].low) && $util.isInteger(message.timestamp[i].high)))
-                    return "timestamp: integer|Long[] expected";
-        }
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             if (!$util.isString(message.lineColorHex))
                 return "lineColorHex: string expected";
+        if (message.arrivals != null && message.hasOwnProperty("arrivals")) {
+            if (!Array.isArray(message.arrivals))
+                return "arrivals: array expected";
+            for (var i = 0; i < message.arrivals.length; ++i) {
+                var error = $root.Arrival.verify(message.arrivals[i]);
+                if (error)
+                    return "arrivals." + error;
+            }
+        }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            var error = $root.DebugInfo.verify(message.debugInfo);
+            error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }
@@ -470,22 +690,18 @@ $root.LineArrivals = (function() {
             message.direction = 1;
             break;
         }
-        if (object.timestamp) {
-            if (!Array.isArray(object.timestamp))
-                throw TypeError(".LineArrivals.timestamp: array expected");
-            message.timestamp = [];
-            for (var i = 0; i < object.timestamp.length; ++i)
-                if ($util.Long)
-                    (message.timestamp[i] = $util.Long.fromValue(object.timestamp[i])).unsigned = false;
-                else if (typeof object.timestamp[i] === "string")
-                    message.timestamp[i] = parseInt(object.timestamp[i], 10);
-                else if (typeof object.timestamp[i] === "number")
-                    message.timestamp[i] = object.timestamp[i];
-                else if (typeof object.timestamp[i] === "object")
-                    message.timestamp[i] = new $util.LongBits(object.timestamp[i].low >>> 0, object.timestamp[i].high >>> 0).toNumber();
-        }
         if (object.lineColorHex != null)
             message.lineColorHex = String(object.lineColorHex);
+        if (object.arrivals) {
+            if (!Array.isArray(object.arrivals))
+                throw TypeError(".LineArrivals.arrivals: array expected");
+            message.arrivals = [];
+            for (var i = 0; i < object.arrivals.length; ++i) {
+                if (typeof object.arrivals[i] !== "object")
+                    throw TypeError(".LineArrivals.arrivals: object expected");
+                message.arrivals[i] = $root.Arrival.fromObject(object.arrivals[i]);
+            }
+        }
         if (object.debugInfo != null) {
             if (typeof object.debugInfo !== "object")
                 throw TypeError(".LineArrivals.debugInfo: object expected");
@@ -508,7 +724,7 @@ $root.LineArrivals = (function() {
             options = {};
         var object = {};
         if (options.arrays || options.defaults)
-            object.timestamp = [];
+            object.arrivals = [];
         if (options.defaults) {
             object.line = "";
             object.direction = options.enums === String ? "UPTOWN" : 0;
@@ -519,18 +735,15 @@ $root.LineArrivals = (function() {
             object.line = message.line;
         if (message.direction != null && message.hasOwnProperty("direction"))
             object.direction = options.enums === String ? $root.Direction[message.direction] : message.direction;
-        if (message.timestamp && message.timestamp.length) {
-            object.timestamp = [];
-            for (var j = 0; j < message.timestamp.length; ++j)
-                if (typeof message.timestamp[j] === "number")
-                    object.timestamp[j] = options.longs === String ? String(message.timestamp[j]) : message.timestamp[j];
-                else
-                    object.timestamp[j] = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp[j]) : options.longs === Number ? new $util.LongBits(message.timestamp[j].low >>> 0, message.timestamp[j].high >>> 0).toNumber() : message.timestamp[j];
-        }
         if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
             object.lineColorHex = message.lineColorHex;
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
+        if (message.arrivals && message.arrivals.length) {
+            object.arrivals = [];
+            for (var j = 0; j < message.arrivals.length; ++j)
+                object.arrivals[j] = $root.Arrival.toObject(message.arrivals[j], options);
+        }
         return object;
     };
 

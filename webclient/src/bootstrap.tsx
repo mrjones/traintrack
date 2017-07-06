@@ -98,9 +98,7 @@ class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteCo
   }
 
   public render() {
-    return <div>
-      <OneStationView initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />
-    </div>
+    return <OneStationView initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />;
   }
 }
 
@@ -186,12 +184,13 @@ class StationLine extends React.Component<StationLineProps, undefined> {
   };
 
   public render() {
-    const arrivals = this.props.data.timestamp.map(
-      (ts: number) => {
+    const arrivals = this.props.data.arrivals.map(
+      (arr: proto.Arrival) => {
+        const ts = arr.timestamp as number;
         const time = moment.unix(ts);
 
         if (time > moment()) {
-          return <li key={ts}>{time.format("LT")} ({time.fromNow()})</li>;
+          return <li key={ts}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")} ({time.fromNow()})</a></li>;
         } else {
           return <li key={ts}><s>{time.format("LT")}</s></li>;
         }
@@ -284,7 +283,7 @@ ReactDOM.render(
           <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
           <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
           <ReactRouter.Route path='/app/station/:initialStationId' component={OneStationViewWrapperForRouter} />
-      <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
+          <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
           <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
         </ReactRouter.Switch>
       </ReactRouter.BrowserRouter>

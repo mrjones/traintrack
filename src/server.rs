@@ -125,7 +125,12 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
                 &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
                 &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
             });
-            line.set_timestamp(stop_times.iter().map(chrono::DateTime::timestamp).collect());
+            line.set_arrivals(stop_times.iter().map(|a| {
+                let mut r = webclient_api::Arrival::new();
+                r.set_timestamp(a.timestamp.timestamp());
+                r.set_trip_id(a.trip_id.clone());
+                return r;
+            }).collect());
 
             if let Some(color) = colors_by_route.get(route_id) {
                 line.set_line_color_hex(color.to_string());
@@ -211,13 +216,13 @@ fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context, _: 
             body.push_str(&format!("<h3>{:?}</h3><ul>", direction));
             times.iter().map(|time| {
                 let css_class;
-                if time < &chrono::Utc::now() {
+                if time.timestamp < chrono::Utc::now() {
                     css_class = "class='past'" ;
                 } else {
                     css_class = "";
                 };
 
-                body.push_str(&format!("<li {}>{}</li>", css_class, time.with_timezone(&tz).format("%H:%M %p")));
+                body.push_str(&format!("<li {}>{}</li>", css_class, time.timestamp.with_timezone(&tz).format("%H:%M %p")));
             }).count();
             body.push_str(&format!("</ul>"));
         }).count();

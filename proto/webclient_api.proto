@@ -9,13 +9,20 @@ message DebugInfo {
   optional int64 processing_time_ms = 1;
 }
 
+message Arrival {
+  optional int64 timestamp = 1;
+  optional string trip_id = 2;
+}
+
 message LineArrivals {
   optional string line = 1;
   optional Direction direction = 2;
-  repeated int64 timestamp = 3;
   optional string line_color_hex = 4;
+  repeated Arrival arrivals = 6;
 
   optional DebugInfo debug_info = 5;
+
+  reserved 3;
 }
 
 message StationStatus {
