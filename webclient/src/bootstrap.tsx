@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
+import {Helmet} from "react-helmet";
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger, ApiRequestInfo } from './debug';
@@ -277,6 +278,9 @@ let globalDataFetcher = new DataFetcher();
 
 ReactDOM.render(
   <div>
+    <Helmet>
+      <meta name="viewport" content="initial-scale=1" />
+    </Helmet>
     <div className="app_title"><span className="first">Train</span><span className="second">Track</span></div>
     <div className="app_content">
       <ReactRouter.BrowserRouter>

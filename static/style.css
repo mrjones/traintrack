@@ -73,9 +73,9 @@ html {font-size: 1.375em;  /* 22px */}
 }
 
 .jumpLink {
-    font-size: 200%;
+    font-size: 80%;
     display: inline-block;
-    padding: .75em;
+    padding: .6em;
     margin-right: 10pt;
     background-color: #0375B4;
     text-transform: uppercase;
@@ -143,7 +143,7 @@ html {font-size: 1.375em;  /* 22px */}
     -webkit-text-stroke: 1px black;
     color: white;
     text-decoration: none;
-    font-size: 300%;
+    font-size: 100%;
     font-weight: bold;
     padding: .25em;
     width: 2em;
@@ -159,7 +159,6 @@ ul.lineView{
 
 .lineView li {
     display: block;
-    font-size: 200%;
     font-weight: bold;
     margin: 0;
     padding: .25em;
@@ -195,6 +194,6 @@ ul.lineView{
         font-size: 100%;
     }
     .lineList li {
-        font-size: 75%;
+        font-size: 200%;
     }
 }
