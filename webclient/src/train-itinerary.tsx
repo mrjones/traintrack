@@ -1,5 +1,5 @@
 import * as React from "react";
-import * as ReactRouter from "react-router";
+import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 
 import * as proto from './webclient_api_pb';
@@ -36,20 +36,28 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
   render(): JSX.Element {
     let body = <div>Loading...</div>;
     if (this.state.loaded) {
-      const lis = this.state.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
-        let name = "Unknown";
+      const rows = this.state.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
-        if (arrival.station && arrival.station.name) {
-          name = arrival.station.name;
+        let stationElt = <span>Unknown station</span>;
+        if (arrival.station && arrival.station.name && arrival.station.id) {
+          stationElt = <ReactRouter.Link to={`/app/station/${arrival.station.id}`}>
+            {arrival.station.name}
+          </ReactRouter.Link>;
         }
-        return <li key={"" + arrival.timestamp}>{name} @ {time.format("LT")} ({time.fromNow()})</li>;
+        return <tr key={"" + arrival.timestamp}>
+          <td className="station">{stationElt}</td>
+          <td className="arrivalTime">{time.format("LT")} ({time.fromNow()})</td>
+        </tr>;
       });
-      body = <ul>{lis}</ul>;
+      body = <table className="trainItinerary">
+        <tbody>
+          {rows}
+        </tbody>
+      </table>;
     }
 
-
-    return <div>
-      <h1>Train Itinerary {this.props.trainId}</h1>
+    return <div className="page">
+      <div className="pageTitle">Train Itinerary {this.props.trainId}</div>
       {body}
       <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.debugInfo)} />
     </div>;

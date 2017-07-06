@@ -28,7 +28,7 @@ export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerSt
       processingTimeMessage = "(Server time: " + this.props.requestInfo.debugInfo.processingTimeMs + " ms)";
     }
 
-    return <div>
+    return <div className="apiDebugger">
       API: <a href={jsonLink}>{jsonLink}</a> {processingTimeMessage}
     </div>;
   }

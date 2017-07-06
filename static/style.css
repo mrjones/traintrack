@@ -10,6 +10,10 @@ a {
     color: #0375B4;
 }
 
+a:hover {
+    text-decoration: none;
+}
+
 .routemenu a {
     display: inline-block;
     border: 1px solid black;
@@ -111,10 +115,6 @@ html {font-size: 1.375em;  /* 22px */}
     margin-bottom: 10pt;
 }
 
-.pubTime a:hover {
-    text-decoration: none;
-}
-
 .stationLine ul {
     margin-top: 0;
 }
@@ -171,6 +171,19 @@ ul.lineView{
     text-align: center;
     line-height: 2em;
 }
+
+.trainItinerary .station {
+    text-align: right;
+}
+
+.trainItinerary td {
+    padding: .2em;
+}
+
+.trainItinerary tr:nth-child(even) {
+    background-color: #eee;
+}
+
 /* Desktop-only tweaks*/
 @media (min-width: 1024px) {
     html {font-size: 1em;}
