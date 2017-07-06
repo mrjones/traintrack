@@ -45,7 +45,17 @@ pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     }
 }
 
-fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
+pub fn possible_stop_ids(initial_id: &str) -> Vec<String> {
+    let mut result = vec![initial_id.to_string()];
+    if initial_id.ends_with('N') || initial_id.ends_with('S') {
+        let l = initial_id.len() - 1;
+        result.push(initial_id[..l].to_string());
+    }
+
+    return result;
+}
+
+pub fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
     return candidate_id == desired_id ||
         candidate_id == format!("{}N", desired_id) ||
         candidate_id == format!("{}S", desired_id);

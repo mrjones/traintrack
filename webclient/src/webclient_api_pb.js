@@ -223,24 +223,24 @@ $root.DebugInfo = (function() {
     return DebugInfo;
 })();
 
-$root.Arrival = (function() {
+$root.LineArrival = (function() {
 
     /**
-     * Properties of an Arrival.
-     * @exports IArrival
-     * @interface IArrival
-     * @property {number|Long} [timestamp] Arrival timestamp
-     * @property {string} [tripId] Arrival tripId
+     * Properties of a LineArrival.
+     * @exports ILineArrival
+     * @interface ILineArrival
+     * @property {number|Long} [timestamp] LineArrival timestamp
+     * @property {string} [tripId] LineArrival tripId
      */
 
     /**
-     * Constructs a new Arrival.
-     * @exports Arrival
-     * @classdesc Represents an Arrival.
+     * Constructs a new LineArrival.
+     * @exports LineArrival
+     * @classdesc Represents a LineArrival.
      * @constructor
-     * @param {IArrival=} [properties] Properties to set
+     * @param {ILineArrival=} [properties] Properties to set
      */
-    function Arrival(properties) {
+    function LineArrival(properties) {
         if (properties)
             for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
@@ -248,43 +248,43 @@ $root.Arrival = (function() {
     }
 
     /**
-     * Arrival timestamp.
+     * LineArrival timestamp.
      * @member {number|Long}timestamp
-     * @memberof Arrival
+     * @memberof LineArrival
      * @instance
      */
-    Arrival.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+    LineArrival.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
-     * Arrival tripId.
+     * LineArrival tripId.
      * @member {string}tripId
-     * @memberof Arrival
+     * @memberof LineArrival
      * @instance
      */
-    Arrival.prototype.tripId = "";
+    LineArrival.prototype.tripId = "";
 
     /**
-     * Creates a new Arrival instance using the specified properties.
+     * Creates a new LineArrival instance using the specified properties.
      * @function create
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
-     * @param {IArrival=} [properties] Properties to set
-     * @returns {Arrival} Arrival instance
+     * @param {ILineArrival=} [properties] Properties to set
+     * @returns {LineArrival} LineArrival instance
      */
-    Arrival.create = function create(properties) {
-        return new Arrival(properties);
+    LineArrival.create = function create(properties) {
+        return new LineArrival(properties);
     };
 
     /**
-     * Encodes the specified Arrival message. Does not implicitly {@link Arrival.verify|verify} messages.
+     * Encodes the specified LineArrival message. Does not implicitly {@link LineArrival.verify|verify} messages.
      * @function encode
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
-     * @param {IArrival} message Arrival message or plain object to encode
+     * @param {ILineArrival} message LineArrival message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
-    Arrival.encode = function encode(message, writer) {
+    LineArrival.encode = function encode(message, writer) {
         if (!writer)
             writer = $Writer.create();
         if (message.timestamp != null && message.hasOwnProperty("timestamp"))
@@ -295,33 +295,33 @@ $root.Arrival = (function() {
     };
 
     /**
-     * Encodes the specified Arrival message, length delimited. Does not implicitly {@link Arrival.verify|verify} messages.
+     * Encodes the specified LineArrival message, length delimited. Does not implicitly {@link LineArrival.verify|verify} messages.
      * @function encodeDelimited
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
-     * @param {IArrival} message Arrival message or plain object to encode
+     * @param {ILineArrival} message LineArrival message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
-    Arrival.encodeDelimited = function encodeDelimited(message, writer) {
+    LineArrival.encodeDelimited = function encodeDelimited(message, writer) {
         return this.encode(message, writer).ldelim();
     };
 
     /**
-     * Decodes an Arrival message from the specified reader or buffer.
+     * Decodes a LineArrival message from the specified reader or buffer.
      * @function decode
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
-     * @returns {Arrival} Arrival
+     * @returns {LineArrival} LineArrival
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    Arrival.decode = function decode(reader, length) {
+    LineArrival.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.Arrival();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.LineArrival();
         while (reader.pos < end) {
             var tag = reader.uint32();
             switch (tag >>> 3) {
@@ -340,30 +340,30 @@ $root.Arrival = (function() {
     };
 
     /**
-     * Decodes an Arrival message from the specified reader or buffer, length delimited.
+     * Decodes a LineArrival message from the specified reader or buffer, length delimited.
      * @function decodeDelimited
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @returns {Arrival} Arrival
+     * @returns {LineArrival} LineArrival
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    Arrival.decodeDelimited = function decodeDelimited(reader) {
+    LineArrival.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
             reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
     };
 
     /**
-     * Verifies an Arrival message.
+     * Verifies a LineArrival message.
      * @function verify
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
-    Arrival.verify = function verify(message) {
+    LineArrival.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
             return "object expected";
         if (message.timestamp != null && message.hasOwnProperty("timestamp"))
@@ -376,17 +376,17 @@ $root.Arrival = (function() {
     };
 
     /**
-     * Creates an Arrival message from a plain object. Also converts values to their respective internal types.
+     * Creates a LineArrival message from a plain object. Also converts values to their respective internal types.
      * @function fromObject
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
      * @param {Object.<string,*>} object Plain object
-     * @returns {Arrival} Arrival
+     * @returns {LineArrival} LineArrival
      */
-    Arrival.fromObject = function fromObject(object) {
-        if (object instanceof $root.Arrival)
+    LineArrival.fromObject = function fromObject(object) {
+        if (object instanceof $root.LineArrival)
             return object;
-        var message = new $root.Arrival();
+        var message = new $root.LineArrival();
         if (object.timestamp != null)
             if ($util.Long)
                 (message.timestamp = $util.Long.fromValue(object.timestamp)).unsigned = false;
@@ -402,15 +402,15 @@ $root.Arrival = (function() {
     };
 
     /**
-     * Creates a plain object from an Arrival message. Also converts values to other types if specified.
+     * Creates a plain object from a LineArrival message. Also converts values to other types if specified.
      * @function toObject
-     * @memberof Arrival
+     * @memberof LineArrival
      * @static
-     * @param {Arrival} message Arrival
+     * @param {LineArrival} message LineArrival
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
      */
-    Arrival.toObject = function toObject(message, options) {
+    LineArrival.toObject = function toObject(message, options) {
         if (!options)
             options = {};
         var object = {};
@@ -433,17 +433,17 @@ $root.Arrival = (function() {
     };
 
     /**
-     * Converts this Arrival to JSON.
+     * Converts this LineArrival to JSON.
      * @function toJSON
-     * @memberof Arrival
+     * @memberof LineArrival
      * @instance
      * @returns {Object.<string,*>} JSON object
      */
-    Arrival.prototype.toJSON = function toJSON() {
+    LineArrival.prototype.toJSON = function toJSON() {
         return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
     };
 
-    return Arrival;
+    return LineArrival;
 })();
 
 $root.LineArrivals = (function() {
@@ -455,7 +455,7 @@ $root.LineArrivals = (function() {
      * @property {string} [line] LineArrivals line
      * @property {Direction} [direction] LineArrivals direction
      * @property {string} [lineColorHex] LineArrivals lineColorHex
-     * @property {Array.<IArrival>} [arrivals] LineArrivals arrivals
+     * @property {Array.<ILineArrival>} [arrivals] LineArrivals arrivals
      * @property {IDebugInfo} [debugInfo] LineArrivals debugInfo
      */
 
@@ -500,7 +500,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals arrivals.
-     * @member {Array.<IArrival>}arrivals
+     * @member {Array.<ILineArrival>}arrivals
      * @memberof LineArrivals
      * @instance
      */
@@ -548,7 +548,7 @@ $root.LineArrivals = (function() {
             $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
         if (message.arrivals != null && message.arrivals.length)
             for (var i = 0; i < message.arrivals.length; ++i)
-                $root.Arrival.encode(message.arrivals[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                $root.LineArrival.encode(message.arrivals[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
         return writer;
     };
 
@@ -595,7 +595,7 @@ $root.LineArrivals = (function() {
             case 6:
                 if (!(message.arrivals && message.arrivals.length))
                     message.arrivals = [];
-                message.arrivals.push($root.Arrival.decode(reader, reader.uint32()));
+                message.arrivals.push($root.LineArrival.decode(reader, reader.uint32()));
                 break;
             case 5:
                 message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
@@ -653,7 +653,7 @@ $root.LineArrivals = (function() {
             if (!Array.isArray(message.arrivals))
                 return "arrivals: array expected";
             for (var i = 0; i < message.arrivals.length; ++i) {
-                var error = $root.Arrival.verify(message.arrivals[i]);
+                var error = $root.LineArrival.verify(message.arrivals[i]);
                 if (error)
                     return "arrivals." + error;
             }
@@ -699,7 +699,7 @@ $root.LineArrivals = (function() {
             for (var i = 0; i < object.arrivals.length; ++i) {
                 if (typeof object.arrivals[i] !== "object")
                     throw TypeError(".LineArrivals.arrivals: object expected");
-                message.arrivals[i] = $root.Arrival.fromObject(object.arrivals[i]);
+                message.arrivals[i] = $root.LineArrival.fromObject(object.arrivals[i]);
             }
         }
         if (object.debugInfo != null) {
@@ -742,7 +742,7 @@ $root.LineArrivals = (function() {
         if (message.arrivals && message.arrivals.length) {
             object.arrivals = [];
             for (var j = 0; j < message.arrivals.length; ++j)
-                object.arrivals[j] = $root.Arrival.toObject(message.arrivals[j], options);
+                object.arrivals[j] = $root.LineArrival.toObject(message.arrivals[j], options);
         }
         return object;
     };
@@ -759,6 +759,549 @@ $root.LineArrivals = (function() {
     };
 
     return LineArrivals;
+})();
+
+$root.TrainItineraryArrival = (function() {
+
+    /**
+     * Properties of a TrainItineraryArrival.
+     * @exports ITrainItineraryArrival
+     * @interface ITrainItineraryArrival
+     * @property {number|Long} [timestamp] TrainItineraryArrival timestamp
+     * @property {IStation} [station] TrainItineraryArrival station
+     */
+
+    /**
+     * Constructs a new TrainItineraryArrival.
+     * @exports TrainItineraryArrival
+     * @classdesc Represents a TrainItineraryArrival.
+     * @constructor
+     * @param {ITrainItineraryArrival=} [properties] Properties to set
+     */
+    function TrainItineraryArrival(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * TrainItineraryArrival timestamp.
+     * @member {number|Long}timestamp
+     * @memberof TrainItineraryArrival
+     * @instance
+     */
+    TrainItineraryArrival.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
+     * TrainItineraryArrival station.
+     * @member {(IStation|null|undefined)}station
+     * @memberof TrainItineraryArrival
+     * @instance
+     */
+    TrainItineraryArrival.prototype.station = null;
+
+    /**
+     * Creates a new TrainItineraryArrival instance using the specified properties.
+     * @function create
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {ITrainItineraryArrival=} [properties] Properties to set
+     * @returns {TrainItineraryArrival} TrainItineraryArrival instance
+     */
+    TrainItineraryArrival.create = function create(properties) {
+        return new TrainItineraryArrival(properties);
+    };
+
+    /**
+     * Encodes the specified TrainItineraryArrival message. Does not implicitly {@link TrainItineraryArrival.verify|verify} messages.
+     * @function encode
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {ITrainItineraryArrival} message TrainItineraryArrival message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TrainItineraryArrival.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            writer.uint32(/* id 1, wireType 0 =*/8).int64(message.timestamp);
+        if (message.station != null && message.hasOwnProperty("station"))
+            $root.Station.encode(message.station, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified TrainItineraryArrival message, length delimited. Does not implicitly {@link TrainItineraryArrival.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {ITrainItineraryArrival} message TrainItineraryArrival message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TrainItineraryArrival.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a TrainItineraryArrival message from the specified reader or buffer.
+     * @function decode
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {TrainItineraryArrival} TrainItineraryArrival
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TrainItineraryArrival.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.TrainItineraryArrival();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.timestamp = reader.int64();
+                break;
+            case 2:
+                message.station = $root.Station.decode(reader, reader.uint32());
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a TrainItineraryArrival message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {TrainItineraryArrival} TrainItineraryArrival
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TrainItineraryArrival.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a TrainItineraryArrival message.
+     * @function verify
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    TrainItineraryArrival.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (!$util.isInteger(message.timestamp) && !(message.timestamp && $util.isInteger(message.timestamp.low) && $util.isInteger(message.timestamp.high)))
+                return "timestamp: integer|Long expected";
+        if (message.station != null && message.hasOwnProperty("station")) {
+            var error = $root.Station.verify(message.station);
+            if (error)
+                return "station." + error;
+        }
+        return null;
+    };
+
+    /**
+     * Creates a TrainItineraryArrival message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {TrainItineraryArrival} TrainItineraryArrival
+     */
+    TrainItineraryArrival.fromObject = function fromObject(object) {
+        if (object instanceof $root.TrainItineraryArrival)
+            return object;
+        var message = new $root.TrainItineraryArrival();
+        if (object.timestamp != null)
+            if ($util.Long)
+                (message.timestamp = $util.Long.fromValue(object.timestamp)).unsigned = false;
+            else if (typeof object.timestamp === "string")
+                message.timestamp = parseInt(object.timestamp, 10);
+            else if (typeof object.timestamp === "number")
+                message.timestamp = object.timestamp;
+            else if (typeof object.timestamp === "object")
+                message.timestamp = new $util.LongBits(object.timestamp.low >>> 0, object.timestamp.high >>> 0).toNumber();
+        if (object.station != null) {
+            if (typeof object.station !== "object")
+                throw TypeError(".TrainItineraryArrival.station: object expected");
+            message.station = $root.Station.fromObject(object.station);
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a TrainItineraryArrival message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof TrainItineraryArrival
+     * @static
+     * @param {TrainItineraryArrival} message TrainItineraryArrival
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    TrainItineraryArrival.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.timestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.timestamp = options.longs === String ? "0" : 0;
+            object.station = null;
+        }
+        if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (typeof message.timestamp === "number")
+                object.timestamp = options.longs === String ? String(message.timestamp) : message.timestamp;
+            else
+                object.timestamp = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp) : options.longs === Number ? new $util.LongBits(message.timestamp.low >>> 0, message.timestamp.high >>> 0).toNumber() : message.timestamp;
+        if (message.station != null && message.hasOwnProperty("station"))
+            object.station = $root.Station.toObject(message.station, options);
+        return object;
+    };
+
+    /**
+     * Converts this TrainItineraryArrival to JSON.
+     * @function toJSON
+     * @memberof TrainItineraryArrival
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    TrainItineraryArrival.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return TrainItineraryArrival;
+})();
+
+$root.TrainItinerary = (function() {
+
+    /**
+     * Properties of a TrainItinerary.
+     * @exports ITrainItinerary
+     * @interface ITrainItinerary
+     * @property {string} [line] TrainItinerary line
+     * @property {Direction} [direction] TrainItinerary direction
+     * @property {string} [lineColorHex] TrainItinerary lineColorHex
+     * @property {Array.<ITrainItineraryArrival>} [arrival] TrainItinerary arrival
+     * @property {IDebugInfo} [debugInfo] TrainItinerary debugInfo
+     */
+
+    /**
+     * Constructs a new TrainItinerary.
+     * @exports TrainItinerary
+     * @classdesc Represents a TrainItinerary.
+     * @constructor
+     * @param {ITrainItinerary=} [properties] Properties to set
+     */
+    function TrainItinerary(properties) {
+        this.arrival = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * TrainItinerary line.
+     * @member {string}line
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.line = "";
+
+    /**
+     * TrainItinerary direction.
+     * @member {Direction}direction
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.direction = 0;
+
+    /**
+     * TrainItinerary lineColorHex.
+     * @member {string}lineColorHex
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.lineColorHex = "";
+
+    /**
+     * TrainItinerary arrival.
+     * @member {Array.<ITrainItineraryArrival>}arrival
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.arrival = $util.emptyArray;
+
+    /**
+     * TrainItinerary debugInfo.
+     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.debugInfo = null;
+
+    /**
+     * Creates a new TrainItinerary instance using the specified properties.
+     * @function create
+     * @memberof TrainItinerary
+     * @static
+     * @param {ITrainItinerary=} [properties] Properties to set
+     * @returns {TrainItinerary} TrainItinerary instance
+     */
+    TrainItinerary.create = function create(properties) {
+        return new TrainItinerary(properties);
+    };
+
+    /**
+     * Encodes the specified TrainItinerary message. Does not implicitly {@link TrainItinerary.verify|verify} messages.
+     * @function encode
+     * @memberof TrainItinerary
+     * @static
+     * @param {ITrainItinerary} message TrainItinerary message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TrainItinerary.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.line != null && message.hasOwnProperty("line"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.line);
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            writer.uint32(/* id 2, wireType 0 =*/16).int32(message.direction);
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            writer.uint32(/* id 3, wireType 2 =*/26).string(message.lineColorHex);
+        if (message.arrival != null && message.arrival.length)
+            for (var i = 0; i < message.arrival.length; ++i)
+                $root.TrainItineraryArrival.encode(message.arrival[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified TrainItinerary message, length delimited. Does not implicitly {@link TrainItinerary.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof TrainItinerary
+     * @static
+     * @param {ITrainItinerary} message TrainItinerary message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TrainItinerary.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a TrainItinerary message from the specified reader or buffer.
+     * @function decode
+     * @memberof TrainItinerary
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {TrainItinerary} TrainItinerary
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TrainItinerary.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.TrainItinerary();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.line = reader.string();
+                break;
+            case 2:
+                message.direction = reader.int32();
+                break;
+            case 3:
+                message.lineColorHex = reader.string();
+                break;
+            case 4:
+                if (!(message.arrival && message.arrival.length))
+                    message.arrival = [];
+                message.arrival.push($root.TrainItineraryArrival.decode(reader, reader.uint32()));
+                break;
+            case 5:
+                message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a TrainItinerary message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof TrainItinerary
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {TrainItinerary} TrainItinerary
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TrainItinerary.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a TrainItinerary message.
+     * @function verify
+     * @memberof TrainItinerary
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    TrainItinerary.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.line != null && message.hasOwnProperty("line"))
+            if (!$util.isString(message.line))
+                return "line: string expected";
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            switch (message.direction) {
+            default:
+                return "direction: enum value expected";
+            case 0:
+            case 1:
+                break;
+            }
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            if (!$util.isString(message.lineColorHex))
+                return "lineColorHex: string expected";
+        if (message.arrival != null && message.hasOwnProperty("arrival")) {
+            if (!Array.isArray(message.arrival))
+                return "arrival: array expected";
+            for (var i = 0; i < message.arrival.length; ++i) {
+                var error = $root.TrainItineraryArrival.verify(message.arrival[i]);
+                if (error)
+                    return "arrival." + error;
+            }
+        }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
+            error = $root.DebugInfo.verify(message.debugInfo);
+            if (error)
+                return "debugInfo." + error;
+        }
+        return null;
+    };
+
+    /**
+     * Creates a TrainItinerary message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof TrainItinerary
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {TrainItinerary} TrainItinerary
+     */
+    TrainItinerary.fromObject = function fromObject(object) {
+        if (object instanceof $root.TrainItinerary)
+            return object;
+        var message = new $root.TrainItinerary();
+        if (object.line != null)
+            message.line = String(object.line);
+        switch (object.direction) {
+        case "UPTOWN":
+        case 0:
+            message.direction = 0;
+            break;
+        case "DOWNTOWN":
+        case 1:
+            message.direction = 1;
+            break;
+        }
+        if (object.lineColorHex != null)
+            message.lineColorHex = String(object.lineColorHex);
+        if (object.arrival) {
+            if (!Array.isArray(object.arrival))
+                throw TypeError(".TrainItinerary.arrival: array expected");
+            message.arrival = [];
+            for (var i = 0; i < object.arrival.length; ++i) {
+                if (typeof object.arrival[i] !== "object")
+                    throw TypeError(".TrainItinerary.arrival: object expected");
+                message.arrival[i] = $root.TrainItineraryArrival.fromObject(object.arrival[i]);
+            }
+        }
+        if (object.debugInfo != null) {
+            if (typeof object.debugInfo !== "object")
+                throw TypeError(".TrainItinerary.debugInfo: object expected");
+            message.debugInfo = $root.DebugInfo.fromObject(object.debugInfo);
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a TrainItinerary message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof TrainItinerary
+     * @static
+     * @param {TrainItinerary} message TrainItinerary
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    TrainItinerary.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.arrival = [];
+        if (options.defaults) {
+            object.line = "";
+            object.direction = options.enums === String ? "UPTOWN" : 0;
+            object.lineColorHex = "";
+            object.debugInfo = null;
+        }
+        if (message.line != null && message.hasOwnProperty("line"))
+            object.line = message.line;
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            object.direction = options.enums === String ? $root.Direction[message.direction] : message.direction;
+        if (message.lineColorHex != null && message.hasOwnProperty("lineColorHex"))
+            object.lineColorHex = message.lineColorHex;
+        if (message.arrival && message.arrival.length) {
+            object.arrival = [];
+            for (var j = 0; j < message.arrival.length; ++j)
+                object.arrival[j] = $root.TrainItineraryArrival.toObject(message.arrival[j], options);
+        }
+        if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
+            object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
+        return object;
+    };
+
+    /**
+     * Converts this TrainItinerary to JSON.
+     * @function toJSON
+     * @memberof TrainItinerary
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    TrainItinerary.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return TrainItinerary;
 })();
 
 $root.StationStatus = (function() {

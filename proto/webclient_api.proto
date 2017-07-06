@@ -9,7 +9,7 @@ message DebugInfo {
   optional int64 processing_time_ms = 1;
 }
 
-message Arrival {
+message LineArrival {
   optional int64 timestamp = 1;
   optional string trip_id = 2;
 }
@@ -18,11 +18,25 @@ message LineArrivals {
   optional string line = 1;
   optional Direction direction = 2;
   optional string line_color_hex = 4;
-  repeated Arrival arrivals = 6;
+  repeated LineArrival arrivals = 6;
 
   optional DebugInfo debug_info = 5;
 
   reserved 3;
+}
+
+message TrainItineraryArrival {
+  optional int64 timestamp = 1;
+  optional Station station = 2;
+}
+
+message TrainItinerary {
+  optional string line = 1;
+  optional Direction direction = 2;
+  optional string line_color_hex = 3;
+  repeated TrainItineraryArrival arrival = 4;
+
+  optional DebugInfo debug_info = 5;
 }
 
 message StationStatus {

@@ -195,7 +195,7 @@ impl ::protobuf::reflect::ProtobufValue for DebugInfo {
 }
 
 #[derive(PartialEq,Clone,Default)]
-pub struct Arrival {
+pub struct LineArrival {
     // message fields
     timestamp: ::std::option::Option<i64>,
     trip_id: ::protobuf::SingularField<::std::string::String>,
@@ -205,20 +205,20 @@ pub struct Arrival {
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
-unsafe impl ::std::marker::Sync for Arrival {}
+unsafe impl ::std::marker::Sync for LineArrival {}
 
-impl Arrival {
-    pub fn new() -> Arrival {
+impl LineArrival {
+    pub fn new() -> LineArrival {
         ::std::default::Default::default()
     }
 
-    pub fn default_instance() -> &'static Arrival {
-        static mut instance: ::protobuf::lazy::Lazy<Arrival> = ::protobuf::lazy::Lazy {
+    pub fn default_instance() -> &'static LineArrival {
+        static mut instance: ::protobuf::lazy::Lazy<LineArrival> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const Arrival,
+            ptr: 0 as *const LineArrival,
         };
         unsafe {
-            instance.get(Arrival::new)
+            instance.get(LineArrival::new)
         }
     }
 
@@ -294,7 +294,7 @@ impl Arrival {
     }
 }
 
-impl ::protobuf::Message for Arrival {
+impl ::protobuf::Message for LineArrival {
     fn is_initialized(&self) -> bool {
         true
     }
@@ -374,12 +374,12 @@ impl ::protobuf::Message for Arrival {
     }
 }
 
-impl ::protobuf::MessageStatic for Arrival {
-    fn new() -> Arrival {
-        Arrival::new()
+impl ::protobuf::MessageStatic for LineArrival {
+    fn new() -> LineArrival {
+        LineArrival::new()
     }
 
-    fn descriptor_static(_: ::std::option::Option<Arrival>) -> &'static ::protobuf::reflect::MessageDescriptor {
+    fn descriptor_static(_: ::std::option::Option<LineArrival>) -> &'static ::protobuf::reflect::MessageDescriptor {
         static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
             ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
@@ -389,16 +389,16 @@ impl ::protobuf::MessageStatic for Arrival {
                 let mut fields = ::std::vec::Vec::new();
                 fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "timestamp",
-                    Arrival::get_timestamp_for_reflect,
-                    Arrival::mut_timestamp_for_reflect,
+                    LineArrival::get_timestamp_for_reflect,
+                    LineArrival::mut_timestamp_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "trip_id",
-                    Arrival::get_trip_id_for_reflect,
-                    Arrival::mut_trip_id_for_reflect,
+                    LineArrival::get_trip_id_for_reflect,
+                    LineArrival::mut_trip_id_for_reflect,
                 ));
-                ::protobuf::reflect::MessageDescriptor::new::<Arrival>(
-                    "Arrival",
+                ::protobuf::reflect::MessageDescriptor::new::<LineArrival>(
+                    "LineArrival",
                     fields,
                     file_descriptor_proto()
                 )
@@ -407,7 +407,7 @@ impl ::protobuf::MessageStatic for Arrival {
     }
 }
 
-impl ::protobuf::Clear for Arrival {
+impl ::protobuf::Clear for LineArrival {
     fn clear(&mut self) {
         self.clear_timestamp();
         self.clear_trip_id();
@@ -415,13 +415,13 @@ impl ::protobuf::Clear for Arrival {
     }
 }
 
-impl ::std::fmt::Debug for Arrival {
+impl ::std::fmt::Debug for LineArrival {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for Arrival {
+impl ::protobuf::reflect::ProtobufValue for LineArrival {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
@@ -433,7 +433,7 @@ pub struct LineArrivals {
     line: ::protobuf::SingularField<::std::string::String>,
     direction: ::std::option::Option<Direction>,
     line_color_hex: ::protobuf::SingularField<::std::string::String>,
-    arrivals: ::protobuf::RepeatedField<Arrival>,
+    arrivals: ::protobuf::RepeatedField<LineArrival>,
     debug_info: ::protobuf::SingularPtrField<DebugInfo>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
@@ -573,36 +573,36 @@ impl LineArrivals {
         &mut self.line_color_hex
     }
 
-    // repeated .Arrival arrivals = 6;
+    // repeated .LineArrival arrivals = 6;
 
     pub fn clear_arrivals(&mut self) {
         self.arrivals.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_arrivals(&mut self, v: ::protobuf::RepeatedField<Arrival>) {
+    pub fn set_arrivals(&mut self, v: ::protobuf::RepeatedField<LineArrival>) {
         self.arrivals = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_arrivals(&mut self) -> &mut ::protobuf::RepeatedField<Arrival> {
+    pub fn mut_arrivals(&mut self) -> &mut ::protobuf::RepeatedField<LineArrival> {
         &mut self.arrivals
     }
 
     // Take field
-    pub fn take_arrivals(&mut self) -> ::protobuf::RepeatedField<Arrival> {
+    pub fn take_arrivals(&mut self) -> ::protobuf::RepeatedField<LineArrival> {
         ::std::mem::replace(&mut self.arrivals, ::protobuf::RepeatedField::new())
     }
 
-    pub fn get_arrivals(&self) -> &[Arrival] {
+    pub fn get_arrivals(&self) -> &[LineArrival] {
         &self.arrivals
     }
 
-    fn get_arrivals_for_reflect(&self) -> &::protobuf::RepeatedField<Arrival> {
+    fn get_arrivals_for_reflect(&self) -> &::protobuf::RepeatedField<LineArrival> {
         &self.arrivals
     }
 
-    fn mut_arrivals_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<Arrival> {
+    fn mut_arrivals_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<LineArrival> {
         &mut self.arrivals
     }
 
@@ -799,7 +799,7 @@ impl ::protobuf::MessageStatic for LineArrivals {
                     LineArrivals::get_line_color_hex_for_reflect,
                     LineArrivals::mut_line_color_hex_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Arrival>>(
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<LineArrival>>(
                     "arrivals",
                     LineArrivals::get_arrivals_for_reflect,
                     LineArrivals::mut_arrivals_for_reflect,
@@ -837,6 +837,659 @@ impl ::std::fmt::Debug for LineArrivals {
 }
 
 impl ::protobuf::reflect::ProtobufValue for LineArrivals {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct TrainItineraryArrival {
+    // message fields
+    timestamp: ::std::option::Option<i64>,
+    station: ::protobuf::SingularPtrField<Station>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for TrainItineraryArrival {}
+
+impl TrainItineraryArrival {
+    pub fn new() -> TrainItineraryArrival {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static TrainItineraryArrival {
+        static mut instance: ::protobuf::lazy::Lazy<TrainItineraryArrival> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const TrainItineraryArrival,
+        };
+        unsafe {
+            instance.get(TrainItineraryArrival::new)
+        }
+    }
+
+    // optional int64 timestamp = 1;
+
+    pub fn clear_timestamp(&mut self) {
+        self.timestamp = ::std::option::Option::None;
+    }
+
+    pub fn has_timestamp(&self) -> bool {
+        self.timestamp.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_timestamp(&mut self, v: i64) {
+        self.timestamp = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_timestamp(&self) -> i64 {
+        self.timestamp.unwrap_or(0)
+    }
+
+    fn get_timestamp_for_reflect(&self) -> &::std::option::Option<i64> {
+        &self.timestamp
+    }
+
+    fn mut_timestamp_for_reflect(&mut self) -> &mut ::std::option::Option<i64> {
+        &mut self.timestamp
+    }
+
+    // optional .Station station = 2;
+
+    pub fn clear_station(&mut self) {
+        self.station.clear();
+    }
+
+    pub fn has_station(&self) -> bool {
+        self.station.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_station(&mut self, v: Station) {
+        self.station = ::protobuf::SingularPtrField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_station(&mut self) -> &mut Station {
+        if self.station.is_none() {
+            self.station.set_default();
+        }
+        self.station.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_station(&mut self) -> Station {
+        self.station.take().unwrap_or_else(|| Station::new())
+    }
+
+    pub fn get_station(&self) -> &Station {
+        self.station.as_ref().unwrap_or_else(|| Station::default_instance())
+    }
+
+    fn get_station_for_reflect(&self) -> &::protobuf::SingularPtrField<Station> {
+        &self.station
+    }
+
+    fn mut_station_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<Station> {
+        &mut self.station
+    }
+}
+
+impl ::protobuf::Message for TrainItineraryArrival {
+    fn is_initialized(&self) -> bool {
+        for v in &self.station {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_int64()?;
+                    self.timestamp = ::std::option::Option::Some(tmp);
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.station)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(v) = self.timestamp {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(ref v) = self.station.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.timestamp {
+            os.write_int64(1, v)?;
+        }
+        if let Some(ref v) = self.station.as_ref() {
+            os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for TrainItineraryArrival {
+    fn new() -> TrainItineraryArrival {
+        TrainItineraryArrival::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<TrainItineraryArrival>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
+                    "timestamp",
+                    TrainItineraryArrival::get_timestamp_for_reflect,
+                    TrainItineraryArrival::mut_timestamp_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Station>>(
+                    "station",
+                    TrainItineraryArrival::get_station_for_reflect,
+                    TrainItineraryArrival::mut_station_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<TrainItineraryArrival>(
+                    "TrainItineraryArrival",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for TrainItineraryArrival {
+    fn clear(&mut self) {
+        self.clear_timestamp();
+        self.clear_station();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for TrainItineraryArrival {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for TrainItineraryArrival {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct TrainItinerary {
+    // message fields
+    line: ::protobuf::SingularField<::std::string::String>,
+    direction: ::std::option::Option<Direction>,
+    line_color_hex: ::protobuf::SingularField<::std::string::String>,
+    arrival: ::protobuf::RepeatedField<TrainItineraryArrival>,
+    debug_info: ::protobuf::SingularPtrField<DebugInfo>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for TrainItinerary {}
+
+impl TrainItinerary {
+    pub fn new() -> TrainItinerary {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static TrainItinerary {
+        static mut instance: ::protobuf::lazy::Lazy<TrainItinerary> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const TrainItinerary,
+        };
+        unsafe {
+            instance.get(TrainItinerary::new)
+        }
+    }
+
+    // optional string line = 1;
+
+    pub fn clear_line(&mut self) {
+        self.line.clear();
+    }
+
+    pub fn has_line(&self) -> bool {
+        self.line.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_line(&mut self, v: ::std::string::String) {
+        self.line = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_line(&mut self) -> &mut ::std::string::String {
+        if self.line.is_none() {
+            self.line.set_default();
+        }
+        self.line.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_line(&mut self) -> ::std::string::String {
+        self.line.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_line(&self) -> &str {
+        match self.line.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_line_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.line
+    }
+
+    fn mut_line_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.line
+    }
+
+    // optional .Direction direction = 2;
+
+    pub fn clear_direction(&mut self) {
+        self.direction = ::std::option::Option::None;
+    }
+
+    pub fn has_direction(&self) -> bool {
+        self.direction.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_direction(&mut self, v: Direction) {
+        self.direction = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_direction(&self) -> Direction {
+        self.direction.unwrap_or(Direction::UPTOWN)
+    }
+
+    fn get_direction_for_reflect(&self) -> &::std::option::Option<Direction> {
+        &self.direction
+    }
+
+    fn mut_direction_for_reflect(&mut self) -> &mut ::std::option::Option<Direction> {
+        &mut self.direction
+    }
+
+    // optional string line_color_hex = 3;
+
+    pub fn clear_line_color_hex(&mut self) {
+        self.line_color_hex.clear();
+    }
+
+    pub fn has_line_color_hex(&self) -> bool {
+        self.line_color_hex.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_line_color_hex(&mut self, v: ::std::string::String) {
+        self.line_color_hex = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_line_color_hex(&mut self) -> &mut ::std::string::String {
+        if self.line_color_hex.is_none() {
+            self.line_color_hex.set_default();
+        }
+        self.line_color_hex.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_line_color_hex(&mut self) -> ::std::string::String {
+        self.line_color_hex.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_line_color_hex(&self) -> &str {
+        match self.line_color_hex.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_line_color_hex_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.line_color_hex
+    }
+
+    fn mut_line_color_hex_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.line_color_hex
+    }
+
+    // repeated .TrainItineraryArrival arrival = 4;
+
+    pub fn clear_arrival(&mut self) {
+        self.arrival.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_arrival(&mut self, v: ::protobuf::RepeatedField<TrainItineraryArrival>) {
+        self.arrival = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_arrival(&mut self) -> &mut ::protobuf::RepeatedField<TrainItineraryArrival> {
+        &mut self.arrival
+    }
+
+    // Take field
+    pub fn take_arrival(&mut self) -> ::protobuf::RepeatedField<TrainItineraryArrival> {
+        ::std::mem::replace(&mut self.arrival, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_arrival(&self) -> &[TrainItineraryArrival] {
+        &self.arrival
+    }
+
+    fn get_arrival_for_reflect(&self) -> &::protobuf::RepeatedField<TrainItineraryArrival> {
+        &self.arrival
+    }
+
+    fn mut_arrival_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<TrainItineraryArrival> {
+        &mut self.arrival
+    }
+
+    // optional .DebugInfo debug_info = 5;
+
+    pub fn clear_debug_info(&mut self) {
+        self.debug_info.clear();
+    }
+
+    pub fn has_debug_info(&self) -> bool {
+        self.debug_info.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_debug_info(&mut self, v: DebugInfo) {
+        self.debug_info = ::protobuf::SingularPtrField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_debug_info(&mut self) -> &mut DebugInfo {
+        if self.debug_info.is_none() {
+            self.debug_info.set_default();
+        }
+        self.debug_info.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_debug_info(&mut self) -> DebugInfo {
+        self.debug_info.take().unwrap_or_else(|| DebugInfo::new())
+    }
+
+    pub fn get_debug_info(&self) -> &DebugInfo {
+        self.debug_info.as_ref().unwrap_or_else(|| DebugInfo::default_instance())
+    }
+
+    fn get_debug_info_for_reflect(&self) -> &::protobuf::SingularPtrField<DebugInfo> {
+        &self.debug_info
+    }
+
+    fn mut_debug_info_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<DebugInfo> {
+        &mut self.debug_info
+    }
+}
+
+impl ::protobuf::Message for TrainItinerary {
+    fn is_initialized(&self) -> bool {
+        for v in &self.arrival {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        for v in &self.debug_info {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line)?;
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_enum()?;
+                    self.direction = ::std::option::Option::Some(tmp);
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line_color_hex)?;
+                },
+                4 => {
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.arrival)?;
+                },
+                5 => {
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.debug_info)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.line.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(v) = self.direction {
+            my_size += ::protobuf::rt::enum_size(2, v);
+        }
+        if let Some(ref v) = self.line_color_hex.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        for value in &self.arrival {
+            let len = value.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        };
+        if let Some(ref v) = self.debug_info.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.line.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(v) = self.direction {
+            os.write_enum(2, v.value())?;
+        }
+        if let Some(ref v) = self.line_color_hex.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        for v in &self.arrival {
+            os.write_tag(4, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        };
+        if let Some(ref v) = self.debug_info.as_ref() {
+            os.write_tag(5, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for TrainItinerary {
+    fn new() -> TrainItinerary {
+        TrainItinerary::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<TrainItinerary>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "line",
+                    TrainItinerary::get_line_for_reflect,
+                    TrainItinerary::mut_line_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<Direction>>(
+                    "direction",
+                    TrainItinerary::get_direction_for_reflect,
+                    TrainItinerary::mut_direction_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "line_color_hex",
+                    TrainItinerary::get_line_color_hex_for_reflect,
+                    TrainItinerary::mut_line_color_hex_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<TrainItineraryArrival>>(
+                    "arrival",
+                    TrainItinerary::get_arrival_for_reflect,
+                    TrainItinerary::mut_arrival_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<DebugInfo>>(
+                    "debug_info",
+                    TrainItinerary::get_debug_info_for_reflect,
+                    TrainItinerary::mut_debug_info_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<TrainItinerary>(
+                    "TrainItinerary",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for TrainItinerary {
+    fn clear(&mut self) {
+        self.clear_line();
+        self.clear_direction();
+        self.clear_line_color_hex();
+        self.clear_arrival();
+        self.clear_debug_info();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for TrainItinerary {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for TrainItinerary {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
@@ -2283,14 +2936,21 @@ impl ::protobuf::reflect::ProtobufValue for Direction {
 
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x13webclient_api.proto\"9\n\tDebugInfo\x12,\n\x12processing_time_ms\
-    \x18\x01\x20\x01(\x03R\x10processingTimeMs\"@\n\x07Arrival\x12\x1c\n\tti\
-    mestamp\x18\x01\x20\x01(\x03R\ttimestamp\x12\x17\n\x07trip_id\x18\x02\
-    \x20\x01(\tR\x06tripId\"\xc9\x01\n\x0cLineArrivals\x12\x12\n\x04line\x18\
-    \x01\x20\x01(\tR\x04line\x12(\n\tdirection\x18\x02\x20\x01(\x0e2\n.Direc\
-    tionR\tdirection\x12$\n\x0eline_color_hex\x18\x04\x20\x01(\tR\x0clineCol\
-    orHex\x12$\n\x08arrivals\x18\x06\x20\x03(\x0b2\x08.ArrivalR\x08arrivals\
-    \x12)\n\ndebug_info\x18\x05\x20\x01(\x0b2\n.DebugInfoR\tdebugInfoJ\x04\
-    \x08\x03\x10\x04\"\x98\x01\n\rStationStatus\x12\x12\n\x04name\x18\x01\
+    \x18\x01\x20\x01(\x03R\x10processingTimeMs\"D\n\x0bLineArrival\x12\x1c\n\
+    \ttimestamp\x18\x01\x20\x01(\x03R\ttimestamp\x12\x17\n\x07trip_id\x18\
+    \x02\x20\x01(\tR\x06tripId\"\xcd\x01\n\x0cLineArrivals\x12\x12\n\x04line\
+    \x18\x01\x20\x01(\tR\x04line\x12(\n\tdirection\x18\x02\x20\x01(\x0e2\n.D\
+    irectionR\tdirection\x12$\n\x0eline_color_hex\x18\x04\x20\x01(\tR\x0clin\
+    eColorHex\x12(\n\x08arrivals\x18\x06\x20\x03(\x0b2\x0c.LineArrivalR\x08a\
+    rrivals\x12)\n\ndebug_info\x18\x05\x20\x01(\x0b2\n.DebugInfoR\tdebugInfo\
+    J\x04\x08\x03\x10\x04\"Y\n\x15TrainItineraryArrival\x12\x1c\n\ttimestamp\
+    \x18\x01\x20\x01(\x03R\ttimestamp\x12\"\n\x07station\x18\x02\x20\x01(\
+    \x0b2\x08.StationR\x07station\"\xd1\x01\n\x0eTrainItinerary\x12\x12\n\
+    \x04line\x18\x01\x20\x01(\tR\x04line\x12(\n\tdirection\x18\x02\x20\x01(\
+    \x0e2\n.DirectionR\tdirection\x12$\n\x0eline_color_hex\x18\x03\x20\x01(\
+    \tR\x0clineColorHex\x120\n\x07arrival\x18\x04\x20\x03(\x0b2\x16.TrainIti\
+    neraryArrivalR\x07arrival\x12)\n\ndebug_info\x18\x05\x20\x01(\x0b2\n.Deb\
+    ugInfoR\tdebugInfo\"\x98\x01\n\rStationStatus\x12\x12\n\x04name\x18\x01\
     \x20\x01(\tR\x04name\x12!\n\x04line\x18\x02\x20\x03(\x0b2\r.LineArrivals\
     R\x04line\x12%\n\x0edata_timestamp\x18\x03\x20\x01(\x03R\rdataTimestamp\
     \x12)\n\ndebug_info\x18\x04\x20\x01(\x0b2\n.DebugInfoR\tdebugInfo\"-\n\
@@ -2302,8 +2962,8 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x08colorHex\x12\x16\n\x06active\x18\x03\x20\x01(\x08R\x06active\"P\n\
     \x08LineList\x12\x19\n\x04line\x18\x01\x20\x03(\x0b2\x05.LineR\x04line\
     \x12)\n\ndebug_info\x18\x04\x20\x01(\x0b2\n.DebugInfoR\tdebugInfo*%\n\tD\
-    irection\x12\n\n\x06UPTOWN\x10\0\x12\x0c\n\x08DOWNTOWN\x10\x01J\x9a\x0e\
-    \n\x06\x12\x04\0\08\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\n\n\x02\x05\0\
+    irection\x12\n\n\x06UPTOWN\x10\0\x12\x0c\n\x08DOWNTOWN\x10\x01J\xad\x12\
+    \n\x06\x12\x04\0\0F\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\n\n\x02\x05\0\
     \x12\x04\x02\0\x05\x01\n\n\n\x03\x05\0\x01\x12\x03\x02\x05\x0e\n\x0b\n\
     \x04\x05\0\x02\0\x12\x03\x03\x02\r\n\x0c\n\x05\x05\0\x02\0\x01\x12\x03\
     \x03\x02\x08\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x03\x0b\x0c\n\x0b\n\x04\
@@ -2314,7 +2974,7 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x08\x02\n\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x08\x0b\x10\n\x0c\n\x05\
     \x04\0\x02\0\x01\x12\x03\x08\x11#\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\
     \x08&'\n\n\n\x02\x04\x01\x12\x04\x0b\0\x0e\x01\n\n\n\x03\x04\x01\x01\x12\
-    \x03\x0b\x08\x0f\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0c\x02\x1f\n\x0c\n\
+    \x03\x0b\x08\x13\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0c\x02\x1f\n\x0c\n\
     \x05\x04\x01\x02\0\x04\x12\x03\x0c\x02\n\n\x0c\n\x05\x04\x01\x02\0\x05\
     \x12\x03\x0c\x0b\x10\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x0c\x11\x1a\n\
     \x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x0c\x1d\x1e\n\x0b\n\x04\x04\x01\x02\
@@ -2333,64 +2993,89 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x02\x02\x04\x12\x03\x13\x02\n\n\x0c\n\x05\x04\x02\x02\x02\x05\x12\x03\
     \x13\x0b\x11\n\x0c\n\x05\x04\x02\x02\x02\x01\x12\x03\x13\x12\x20\n\x0c\n\
     \x05\x04\x02\x02\x02\x03\x12\x03\x13#$\n\x0b\n\x04\x04\x02\x02\x03\x12\
-    \x03\x14\x02\x20\n\x0c\n\x05\x04\x02\x02\x03\x04\x12\x03\x14\x02\n\n\x0c\
-    \n\x05\x04\x02\x02\x03\x06\x12\x03\x14\x0b\x12\n\x0c\n\x05\x04\x02\x02\
-    \x03\x01\x12\x03\x14\x13\x1b\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x14\
-    \x1e\x1f\n\x0b\n\x04\x04\x02\x02\x04\x12\x03\x16\x02$\n\x0c\n\x05\x04\
-    \x02\x02\x04\x04\x12\x03\x16\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\
-    \x03\x16\x0b\x14\n\x0c\n\x05\x04\x02\x02\x04\x01\x12\x03\x16\x15\x1f\n\
-    \x0c\n\x05\x04\x02\x02\x04\x03\x12\x03\x16\"#\n\n\n\x03\x04\x02\t\x12\
-    \x03\x18\x0b\r\n\x0b\n\x04\x04\x02\t\0\x12\x03\x18\x0b\x0c\n\x0c\n\x05\
-    \x04\x02\t\0\x01\x12\x03\x18\x0b\x0c\n\x0c\n\x05\x04\x02\t\0\x02\x12\x03\
-    \x18\x0b\x0c\n\n\n\x02\x04\x03\x12\x04\x1b\0!\x01\n\n\n\x03\x04\x03\x01\
-    \x12\x03\x1b\x08\x15\n\x0b\n\x04\x04\x03\x02\0\x12\x03\x1c\x02\x1b\n\x0c\
-    \n\x05\x04\x03\x02\0\x04\x12\x03\x1c\x02\n\n\x0c\n\x05\x04\x03\x02\0\x05\
-    \x12\x03\x1c\x0b\x11\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x1c\x12\x16\n\
-    \x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x1c\x19\x1a\n\x0b\n\x04\x04\x03\x02\
-    \x01\x12\x03\x1d\x02!\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\x03\x1d\x02\n\
-    \n\x0c\n\x05\x04\x03\x02\x01\x06\x12\x03\x1d\x0b\x17\n\x0c\n\x05\x04\x03\
-    \x02\x01\x01\x12\x03\x1d\x18\x1c\n\x0c\n\x05\x04\x03\x02\x01\x03\x12\x03\
-    \x1d\x1f\x20\n\x0b\n\x04\x04\x03\x02\x02\x12\x03\x1e\x02$\n\x0c\n\x05\
-    \x04\x03\x02\x02\x04\x12\x03\x1e\x02\n\n\x0c\n\x05\x04\x03\x02\x02\x05\
-    \x12\x03\x1e\x0b\x10\n\x0c\n\x05\x04\x03\x02\x02\x01\x12\x03\x1e\x11\x1f\
-    \n\x0c\n\x05\x04\x03\x02\x02\x03\x12\x03\x1e\"#\n\x0b\n\x04\x04\x03\x02\
-    \x03\x12\x03\x20\x02$\n\x0c\n\x05\x04\x03\x02\x03\x04\x12\x03\x20\x02\n\
-    \n\x0c\n\x05\x04\x03\x02\x03\x06\x12\x03\x20\x0b\x14\n\x0c\n\x05\x04\x03\
-    \x02\x03\x01\x12\x03\x20\x15\x1f\n\x0c\n\x05\x04\x03\x02\x03\x03\x12\x03\
-    \x20\"#\n\n\n\x02\x04\x04\x12\x04#\0&\x01\n\n\n\x03\x04\x04\x01\x12\x03#\
-    \x08\x0f\n\x0b\n\x04\x04\x04\x02\0\x12\x03$\x02\x19\n\x0c\n\x05\x04\x04\
-    \x02\0\x04\x12\x03$\x02\n\n\x0c\n\x05\x04\x04\x02\0\x05\x12\x03$\x0b\x11\
-    \n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03$\x12\x14\n\x0c\n\x05\x04\x04\x02\
-    \0\x03\x12\x03$\x17\x18\n\x0b\n\x04\x04\x04\x02\x01\x12\x03%\x02\x1b\n\
-    \x0c\n\x05\x04\x04\x02\x01\x04\x12\x03%\x02\n\n\x0c\n\x05\x04\x04\x02\
-    \x01\x05\x12\x03%\x0b\x11\n\x0c\n\x05\x04\x04\x02\x01\x01\x12\x03%\x12\
-    \x16\n\x0c\n\x05\x04\x04\x02\x01\x03\x12\x03%\x19\x1a\n\n\n\x02\x04\x05\
-    \x12\x04(\0,\x01\n\n\n\x03\x04\x05\x01\x12\x03(\x08\x13\n\x0b\n\x04\x04\
-    \x05\x02\0\x12\x03)\x02\x1f\n\x0c\n\x05\x04\x05\x02\0\x04\x12\x03)\x02\n\
-    \n\x0c\n\x05\x04\x05\x02\0\x06\x12\x03)\x0b\x12\n\x0c\n\x05\x04\x05\x02\
-    \0\x01\x12\x03)\x13\x1a\n\x0c\n\x05\x04\x05\x02\0\x03\x12\x03)\x1d\x1e\n\
-    \x0b\n\x04\x04\x05\x02\x01\x12\x03+\x02$\n\x0c\n\x05\x04\x05\x02\x01\x04\
-    \x12\x03+\x02\n\n\x0c\n\x05\x04\x05\x02\x01\x06\x12\x03+\x0b\x14\n\x0c\n\
-    \x05\x04\x05\x02\x01\x01\x12\x03+\x15\x1f\n\x0c\n\x05\x04\x05\x02\x01\
-    \x03\x12\x03+\"#\n\n\n\x02\x04\x06\x12\x04.\02\x01\n\n\n\x03\x04\x06\x01\
-    \x12\x03.\x08\x0c\n\x0b\n\x04\x04\x06\x02\0\x12\x03/\x02\x1b\n\x0c\n\x05\
-    \x04\x06\x02\0\x04\x12\x03/\x02\n\n\x0c\n\x05\x04\x06\x02\0\x05\x12\x03/\
-    \x0b\x11\n\x0c\n\x05\x04\x06\x02\0\x01\x12\x03/\x12\x16\n\x0c\n\x05\x04\
-    \x06\x02\0\x03\x12\x03/\x19\x1a\n\x0b\n\x04\x04\x06\x02\x01\x12\x030\x02\
-    \x20\n\x0c\n\x05\x04\x06\x02\x01\x04\x12\x030\x02\n\n\x0c\n\x05\x04\x06\
-    \x02\x01\x05\x12\x030\x0b\x11\n\x0c\n\x05\x04\x06\x02\x01\x01\x12\x030\
-    \x12\x1b\n\x0c\n\x05\x04\x06\x02\x01\x03\x12\x030\x1e\x1f\n\x0b\n\x04\
-    \x04\x06\x02\x02\x12\x031\x02\x1b\n\x0c\n\x05\x04\x06\x02\x02\x04\x12\
-    \x031\x02\n\n\x0c\n\x05\x04\x06\x02\x02\x05\x12\x031\x0b\x0f\n\x0c\n\x05\
-    \x04\x06\x02\x02\x01\x12\x031\x10\x16\n\x0c\n\x05\x04\x06\x02\x02\x03\
-    \x12\x031\x19\x1a\n\n\n\x02\x04\x07\x12\x044\08\x01\n\n\n\x03\x04\x07\
-    \x01\x12\x034\x08\x10\n\x0b\n\x04\x04\x07\x02\0\x12\x035\x02\x19\n\x0c\n\
-    \x05\x04\x07\x02\0\x04\x12\x035\x02\n\n\x0c\n\x05\x04\x07\x02\0\x06\x12\
-    \x035\x0b\x0f\n\x0c\n\x05\x04\x07\x02\0\x01\x12\x035\x10\x14\n\x0c\n\x05\
-    \x04\x07\x02\0\x03\x12\x035\x17\x18\n\x0b\n\x04\x04\x07\x02\x01\x12\x037\
-    \x02$\n\x0c\n\x05\x04\x07\x02\x01\x04\x12\x037\x02\n\n\x0c\n\x05\x04\x07\
-    \x02\x01\x06\x12\x037\x0b\x14\n\x0c\n\x05\x04\x07\x02\x01\x01\x12\x037\
-    \x15\x1f\n\x0c\n\x05\x04\x07\x02\x01\x03\x12\x037\"#\
+    \x03\x14\x02$\n\x0c\n\x05\x04\x02\x02\x03\x04\x12\x03\x14\x02\n\n\x0c\n\
+    \x05\x04\x02\x02\x03\x06\x12\x03\x14\x0b\x16\n\x0c\n\x05\x04\x02\x02\x03\
+    \x01\x12\x03\x14\x17\x1f\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x14\"#\
+    \n\x0b\n\x04\x04\x02\x02\x04\x12\x03\x16\x02$\n\x0c\n\x05\x04\x02\x02\
+    \x04\x04\x12\x03\x16\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\x03\x16\
+    \x0b\x14\n\x0c\n\x05\x04\x02\x02\x04\x01\x12\x03\x16\x15\x1f\n\x0c\n\x05\
+    \x04\x02\x02\x04\x03\x12\x03\x16\"#\n\n\n\x03\x04\x02\t\x12\x03\x18\x0b\
+    \r\n\x0b\n\x04\x04\x02\t\0\x12\x03\x18\x0b\x0c\n\x0c\n\x05\x04\x02\t\0\
+    \x01\x12\x03\x18\x0b\x0c\n\x0c\n\x05\x04\x02\t\0\x02\x12\x03\x18\x0b\x0c\
+    \n\n\n\x02\x04\x03\x12\x04\x1b\0\x1e\x01\n\n\n\x03\x04\x03\x01\x12\x03\
+    \x1b\x08\x1d\n\x0b\n\x04\x04\x03\x02\0\x12\x03\x1c\x02\x1f\n\x0c\n\x05\
+    \x04\x03\x02\0\x04\x12\x03\x1c\x02\n\n\x0c\n\x05\x04\x03\x02\0\x05\x12\
+    \x03\x1c\x0b\x10\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x1c\x11\x1a\n\x0c\
+    \n\x05\x04\x03\x02\0\x03\x12\x03\x1c\x1d\x1e\n\x0b\n\x04\x04\x03\x02\x01\
+    \x12\x03\x1d\x02\x1f\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\x03\x1d\x02\n\n\
+    \x0c\n\x05\x04\x03\x02\x01\x06\x12\x03\x1d\x0b\x12\n\x0c\n\x05\x04\x03\
+    \x02\x01\x01\x12\x03\x1d\x13\x1a\n\x0c\n\x05\x04\x03\x02\x01\x03\x12\x03\
+    \x1d\x1d\x1e\n\n\n\x02\x04\x04\x12\x04\x20\0'\x01\n\n\n\x03\x04\x04\x01\
+    \x12\x03\x20\x08\x16\n\x0b\n\x04\x04\x04\x02\0\x12\x03!\x02\x1b\n\x0c\n\
+    \x05\x04\x04\x02\0\x04\x12\x03!\x02\n\n\x0c\n\x05\x04\x04\x02\0\x05\x12\
+    \x03!\x0b\x11\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03!\x12\x16\n\x0c\n\x05\
+    \x04\x04\x02\0\x03\x12\x03!\x19\x1a\n\x0b\n\x04\x04\x04\x02\x01\x12\x03\
+    \"\x02#\n\x0c\n\x05\x04\x04\x02\x01\x04\x12\x03\"\x02\n\n\x0c\n\x05\x04\
+    \x04\x02\x01\x06\x12\x03\"\x0b\x14\n\x0c\n\x05\x04\x04\x02\x01\x01\x12\
+    \x03\"\x15\x1e\n\x0c\n\x05\x04\x04\x02\x01\x03\x12\x03\"!\"\n\x0b\n\x04\
+    \x04\x04\x02\x02\x12\x03#\x02%\n\x0c\n\x05\x04\x04\x02\x02\x04\x12\x03#\
+    \x02\n\n\x0c\n\x05\x04\x04\x02\x02\x05\x12\x03#\x0b\x11\n\x0c\n\x05\x04\
+    \x04\x02\x02\x01\x12\x03#\x12\x20\n\x0c\n\x05\x04\x04\x02\x02\x03\x12\
+    \x03##$\n\x0b\n\x04\x04\x04\x02\x03\x12\x03$\x02-\n\x0c\n\x05\x04\x04\
+    \x02\x03\x04\x12\x03$\x02\n\n\x0c\n\x05\x04\x04\x02\x03\x06\x12\x03$\x0b\
+    \x20\n\x0c\n\x05\x04\x04\x02\x03\x01\x12\x03$!(\n\x0c\n\x05\x04\x04\x02\
+    \x03\x03\x12\x03$+,\n\x0b\n\x04\x04\x04\x02\x04\x12\x03&\x02$\n\x0c\n\
+    \x05\x04\x04\x02\x04\x04\x12\x03&\x02\n\n\x0c\n\x05\x04\x04\x02\x04\x06\
+    \x12\x03&\x0b\x14\n\x0c\n\x05\x04\x04\x02\x04\x01\x12\x03&\x15\x1f\n\x0c\
+    \n\x05\x04\x04\x02\x04\x03\x12\x03&\"#\n\n\n\x02\x04\x05\x12\x04)\0/\x01\
+    \n\n\n\x03\x04\x05\x01\x12\x03)\x08\x15\n\x0b\n\x04\x04\x05\x02\0\x12\
+    \x03*\x02\x1b\n\x0c\n\x05\x04\x05\x02\0\x04\x12\x03*\x02\n\n\x0c\n\x05\
+    \x04\x05\x02\0\x05\x12\x03*\x0b\x11\n\x0c\n\x05\x04\x05\x02\0\x01\x12\
+    \x03*\x12\x16\n\x0c\n\x05\x04\x05\x02\0\x03\x12\x03*\x19\x1a\n\x0b\n\x04\
+    \x04\x05\x02\x01\x12\x03+\x02!\n\x0c\n\x05\x04\x05\x02\x01\x04\x12\x03+\
+    \x02\n\n\x0c\n\x05\x04\x05\x02\x01\x06\x12\x03+\x0b\x17\n\x0c\n\x05\x04\
+    \x05\x02\x01\x01\x12\x03+\x18\x1c\n\x0c\n\x05\x04\x05\x02\x01\x03\x12\
+    \x03+\x1f\x20\n\x0b\n\x04\x04\x05\x02\x02\x12\x03,\x02$\n\x0c\n\x05\x04\
+    \x05\x02\x02\x04\x12\x03,\x02\n\n\x0c\n\x05\x04\x05\x02\x02\x05\x12\x03,\
+    \x0b\x10\n\x0c\n\x05\x04\x05\x02\x02\x01\x12\x03,\x11\x1f\n\x0c\n\x05\
+    \x04\x05\x02\x02\x03\x12\x03,\"#\n\x0b\n\x04\x04\x05\x02\x03\x12\x03.\
+    \x02$\n\x0c\n\x05\x04\x05\x02\x03\x04\x12\x03.\x02\n\n\x0c\n\x05\x04\x05\
+    \x02\x03\x06\x12\x03.\x0b\x14\n\x0c\n\x05\x04\x05\x02\x03\x01\x12\x03.\
+    \x15\x1f\n\x0c\n\x05\x04\x05\x02\x03\x03\x12\x03.\"#\n\n\n\x02\x04\x06\
+    \x12\x041\04\x01\n\n\n\x03\x04\x06\x01\x12\x031\x08\x0f\n\x0b\n\x04\x04\
+    \x06\x02\0\x12\x032\x02\x19\n\x0c\n\x05\x04\x06\x02\0\x04\x12\x032\x02\n\
+    \n\x0c\n\x05\x04\x06\x02\0\x05\x12\x032\x0b\x11\n\x0c\n\x05\x04\x06\x02\
+    \0\x01\x12\x032\x12\x14\n\x0c\n\x05\x04\x06\x02\0\x03\x12\x032\x17\x18\n\
+    \x0b\n\x04\x04\x06\x02\x01\x12\x033\x02\x1b\n\x0c\n\x05\x04\x06\x02\x01\
+    \x04\x12\x033\x02\n\n\x0c\n\x05\x04\x06\x02\x01\x05\x12\x033\x0b\x11\n\
+    \x0c\n\x05\x04\x06\x02\x01\x01\x12\x033\x12\x16\n\x0c\n\x05\x04\x06\x02\
+    \x01\x03\x12\x033\x19\x1a\n\n\n\x02\x04\x07\x12\x046\0:\x01\n\n\n\x03\
+    \x04\x07\x01\x12\x036\x08\x13\n\x0b\n\x04\x04\x07\x02\0\x12\x037\x02\x1f\
+    \n\x0c\n\x05\x04\x07\x02\0\x04\x12\x037\x02\n\n\x0c\n\x05\x04\x07\x02\0\
+    \x06\x12\x037\x0b\x12\n\x0c\n\x05\x04\x07\x02\0\x01\x12\x037\x13\x1a\n\
+    \x0c\n\x05\x04\x07\x02\0\x03\x12\x037\x1d\x1e\n\x0b\n\x04\x04\x07\x02\
+    \x01\x12\x039\x02$\n\x0c\n\x05\x04\x07\x02\x01\x04\x12\x039\x02\n\n\x0c\
+    \n\x05\x04\x07\x02\x01\x06\x12\x039\x0b\x14\n\x0c\n\x05\x04\x07\x02\x01\
+    \x01\x12\x039\x15\x1f\n\x0c\n\x05\x04\x07\x02\x01\x03\x12\x039\"#\n\n\n\
+    \x02\x04\x08\x12\x04<\0@\x01\n\n\n\x03\x04\x08\x01\x12\x03<\x08\x0c\n\
+    \x0b\n\x04\x04\x08\x02\0\x12\x03=\x02\x1b\n\x0c\n\x05\x04\x08\x02\0\x04\
+    \x12\x03=\x02\n\n\x0c\n\x05\x04\x08\x02\0\x05\x12\x03=\x0b\x11\n\x0c\n\
+    \x05\x04\x08\x02\0\x01\x12\x03=\x12\x16\n\x0c\n\x05\x04\x08\x02\0\x03\
+    \x12\x03=\x19\x1a\n\x0b\n\x04\x04\x08\x02\x01\x12\x03>\x02\x20\n\x0c\n\
+    \x05\x04\x08\x02\x01\x04\x12\x03>\x02\n\n\x0c\n\x05\x04\x08\x02\x01\x05\
+    \x12\x03>\x0b\x11\n\x0c\n\x05\x04\x08\x02\x01\x01\x12\x03>\x12\x1b\n\x0c\
+    \n\x05\x04\x08\x02\x01\x03\x12\x03>\x1e\x1f\n\x0b\n\x04\x04\x08\x02\x02\
+    \x12\x03?\x02\x1b\n\x0c\n\x05\x04\x08\x02\x02\x04\x12\x03?\x02\n\n\x0c\n\
+    \x05\x04\x08\x02\x02\x05\x12\x03?\x0b\x0f\n\x0c\n\x05\x04\x08\x02\x02\
+    \x01\x12\x03?\x10\x16\n\x0c\n\x05\x04\x08\x02\x02\x03\x12\x03?\x19\x1a\n\
+    \n\n\x02\x04\t\x12\x04B\0F\x01\n\n\n\x03\x04\t\x01\x12\x03B\x08\x10\n\
+    \x0b\n\x04\x04\t\x02\0\x12\x03C\x02\x19\n\x0c\n\x05\x04\t\x02\0\x04\x12\
+    \x03C\x02\n\n\x0c\n\x05\x04\t\x02\0\x06\x12\x03C\x0b\x0f\n\x0c\n\x05\x04\
+    \t\x02\0\x01\x12\x03C\x10\x14\n\x0c\n\x05\x04\t\x02\0\x03\x12\x03C\x17\
+    \x18\n\x0b\n\x04\x04\t\x02\x01\x12\x03E\x02$\n\x0c\n\x05\x04\t\x02\x01\
+    \x04\x12\x03E\x02\n\n\x0c\n\x05\x04\t\x02\x01\x06\x12\x03E\x0b\x14\n\x0c\
+    \n\x05\x04\t\x02\x01\x01\x12\x03E\x15\x1f\n\x0c\n\x05\x04\t\x02\x01\x03\
+    \x12\x03E\"#\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

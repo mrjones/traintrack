@@ -126,7 +126,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
                 &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
             });
             line.set_arrivals(stop_times.iter().map(|a| {
-                let mut r = webclient_api::Arrival::new();
+                let mut r = webclient_api::LineArrival::new();
                 r.set_timestamp(a.timestamp.timestamp());
                 r.set_trip_id(a.trip_id.clone());
                 return r;
@@ -186,6 +186,45 @@ fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context, time
     }
 
     return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::LineList::mut_debug_info));
+}
+
+fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let mut response = webclient_api::TrainItinerary::new();
+    let desired_train = rustful_context.variables.get("train_id")
+        .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
+        .map(|x| x.to_string())?;
+
+    for feed in tt_context.all_feeds()? {
+        for entity in feed.feed.get_entity() {
+            if entity.has_trip_update() {
+                let trip_update = entity.get_trip_update();
+                if trip_update.get_trip().get_trip_id() == desired_train {
+                    response.set_line(trip_update.get_trip().get_route_id().to_string());
+                    // TODO(mrjones): direction & color
+                    response.set_arrival(trip_update.get_stop_time_update().iter().filter_map(|stu| {
+                        if !stu.has_arrival() {
+                            return None;
+                        }
+
+                        let mut arr_proto = webclient_api::TrainItineraryArrival::new();
+                        arr_proto.set_timestamp(stu.get_arrival().get_time());
+
+                        for candidate in utils::possible_stop_ids(stu.get_stop_id()) {
+                            if let Some(info) = tt_context.stops.lookup_by_id(&candidate) {
+                                let mut station = arr_proto.mut_station();
+                                station.set_id(candidate.clone());
+                                station.set_name(info.name.clone());
+                            }
+                        }
+
+                        return Some(arr_proto);
+                    }).collect());
+                }
+            }
+        }
+    }
+
+    return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::TrainItinerary::mut_debug_info));
 }
 
 fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
@@ -358,6 +397,9 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.path("lines").then().on_get(PageType::Dynamic(line_list_api));
             node.path("station").many(|mut node| {
                 node.path(":station_id").then().on_get(PageType::Dynamic(station_detail_api));
+            });
+            node.path("train").many(|mut node| {
+                node.path(":train_id").then().on_get(PageType::Dynamic(train_detail_api));
             });
             node.path("stations").many(|mut node| {
                 node.then().on_get(PageType::Dynamic(station_list_api));

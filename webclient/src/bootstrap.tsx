@@ -8,6 +8,7 @@ import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger, ApiRequestInfo } from './debug';
 import { LinePickerRouterWrapper } from './navigation';
 import { LineViewRouterWrapper } from './lineview';
+import { TrainItineraryWrapper } from './train-itinerary';
 
 class StationPickerState {
   public currentJumpText: string;
@@ -185,12 +186,12 @@ class StationLine extends React.Component<StationLineProps, undefined> {
 
   public render() {
     const arrivals = this.props.data.arrivals.map(
-      (arr: proto.Arrival) => {
+      (arr: proto.LineArrival) => {
         const ts = arr.timestamp as number;
         const time = moment.unix(ts);
 
         if (time > moment()) {
-          return <li key={ts}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")} ({time.fromNow()})</a></li>;
+          return <li key={ts}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
         } else {
           return <li key={ts}><s>{time.format("LT")}</s></li>;
         }
@@ -283,6 +284,7 @@ ReactDOM.render(
           <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
           <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
           <ReactRouter.Route path='/app/station/:initialStationId' component={OneStationViewWrapperForRouter} />
+          <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
           <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
           <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
         </ReactRouter.Switch>
