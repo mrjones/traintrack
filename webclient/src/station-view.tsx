@@ -7,12 +7,12 @@ import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger, ApiRequestInfo } from './debug';
 import { StationPicker } from './navigation';
 
-class StationLineProps {
+class StationSingleLineProps {
   public data: proto.LineArrivals;
 };
 
-class StationLine extends React.Component<StationLineProps, undefined> {
-  constructor(props: StationLineProps) {
+class StationSingleLine extends React.Component<StationSingleLineProps, undefined> {
+  constructor(props: StationSingleLineProps) {
     super(props);
   };
 
@@ -43,19 +43,19 @@ class StationLine extends React.Component<StationLineProps, undefined> {
   }
 };
 
-class StationBoardState {
+class StationMultiLineState {
   public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
 };
 
-class StationBoardProps {
+class StationMultiLineProps {
   public stationId: string;
   public dataFetcher: DataFetcher;
 }
 
-class StationBoard extends React.Component<StationBoardProps, StationBoardState> {
-  constructor(props: StationBoardProps) {
+class StationMultiLine extends React.Component<StationMultiLineProps, StationMultiLineState> {
+  constructor(props: StationMultiLineProps) {
     super(props);
     this.state = {
       stationId: "",
@@ -91,7 +91,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
     const lineSet = this.state.data.data.line.map(
       (line: proto.LineArrivals) => {
         const key = this.props.stationId + "-" + line.line + "-" + line.direction;
-        return <StationLine data={line} key={key} />;
+        return <StationSingleLine data={line} key={key} />;
       });
 
     const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
@@ -105,22 +105,22 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
   };
 }
 
-class OneStationViewProps {
+class StationPageProps {
   public initialStationId: string;
   public dataFetcher: DataFetcher;
 }
 
-class OneStationViewState {
+class StationPageState {
   public stationIdAtLoad: string;
   public displayedStationId: string;
   public stationPickerDisplayed: boolean;
 };
 
-export class OneStationView extends React.Component<OneStationViewProps, OneStationViewState> {
-  constructor(props: OneStationViewProps) {
+export class StationPage extends React.Component<StationPageProps, StationPageState> {
+  constructor(props: StationPageProps) {
     super(props);
 
-    console.log("OneStationView.ctor. props.initial=" + props.initialStationId);
+    console.log("StationPage.ctor. props.initial=" + props.initialStationId);
 
     this.state = {
       stationIdAtLoad: props.initialStationId,
@@ -134,7 +134,7 @@ export class OneStationView extends React.Component<OneStationViewProps, OneStat
   }
 
   public componentDidUpdate() {
-    console.log("OneStationView.componentDidUpdate: BEFORE " +
+    console.log("StationPage.componentDidUpdate: BEFORE " +
                 "props.initial=" + this.props.initialStationId +
                 ", state.atLoad="  + this.state.stationIdAtLoad +
                 ", state.displayed=" + this.state.displayedStationId);
@@ -166,30 +166,30 @@ export class OneStationView extends React.Component<OneStationViewProps, OneStat
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <StationBoard stationId={this.state.displayedStationId} dataFetcher={this.props.dataFetcher}/>
+      <StationMultiLine stationId={this.state.displayedStationId} dataFetcher={this.props.dataFetcher}/>
     </div>);
   }
 }
 
-export class OneStationViewWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
+export class StationPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   private dataFetcher: DataFetcher;
 
   constructor(props: ReactRouter.RouteComponentProps<any>) {
     super(props);
     this.dataFetcher = globalDataFetcher;
 
-    console.log("OneStationViewWrapper.ctor: " + JSON.stringify(this.props.match));
+    console.log("StationPageWrapper.ctor: " + JSON.stringify(this.props.match));
     this.state = {
       stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32",
     };
   }
 
   public componentDidMount() {
-    console.log("OneStationViewWrapper.componentDidMount: " + JSON.stringify(this.props.match));
+    console.log("StationPageWrapper.componentDidMount: " + JSON.stringify(this.props.match));
   }
 
   public componentDidUpdate() {
-    console.log("OneStationViewWrapper.componentDidUpdate: " + JSON.stringify(this.props.match));
+    console.log("StationPageWrapper.componentDidUpdate: " + JSON.stringify(this.props.match));
     let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32";
     if (newStation !== this.state.stationId) {
       this.setState({stationId: newStation});
@@ -197,7 +197,7 @@ export class OneStationViewWrapper extends React.Component<ReactRouter.RouteComp
   }
 
   public render() {
-    return <OneStationView initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />;
+    return <StationPage initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />;
   }
 }
 
