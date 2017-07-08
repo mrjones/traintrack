@@ -4,7 +4,7 @@ import * as ReactRouter from "react-router-dom";
 import * as proto from './webclient_api_pb';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { ApiDebugger, ApiRequestInfo } from './debug';
+import { ApiDebugger } from './debug';
 import { StationPicker } from './navigation';
 
 class StationSingleLineProps {
@@ -100,7 +100,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
             <h2>{this.state.stationName}</h2>
             <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
             {lineSet}
-            <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.serverDebugInfo, this.state.data.clientDebugInfo)}/>
+            <ApiDebugger datasFetched={[this.state.data]}/>
             </div>);
   };
 }

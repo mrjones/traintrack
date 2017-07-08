@@ -3,7 +3,7 @@ import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
-import { ApiDebugger, ApiRequestInfo } from './debug';
+import { ApiDebugger } from './debug';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 
 class LinePickerProps {
@@ -11,28 +11,26 @@ class LinePickerProps {
 }
 
 class LinePickerState {
-  public lineList: proto.LineList;
-  public apiUrl: String;
+  public lineList: DebuggableResult<proto.LineList>;
 }
 
 export default class LinePicker extends React.Component<LinePickerProps, any> {
   constructor(props: LinePickerProps) {
     super(props);
     this.state = {
-      lineList: new proto.LineList(),
-      apiInfo: new ApiRequestInfo("", null),
+      lineList: new DebuggableResult<proto.LineList>(new proto.LineList(), ""),
     };
   }
 
   public componentDidMount() {
     this.props.dataFetcher.fetchLineList()
       .then((res: DebuggableResult<proto.LineList>) => {
-        this.setState({lineList: res.data, apiInfo: new ApiRequestInfo(res.apiUrl, res.serverDebugInfo)});
+        this.setState({lineList: res});
       });
   }
 
   public render(): JSX.Element {
-    let lineLis = this.state.lineList.line.map((line: proto.Line) => {
+    let lineLis = this.state.lineList.data.line.map((line: proto.Line) => {
       let c = "#" + line.colorHex;
       let liStyle = {
         background: c,
@@ -48,7 +46,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
 
     return (<div>
             <ul className="lineList">{lineLis}</ul>
-            <ApiDebugger requestInfo={this.state.apiInfo} />
+            <ApiDebugger datasFetched={[this.state.lineList]} />
             </div>);
   }
 }

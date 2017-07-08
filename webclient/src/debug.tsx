@@ -2,6 +2,8 @@ import * as React from "react";
 
 import * as proto from './webclient_api_pb';
 
+import { DebuggableResult } from './datafetcher';
+
 export class ClientDebugInfo {
   public cached: boolean;
   public clientWaitTimeMs: number;
@@ -12,20 +14,8 @@ export class ClientDebugInfo {
   }
 }
 
-export class ApiRequestInfo {
-  public apiUrl: string;
-  public serverDebugInfo?: proto.IDebugInfo;
-  public clientDebugInfo?: ClientDebugInfo;
-
-  constructor(apiUrl: string, serverDebugInfo?: proto.IDebugInfo, clientDebugInfo?: ClientDebugInfo) {
-    this.apiUrl = apiUrl;
-    this.serverDebugInfo = serverDebugInfo;
-    this.clientDebugInfo = clientDebugInfo;
-  }
-}
-
 class ApiDebuggerProps {
-  public requestInfo: ApiRequestInfo;
+  public datasFetched: DebuggableResult<any>[];
 }
 
 class ApiDebuggerState { }
@@ -33,20 +23,35 @@ class ApiDebuggerState { }
 export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerState> {
 
   public render(): JSX.Element {
-    let jsonLink: string = this.props.requestInfo.apiUrl + "?format=textproto";
+    let requestElts = this.props.datasFetched.map((d: DebuggableResult<any>) => {
+      return <SingleDataRequestDebugger key={d.apiUrl} request={d}/>;
+    });
+
+    return <div className="apiDebugger">{requestElts}</div>;
+  }
+};
+
+class SingleDataRequestDebuggerProps {
+  public request: DebuggableResult<any>;
+}
+class SingleDataRequestDebuggerState { }
+
+class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebuggerProps, SingleDataRequestDebuggerState> {
+  public render(): JSX.Element {
+    let jsonLink: string = this.props.request.apiUrl + "?format=textproto";
 
     let processingTimeMessage = "";
-    if (this.props.requestInfo.serverDebugInfo) {
-      processingTimeMessage = "server_only=" + this.props.requestInfo.serverDebugInfo.processingTimeMs + "ms";
+    if (this.props.request.serverDebugInfo) {
+      processingTimeMessage = "server_only=" + this.props.request.serverDebugInfo.processingTimeMs + "ms";
     }
 
     let waitTimeMessage = "";
-    if (this.props.requestInfo.clientDebugInfo) {
-      waitTimeMessage = "client_total=" + this.props.requestInfo.clientDebugInfo.clientWaitTimeMs + "ms cached=" + this.props.requestInfo.clientDebugInfo.cached;
+    if (this.props.request.clientDebugInfo) {
+      waitTimeMessage = "client_total=" + this.props.request.clientDebugInfo.clientWaitTimeMs + "ms cached=" + this.props.request.clientDebugInfo.cached;
     }
 
-    return <div className="apiDebugger">
+    return <div className="apiRequest">
       API: <a href={jsonLink}>{jsonLink}</a> ({processingTimeMessage} {waitTimeMessage})
     </div>;
   }
-};
+}

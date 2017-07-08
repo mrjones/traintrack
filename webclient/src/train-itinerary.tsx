@@ -5,7 +5,7 @@ import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { ApiRequestInfo, ApiDebugger } from './debug';
+import { ApiDebugger } from './debug';
 
 class TrainItineraryState {
   data: DebuggableResult<proto.ITrainItinerary>;
@@ -59,7 +59,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
     return <div className="page">
       <div className="pageTitle">Train Itinerary {this.props.trainId}</div>
       {body}
-      <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.serverDebugInfo, this.state.data.clientDebugInfo)} />
+      <ApiDebugger datasFetched={[this.state.data]} />
     </div>;
   }
 }

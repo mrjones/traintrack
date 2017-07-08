@@ -3,7 +3,7 @@ import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
-import { ApiDebugger, ApiRequestInfo } from './debug';
+import { ApiDebugger } from './debug';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 
 class LineViewProps {
@@ -42,7 +42,7 @@ export default class LineView extends React.Component<LineViewProps, any> {
     return (<div>
               <h1>LineView: {this.props.lineId}</h1>
             <ul className="lineView">{stationLis}</ul>
-            <ApiDebugger requestInfo={new ApiRequestInfo(this.state.stationList.apiUrl, this.state.stationList.debugInfo)}/>
+            <ApiDebugger datasFetched={[this.state.stationList]}/>
             </div>);
   }
 }
