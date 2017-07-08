@@ -6,11 +6,16 @@
  * Black:  #262228
  */
 
-a {
+.app_title a {
+    text-decoration: none;
+    color: black;
+}
+
+.app_content a {
     color: #0375B4;
 }
 
-a:hover {
+.app_content a:hover {
     text-decoration: none;
 }
 
