@@ -62,3 +62,79 @@ export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteCo
     return <LinePicker dataFetcher={new DataFetcher()}/>;
   }
 }
+
+class StationPickerState {
+  public currentJumpText: string;
+  public currentFilterText: string;
+  public allStations: proto.StationList;
+};
+
+class StationPickerProps {
+  public initialStationId: string;
+  public stationPickedFn: (newStation: string) => void;
+  public dataFetcher: DataFetcher;
+}
+
+export class StationPicker extends React.Component<StationPickerProps, StationPickerState> {
+  constructor(props: StationPickerProps) {
+    super(props);
+
+    this.state = {
+      currentJumpText: props.initialStationId,
+      currentFilterText: "",
+      allStations: new proto.StationList(),
+    };
+  }
+
+  public componentDidMount() {
+    this.props.dataFetcher.fetchStationList().then((stationList: DebuggableResult<proto.StationList>) => {
+      this.setState({allStations: stationList.data});
+    });
+  }
+
+  private handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    for (let station of this.state.allStations.station) {
+      if (station.id === this.state.currentJumpText) {
+        console.log("Matched: " + station.name);
+      }
+    }
+    this.props.stationPickedFn(this.state.currentJumpText);
+  }
+
+  private handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
+    this.setState({currentJumpText: e.currentTarget.value});
+  }
+
+  private handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
+    this.setState({currentFilterText: e.currentTarget.value});
+  }
+
+  public render() {
+    let i = 0;
+    const max = 10;
+    let done = false;
+    let stationLis = this.state.allStations.station.map(
+      (station: proto.Station) => {
+        if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
+          if (i++ < max && !done) {
+            // TODO(mrjones): Inject the link URL for flexibility
+            return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
+          } else if (!done) {
+            done = true;
+            return <li>...</li>;
+          }
+        }
+      });
+
+    return (<div className="stationPicker">
+  <form onSubmit={this.handleSubmit.bind(this)}>
+  </form>
+  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
+  <ul>{stationLis}</ul>
+    <hr/>
+    <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
+    <input type="submit" value="Jump (by ID)"/>
+    </div>);
+  }
+}
