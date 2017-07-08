@@ -1,5 +1,8 @@
 import 'babel-polyfill';
+
 import * as proto from './webclient_api_pb';
+
+import { ClientDebugInfo } from './debug';
 
 export class Cached<T> {
   public valid: boolean;
@@ -24,12 +27,14 @@ export default class Foo {};
 export class DebuggableResult<T> {
   public data: T;
   public apiUrl: string;
-  public debugInfo?: proto.IDebugInfo;
+  public serverDebugInfo?: proto.IDebugInfo;
+  public clientDebugInfo?: ClientDebugInfo;
 
-  public constructor(data: T, apiUrl: string, debugInfo?: proto.IDebugInfo) {
+  public constructor(data: T, apiUrl: string, serverDebugInfo?: proto.IDebugInfo, clientDebugInfo?: ClientDebugInfo) {
     this.data = data;
     this.apiUrl = apiUrl;
-    this.debugInfo = debugInfo;
+    this.serverDebugInfo = serverDebugInfo;
+    this.clientDebugInfo = clientDebugInfo;
   }
 }
 
@@ -49,9 +54,10 @@ export class DataFetcher {
 
   public fetchLineList(): Promise<DebuggableResult<proto.LineList>> {
     return new Promise<DebuggableResult<proto.LineList>>((resolve: (l: DebuggableResult<proto.LineList>) => void) => {
+      let startTime = Date.now();
       let apiUrl = "/api/lines";
       if (this.stationCache.valid) {
-        resolve(new DebuggableResult(this.lineListCache.value, apiUrl, this.lineListCache.value.debugInfo));
+        resolve(new DebuggableResult(this.lineListCache.value, apiUrl, this.lineListCache.value.debugInfo, new ClientDebugInfo(true, Date.now() - startTime)));
         return;
       } else {
         fetch(apiUrl).then((response: Response) => {
@@ -60,7 +66,7 @@ export class DataFetcher {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const lineList = proto.LineList.decode(bodyBytes);
           this.lineListCache.set(lineList);
-          resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo));
+          resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
         });
       }
     });
@@ -68,24 +74,26 @@ export class DataFetcher {
 
   public fetchStationStatus(stationId: string): Promise<DebuggableResult<proto.StationStatus>> {
     return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
+      let startTime = Date.now();
       const url = "/api/station/" + stationId;
       fetch(url).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationStatus = proto.StationStatus.decode(bodyBytes);
-        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo));
+        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
       });
     });
   }
 
   public fetchStationList(): Promise<DebuggableResult<proto.StationList>> {
     return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
+      let startTime = Date.now();
       let url = "/api/stations";
 
       if (this.stationCache.valid) {
         console.log("Using cached station list");
-        resolve(new DebuggableResult(this.stationCache.value, url, this.stationCache.value.debugInfo));
+        resolve(new DebuggableResult(this.stationCache.value, url, this.stationCache.value.debugInfo, new ClientDebugInfo(true, Date.now() - startTime)));
         return;
       } else {
         console.log("Requesting station list");
@@ -95,7 +103,7 @@ export class DataFetcher {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const stationList = proto.StationList.decode(bodyBytes);
           this.stationCache.set(stationList);
-          resolve(new DebuggableResult(stationList, url, stationList.debugInfo));
+          resolve(new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
         });
       }
     });
@@ -129,6 +137,7 @@ export class DataFetcher {
 
   public fetchTrainItinerary(trainId: string): Promise<DebuggableResult<proto.TrainItinerary>> {
     return new Promise<DebuggableResult<proto.TrainItinerary>>((resolve: (ti: DebuggableResult<proto.TrainItinerary>) => void) => {
+      let startTime = Date.now();
       let url = "/api/train/" + trainId;
 
       if (!this.trainsByIdCache.has(trainId)) {
@@ -138,7 +147,7 @@ export class DataFetcher {
       let cached = this.trainsByIdCache.get(trainId);
 
       if (cached.valid) {
-        resolve(new DebuggableResult(cached.value, url, cached.value.debugInfo));
+        resolve(new DebuggableResult(cached.value, url, cached.value.debugInfo, new ClientDebugInfo(true, Date.now() - startTime)));
         return;
       } else {
         fetch(url).then((response: Response) => {
@@ -147,7 +156,7 @@ export class DataFetcher {
           const bodyBytes = new Uint8Array(bodyBuffer);
           const itinerary = proto.TrainItinerary.decode(bodyBytes);
           cached.set(itinerary);
-          resolve(new DebuggableResult(itinerary, url, itinerary.debugInfo));
+          resolve(new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
         });
       }
     });

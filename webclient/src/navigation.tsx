@@ -27,7 +27,7 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
   public componentDidMount() {
     this.props.dataFetcher.fetchLineList()
       .then((res: DebuggableResult<proto.LineList>) => {
-        this.setState({lineList: res.data, apiInfo: new ApiRequestInfo(res.apiUrl, res.debugInfo)});
+        this.setState({lineList: res.data, apiInfo: new ApiRequestInfo(res.apiUrl, res.serverDebugInfo)});
       });
   }
 

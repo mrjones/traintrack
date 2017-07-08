@@ -290,7 +290,7 @@ class StationBoard extends React.Component<StationBoardProps, StationBoardState>
             <h2>{this.state.stationName}</h2>
             <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
             {lineSet}
-            <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.debugInfo)}/>
+            <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.serverDebugInfo, this.state.data.clientDebugInfo)}/>
             </div>);
   };
 }

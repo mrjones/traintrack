@@ -59,7 +59,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
     return <div className="page">
       <div className="pageTitle">Train Itinerary {this.props.trainId}</div>
       {body}
-      <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.debugInfo)} />
+      <ApiDebugger requestInfo={new ApiRequestInfo(this.state.data.apiUrl, this.state.data.serverDebugInfo, this.state.data.clientDebugInfo)} />
     </div>;
   }
 }
