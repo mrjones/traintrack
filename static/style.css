@@ -103,6 +103,7 @@ html {font-size: 1.375em;  /* 22px */}
 .stationPicker {
     padding: .75em;
     background-color: #FFCE00;
+    border-bottom: 1px solid #0375B4;
 }
 
 .stationPicker input {
