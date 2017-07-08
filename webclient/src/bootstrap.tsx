@@ -1,9 +1,11 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import * as ReactGAnalytics from "react-g-analytics";
 import * as ReactRouter from "react-router-dom";
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
-import {Helmet} from "react-helmet";
+
+import { Helmet } from "react-helmet";
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger, ApiRequestInfo } from './debug';
@@ -94,9 +96,22 @@ class OneStationViewWrapperForRouter extends React.Component<ReactRouter.RouteCo
     super(props);
     this.dataFetcher = globalDataFetcher;
 
+    console.log("OneStationViewWrapper.ctor: " + JSON.stringify(this.props.match));
     this.state = {
       stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32",
     };
+  }
+
+  public componentDidMount() {
+    console.log("OneStationViewWrapper.componentDidMount: " + JSON.stringify(this.props.match));
+  }
+
+  public componentDidUpdate() {
+    console.log("OneStationViewWrapper.componentDidUpdate: " + JSON.stringify(this.props.match));
+    let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32";
+    if (newStation !== this.state.stationId) {
+      this.setState({stationId: newStation});
+    }
   }
 
   public render() {
@@ -119,7 +134,9 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
   constructor(props: OneStationViewProps) {
     super(props);
 
-    this.state ={
+    console.log("OneStationView.ctor. props.initial=" + props.initialStationId);
+
+    this.state = {
       stationIdAtLoad: props.initialStationId,
       displayedStationId: props.initialStationId,
       stationPickerDisplayed: false,
@@ -131,6 +148,10 @@ class OneStationView extends React.Component<OneStationViewProps, OneStationView
   }
 
   public componentDidUpdate() {
+    console.log("OneStationView.componentDidUpdate: BEFORE " +
+                "props.initial=" + this.props.initialStationId +
+                ", state.atLoad="  + this.state.stationIdAtLoad +
+                ", state.displayed=" + this.state.displayedStationId);
     if (this.props.initialStationId != this.state.stationIdAtLoad) {
       this.setState({
         stationIdAtLoad: this.props.initialStationId,
@@ -283,7 +304,7 @@ ReactDOM.render(
     </Helmet>
     <div className="app_title"><span className="first">Train</span><span className="second">Track</span></div>
     <div className="app_content">
-      <ReactRouter.BrowserRouter>
+      <ReactGAnalytics.BrowserRouter id="UA-102249880-1">
         <ReactRouter.Switch>
           <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
           <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
@@ -292,7 +313,7 @@ ReactDOM.render(
           <ReactRouter.Route path='/app' component={OneStationViewWrapperForRouter}/>
           <ReactRouter.Route path='/' component={OneStationViewWrapperForRouter}/>
         </ReactRouter.Switch>
-      </ReactRouter.BrowserRouter>
+      </ReactGAnalytics.BrowserRouter>
     </div>
   </div>,
   document.getElementById('tt_app'));
