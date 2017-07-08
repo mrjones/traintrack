@@ -88,7 +88,11 @@ html {font-size: 1.375em;  /* 22px */}
 }
 
 .jumpLink.open {
-    background-color: green;
+    background-color: #FFCE00;
+}
+
+.jumpLink.open a {
+    color: #0375B4;
 }
 
 .jumpLink a {
@@ -97,15 +101,26 @@ html {font-size: 1.375em;  /* 22px */}
 }
 
 .stationPicker {
-    margin: .5em;
-    border: 1px solid black;
     padding: .75em;
-    background-color: lightgray;
+    background-color: #FFCE00;
 }
 
 .stationPicker input {
     width: 100%;
     font-size: 24pt;
+    border: 0;
+}
+
+.stationPicker ul {
+    list-style-type: none;
+    margin-left: 0;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.stationPicker li.more {
+    margin-top: .5em;
+    font-weight: bold;
 }
 
 .stationInfo h2 {
@@ -131,6 +146,12 @@ html {font-size: 1.375em;  /* 22px */}
     margin-bottom: .5em;
     text-shadow: 0px 0px 1px black;
     color: white;
+}
+
+ul.lineList {
+    padding-left: 0;
+    margin-left: 0;
+    text-align: center;
 }
 
 .lineList li.inactive {
@@ -186,6 +207,13 @@ ul.lineView{
 
 .trainItinerary tr:nth-child(even) {
     background-color: #eee;
+}
+
+.apiDebugger {
+    font-size: 90%;
+    border-top: 1px solid #999;
+    color: #999;
+    padding-top: .5em;
 }
 
 /* Desktop-only tweaks*/

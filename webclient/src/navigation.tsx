@@ -120,19 +120,21 @@ export class StationPicker extends React.Component<StationPickerProps, StationPi
             return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
           } else if (!done) {
             done = true;
-            return <li>...</li>;
+            return <li className="more">And more...</li>;
           }
         }
       });
 
     return (<div className="stationPicker">
+  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
+    <ul>{stationLis}</ul>
+            {/*
+    <hr/>
   <form onSubmit={this.handleSubmit.bind(this)}>
   </form>
-  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
-  <ul>{stationLis}</ul>
-    <hr/>
     <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
     <input type="submit" value="Jump (by ID)"/>
+             */}
     </div>);
   }
 }

@@ -120,8 +120,6 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
   constructor(props: StationPageProps) {
     super(props);
 
-    console.log("StationPage.ctor. props.initial=" + props.initialStationId);
-
     this.state = {
       stationIdAtLoad: props.initialStationId,
       displayedStationId: props.initialStationId,
@@ -134,10 +132,6 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
   }
 
   public componentDidUpdate() {
-    console.log("StationPage.componentDidUpdate: BEFORE " +
-                "props.initial=" + this.props.initialStationId +
-                ", state.atLoad="  + this.state.stationIdAtLoad +
-                ", state.displayed=" + this.state.displayedStationId);
     if (this.props.initialStationId != this.state.stationIdAtLoad) {
       this.setState({
         stationIdAtLoad: this.props.initialStationId,
@@ -178,18 +172,12 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
     super(props);
     this.dataFetcher = globalDataFetcher;
 
-    console.log("StationPageWrapper.ctor: " + JSON.stringify(this.props.match));
     this.state = {
       stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32",
     };
   }
 
-  public componentDidMount() {
-    console.log("StationPageWrapper.componentDidMount: " + JSON.stringify(this.props.match));
-  }
-
   public componentDidUpdate() {
-    console.log("StationPageWrapper.componentDidUpdate: " + JSON.stringify(this.props.match));
     let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32";
     if (newStation !== this.state.stationId) {
       this.setState({stationId: newStation});
