@@ -6,6 +6,7 @@ import * as proto from './webclient_api_pb';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
+import { PubInfo } from './pub-info';
 
 class TrainItineraryState {
   data: DebuggableResult<proto.ITrainItinerary>;
@@ -58,7 +59,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
 
     return <div className="page">
       <div className="pageTitle"><h2>Train {this.props.trainId}</h2></div>
-      <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.loadData.bind(this)}>Reload</a></div>
+      <PubInfo reloadFn={this.loadData.bind(this)} pubTimestamp={dataTs} />
       {body}
       <ApiDebugger datasFetched={[this.state.data]} />
     </div>;

@@ -6,6 +6,7 @@ import * as proto from './webclient_api_pb';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { StationPicker } from './navigation';
+import { PubInfo } from './pub-info';
 
 class StationSingleLineProps {
   public data: proto.LineArrivals;
@@ -98,7 +99,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
 
     return (<div className="stationInfo">
             <h2>{this.state.stationName}</h2>
-            <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.stationChanged.bind(this)}>Reload</a></div>
+            <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
             {lineSet}
             <ApiDebugger datasFetched={[this.state.data]}/>
             </div>);
