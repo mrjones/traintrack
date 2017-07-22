@@ -411,6 +411,9 @@ export interface ITrainItinerary {
     /** TrainItinerary arrival */
     arrival?: ITrainItineraryArrival[];
 
+    /** TrainItinerary dataTimestamp */
+    dataTimestamp?: (number|Long);
+
     /** TrainItinerary debugInfo */
     debugInfo?: IDebugInfo;
 }
@@ -435,6 +438,9 @@ export class TrainItinerary {
 
     /** TrainItinerary arrival. */
     public arrival: ITrainItineraryArrival[];
+
+    /** TrainItinerary dataTimestamp. */
+    public dataTimestamp: (number|Long);
 
     /** TrainItinerary debugInfo. */
     public debugInfo?: (IDebugInfo|null);

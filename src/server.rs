@@ -82,7 +82,11 @@ fn api_response<M: protobuf::Message>(data: &mut M, _: &TTContext, rustful_conte
     match format.as_ref().map(String::as_ref) {
         // TODO(mrjones): return proper MIME type
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
-        Some("json") => return Ok(protobuf_json::proto_to_json(data).to_string().as_bytes().to_vec()),
+        Some("json") => {
+            let json = protobuf_json::proto_to_json(data);
+            println!("JSON: {}", json);
+            return Ok(json.to_string().as_bytes().to_vec());
+        },
         _ => {
             let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
             return r;
@@ -199,6 +203,7 @@ fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, t
             if entity.has_trip_update() {
                 let trip_update = entity.get_trip_update();
                 if trip_update.get_trip().get_trip_id() == desired_train {
+                    response.set_data_timestamp(feed.timestamp.timestamp());
                     response.set_line(trip_update.get_trip().get_route_id().to_string());
                     // TODO(mrjones): direction & color
                     response.set_arrival(trip_update.get_stop_time_update().iter().filter_map(|stu| {

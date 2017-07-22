@@ -999,6 +999,7 @@ $root.TrainItinerary = (function() {
      * @property {Direction} [direction] TrainItinerary direction
      * @property {string} [lineColorHex] TrainItinerary lineColorHex
      * @property {Array.<ITrainItineraryArrival>} [arrival] TrainItinerary arrival
+     * @property {number|Long} [dataTimestamp] TrainItinerary dataTimestamp
      * @property {IDebugInfo} [debugInfo] TrainItinerary debugInfo
      */
 
@@ -1050,6 +1051,14 @@ $root.TrainItinerary = (function() {
     TrainItinerary.prototype.arrival = $util.emptyArray;
 
     /**
+     * TrainItinerary dataTimestamp.
+     * @member {number|Long}dataTimestamp
+     * @memberof TrainItinerary
+     * @instance
+     */
+    TrainItinerary.prototype.dataTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
      * TrainItinerary debugInfo.
      * @member {(IDebugInfo|null|undefined)}debugInfo
      * @memberof TrainItinerary
@@ -1092,6 +1101,8 @@ $root.TrainItinerary = (function() {
                 $root.TrainItineraryArrival.encode(message.arrival[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            writer.uint32(/* id 6, wireType 0 =*/48).int64(message.dataTimestamp);
         return writer;
     };
 
@@ -1139,6 +1150,9 @@ $root.TrainItinerary = (function() {
                 if (!(message.arrival && message.arrival.length))
                     message.arrival = [];
                 message.arrival.push($root.TrainItineraryArrival.decode(reader, reader.uint32()));
+                break;
+            case 6:
+                message.dataTimestamp = reader.int64();
                 break;
             case 5:
                 message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
@@ -1201,6 +1215,9 @@ $root.TrainItinerary = (function() {
                     return "arrival." + error;
             }
         }
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
+                return "dataTimestamp: integer|Long expected";
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
             error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
@@ -1245,6 +1262,15 @@ $root.TrainItinerary = (function() {
                 message.arrival[i] = $root.TrainItineraryArrival.fromObject(object.arrival[i]);
             }
         }
+        if (object.dataTimestamp != null)
+            if ($util.Long)
+                (message.dataTimestamp = $util.Long.fromValue(object.dataTimestamp)).unsigned = false;
+            else if (typeof object.dataTimestamp === "string")
+                message.dataTimestamp = parseInt(object.dataTimestamp, 10);
+            else if (typeof object.dataTimestamp === "number")
+                message.dataTimestamp = object.dataTimestamp;
+            else if (typeof object.dataTimestamp === "object")
+                message.dataTimestamp = new $util.LongBits(object.dataTimestamp.low >>> 0, object.dataTimestamp.high >>> 0).toNumber();
         if (object.debugInfo != null) {
             if (typeof object.debugInfo !== "object")
                 throw TypeError(".TrainItinerary.debugInfo: object expected");
@@ -1273,6 +1299,11 @@ $root.TrainItinerary = (function() {
             object.direction = options.enums === String ? "UPTOWN" : 0;
             object.lineColorHex = "";
             object.debugInfo = null;
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.dataTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.dataTimestamp = options.longs === String ? "0" : 0;
         }
         if (message.line != null && message.hasOwnProperty("line"))
             object.line = message.line;
@@ -1287,6 +1318,11 @@ $root.TrainItinerary = (function() {
         }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
+        if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
+            if (typeof message.dataTimestamp === "number")
+                object.dataTimestamp = options.longs === String ? String(message.dataTimestamp) : message.dataTimestamp;
+            else
+                object.dataTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.dataTimestamp) : options.longs === Number ? new $util.LongBits(message.dataTimestamp.low >>> 0, message.dataTimestamp.high >>> 0).toNumber() : message.dataTimestamp;
         return object;
     };
 

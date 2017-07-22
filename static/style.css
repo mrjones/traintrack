@@ -124,10 +124,12 @@ html {font-size: 1.375em;  /* 22px */}
     font-weight: bold;
 }
 
-.stationInfo h2 {
+h2 {
     margin: 0;
-    margin-top: 10pt;
     text-transform: uppercase;
+}
+.stationInfo h2 {
+    margin-top: 10pt;
 }
 
 .pubTime {

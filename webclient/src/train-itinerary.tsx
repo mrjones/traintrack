@@ -27,14 +27,12 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
   }
 
   public componentDidMount() {
-    this.props.dataFetcher.fetchTrainItinerary(this.props.trainId).then(
-      (res: DebuggableResult<proto.ITrainItinerary>) => {
-        this.setState({data: res, loaded: true});
-      });
+    this.loadData();
   }
 
-  render(): JSX.Element {
+  public render(): JSX.Element {
     let body = <div>Loading...</div>;
+    let dataTs = moment.unix(0);
     if (this.state.loaded) {
       const rows = this.state.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
@@ -54,13 +52,23 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
           {rows}
         </tbody>
       </table>;
+
+      dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
     }
 
     return <div className="page">
-      <div className="pageTitle">Train Itinerary {this.props.trainId}</div>
+      <div className="pageTitle"><h2>Train {this.props.trainId}</h2></div>
+      <div className="pubTime">Published at {dataTs.format("LTS")} ({dataTs.fromNow()}) <a href="#" onClick={this.loadData.bind(this)}>Reload</a></div>
       {body}
       <ApiDebugger datasFetched={[this.state.data]} />
     </div>;
+  }
+
+  private loadData() {
+    this.props.dataFetcher.fetchTrainItinerary(this.props.trainId).then(
+      (res: DebuggableResult<proto.ITrainItinerary>) => {
+        this.setState({data: res, loaded: true});
+      });
   }
 }
 
