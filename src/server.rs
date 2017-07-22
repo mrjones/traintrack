@@ -151,10 +151,10 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
 
 fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
     let mut response = webclient_api::StationList::new();
-    for &ref stop in tt_context.stops.iter() {
+    for &ref stop in tt_context.stops.complexes_iter() {
         let mut station = webclient_api::Station::new();
         station.set_name(stop.name.clone());
-        station.set_id(stop.id.clone());
+        station.set_id(stop.complex_id.clone());
         response.mut_station().push(station);
     }
 
@@ -170,7 +170,7 @@ fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context
     for &ref stop in tt_context.stops.stops_for_route(&desired_line)? {
         let mut station = webclient_api::Station::new();
         station.set_name(stop.name.clone());
-        station.set_id(stop.id.clone());
+        station.set_id(stop.complex_id.clone());
         response.mut_station().push(station);
     }
 

@@ -55,10 +55,14 @@ pub fn possible_stop_ids(initial_id: &str) -> Vec<String> {
     return result;
 }
 
-pub fn stop_matches(candidate_id: &str, desired_id: &str, _: &stops::Stops) -> bool {
+pub fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) -> bool {
     return candidate_id == desired_id ||
         candidate_id == format!("{}N", desired_id) ||
-        candidate_id == format!("{}S", desired_id);
+        candidate_id == format!("{}S", desired_id) ||
+        possible_stop_ids(candidate_id).iter().map(
+            |id| stops.gtfs_id_to_complex_id(id) == Some(desired_id)).find(|x| *x).is_some();
+
+
     /*
     Not useful unless StopsLogic==GTFS in stops.rs
 

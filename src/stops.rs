@@ -8,6 +8,7 @@ pub struct Stop {
     pub id: String,
     pub parent_id: Option<String>,
     pub name: String,
+    pub complex_id: String,
 }
 
 #[derive(Clone)]
@@ -22,6 +23,8 @@ pub struct Stops {
 //    stop_ids_by_trip: std::collections::HashMap<String, Vec<String>>,
     stops_by_route: std::collections::HashMap<String, Vec<Stop>>,
     routes: Vec<Route>,
+
+    complexes: std::collections::HashMap<String, Stop>,
 }
 
 // For Stations.csv
@@ -94,12 +97,21 @@ struct RouteCsvRecord {
 
 
 impl Stops {
-    pub fn iter(&self) -> std::collections::hash_map::Values<String, Stop> {
+    pub fn stations_iter(&self) -> std::collections::hash_map::Values<String, Stop> {
         return self.stops.values();
     }
 
+    pub fn complexes_iter(&self) -> std::collections::hash_map::Values<String, Stop> {
+        return self.complexes.values();
+    }
+
+    pub fn gtfs_id_to_complex_id(&self, id: &str) -> Option<&str> {
+        return self.stops.get(id).map(|stop| stop.complex_id.as_ref());
+    }
+
     pub fn lookup_by_id(&self, id: &str) -> Option<&Stop> {
-        return self.stops.get(id);
+        return self.complexes.get(id).or_else(
+            || { return self.stops.get(id); });
     }
 
     pub fn lines(&self) -> Vec<Route> {
@@ -173,6 +185,7 @@ impl Stops {
             let mut routes_file = gtfs_directory.clone();
             routes_file.push("Stations.csv");
             let mut stops = std::collections::HashMap::new();
+            let mut complexes = std::collections::HashMap::new();
             let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
             {
                 let mut reader = csv::Reader::from_file(routes_file)?;
@@ -182,10 +195,14 @@ impl Stops {
                         id: record.gtfs_stop_id.clone(),
                         parent_id: None,
                         name: record.name,
+                        complex_id: record.complex_id.clone(),
                     };
 
-                    stops.insert(
-                        record.gtfs_stop_id.clone(), stop.clone());
+                    stops.insert(record.gtfs_stop_id.clone(), stop.clone());
+
+                    if !complexes.contains_key(&record.complex_id) {
+                        complexes.insert(record.complex_id, stop.clone());
+                    }
 
                     for route in record.daytime_routes.split(" ") {
                         if stops_by_route.contains_key(route) {
@@ -206,6 +223,7 @@ impl Stops {
 //                stop_ids_by_trip: std::collections::HashMap::new(),
                 stops_by_route: stops_by_route,
                 routes: routes,
+                complexes: complexes,
             });
         } else if logic == StopsLogic::GTFS {
             info!("Parsing stops.txt");
@@ -220,6 +238,7 @@ impl Stops {
                         id: record.stop_id.clone(),
                         parent_id: record.parent_station.clone(),
                         name: record.stop_name.clone(),
+                        complex_id: record.stop_id.clone(), // TODO
                     });
                 }
             }
@@ -278,6 +297,7 @@ impl Stops {
 //                stop_ids_by_trip: stop_ids_by_trip,
                 stops_by_route: stops_by_route,
                 routes: routes,
+                complexes: std::collections::HashMap::new(), // TODO
             });
         } else {
             return Err(result::quick_err("Uknown stops logic"));
