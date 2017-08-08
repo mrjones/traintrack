@@ -3,8 +3,11 @@ import * as React from "react";
 import * as ReactRouter from "react-router-dom";
 import * as proto from './webclient_api_pb';
 
+import * as utils from './utils'
+
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
+import { FilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
@@ -38,7 +41,7 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
     return (
       <div className="stationLine">
-        <div className="header" style={lineStyle}>{this.props.data.line} - {directionName(this.props.data.direction)}</div>
+        <div className="header" style={lineStyle}>{this.props.data.line} - {utils.directionName(this.props.data.direction)}</div>
         <ul>{arrivals}</ul>
       </div>);
   }
@@ -48,6 +51,7 @@ class StationMultiLineState {
   public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
+  public filterPredicate: (l: proto.LineArrivals) => boolean;
 };
 
 class StationMultiLineProps {
@@ -62,6 +66,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       stationId: "",
       stationName: "Loading...",
       data: new DebuggableResult(new proto.StationStatus(), "unknown"),
+      filterPredicate: (l: proto.LineArrivals) => { return true; },
     };
   }
 
@@ -88,8 +93,12 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       });
   }
 
+  private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
+    this.setState({filterPredicate: p});
+  }
+
   public render() {
-    const lineSet = this.state.data.data.line.map(
+    const lineSet = this.state.data.data.line.filter(this.state.filterPredicate).map(
       (line: proto.LineArrivals) => {
         const key = this.props.stationId + "-" + line.line + "-" + line.direction;
         return <StationSingleLine data={line} key={key} />;
@@ -100,6 +109,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.state.stationName}</h2>
             <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
+            <FilterControl interestingDirections={new Array<proto.Direction>(proto.Direction.UPTOWN, proto.Direction.DOWNTOWN)} updateFilterPredicateFn={this.updateFilterPredicate.bind(this)}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.state.data]}/>
             </div>);
@@ -174,12 +184,12 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
     this.dataFetcher = globalDataFetcher;
 
     this.state = {
-      stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32",
+      stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028",
     };
   }
 
   public componentDidUpdate() {
-    let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "R32";
+    let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028";
     if (newStation !== this.state.stationId) {
       this.setState({stationId: newStation});
     }
@@ -190,16 +200,5 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
   }
 }
 
-function directionName(direction: proto.Direction): string {
-  switch (direction) {
-    case proto.Direction.UPTOWN:
-      return "Uptown";
-    case proto.Direction.DOWNTOWN:
-      return "Downtown";
-    default:
-      console.log("Unknown Direction: " + direction);
-      return "" + direction;
-  }
-}
 
 let globalDataFetcher = new DataFetcher();
