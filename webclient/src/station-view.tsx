@@ -109,7 +109,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.state.stationName}</h2>
             <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
-            <FilterControl interestingDirections={new Array<proto.Direction>(proto.Direction.UPTOWN, proto.Direction.DOWNTOWN)} updateFilterPredicateFn={this.updateFilterPredicate.bind(this)}/>
+            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} allTrains={this.state.data.data} />
             {lineSet}
             <ApiDebugger datasFetched={[this.state.data]}/>
             </div>);
