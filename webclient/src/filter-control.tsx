@@ -5,12 +5,14 @@ import * as utils from './utils';
 
 class FilterControlProps {
   public updateFilterPredicateFn: (newFn: (l: proto.LineArrivals) => boolean) => void;
+  public updateMixingFn: (mixMultipleLines: boolean) => void;
   public allTrains: proto.StationStatus;
 };
 
 class FilterControlState {
   public directionStates: Map<proto.Direction, boolean>;
   public lineStates: Map<string, boolean>;
+  public mixMultipleLines: boolean;
 };
 
 export class FilterControl extends React.Component<FilterControlProps, FilterControlState> {
@@ -20,6 +22,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     this.state = {
       directionStates: new Map<proto.Direction, boolean>(),
       lineStates: new Map<string, boolean>(),
+      mixMultipleLines: false,
     };
   }
 
@@ -33,6 +36,9 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       let prefixWord = visible ? "Hide" : "Show";
       togglers.push(<span key={line}>[<a href="#" onClick={this.toggleLine.bind(this, line)}>{prefixWord} {line}</a>]</span>);
     });
+
+    let mixingWord = this.state.mixMultipleLines ? "Separate lines" : "Mix lines";
+    togglers.push(<span key="mixing">[<a href="#" onClick={this.toggleMixing.bind(this)}>{mixingWord}</a>]</span>);
 
     return <div>
       {togglers}
@@ -109,4 +115,10 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       this.state.lineStates.set(line, !lState);
     }
   };
+
+  private toggleMixing() {
+    const newMixing = !this.state.mixMultipleLines;
+    this.setState({mixMultipleLines: newMixing});
+    this.props.updateMixingFn(newMixing);
+  }
 };

@@ -3,13 +3,21 @@ import * as React from "react";
 import * as ReactRouter from "react-router-dom";
 import * as proto from './webclient_api_pb';
 
-import * as utils from './utils'
+import * as utils from './utils';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { FilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
+
+class StationIntermingledLineProps { }
+
+class StationIntermingledLines extends React.Component<StationIntermingledLineProps, undefined> {
+  public render(): JSX.Element {
+    return <div>StationIntermingledLines</div>;
+  }
+};
 
 class StationSingleLineProps {
   public data: proto.LineArrivals;
@@ -47,11 +55,14 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
   }
 };
 
+enum MultipleLineMixing { SEPARATE, INTERMINGLED };
+
 class StationMultiLineState {
   public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
   public filterPredicate: (l: proto.LineArrivals) => boolean;
+  public mixing: MultipleLineMixing;
 };
 
 class StationMultiLineProps {
@@ -67,6 +78,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       stationName: "Loading...",
       data: new DebuggableResult(new proto.StationStatus(), "unknown"),
       filterPredicate: (l: proto.LineArrivals) => { return true; },
+      mixing: MultipleLineMixing.SEPARATE,
     };
   }
 
@@ -97,19 +109,30 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     this.setState({filterPredicate: p});
   }
 
+  private updateLineMixingState(mixMultipleLines: boolean) {
+    this.setState({mixing: mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE});
+
+  }
+
   public render() {
-    const lineSet = this.state.data.data.line.filter(this.state.filterPredicate).map(
-      (line: proto.LineArrivals) => {
-        const key = this.props.stationId + "-" + line.line + "-" + line.direction;
-        return <StationSingleLine data={line} key={key} />;
-      });
+    let lineSet: JSX.Element[];
+    if (this.state.mixing === MultipleLineMixing.SEPARATE) {
+      lineSet = this.state.data.data.line.filter(this.state.filterPredicate).map(
+        (line: proto.LineArrivals) => {
+          const key = this.props.stationId + "-" + line.line + "-" + line.direction;
+          return <StationSingleLine data={line} key={key} />;
+        });
+    } else {
+      lineSet = new Array<JSX.Element>();
+      lineSet.push(<StationIntermingledLines />);
+    }
 
     const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
 
     return (<div className="stationInfo">
             <h2>{this.state.stationName}</h2>
             <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
-            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} allTrains={this.state.data.data} />
+            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} updateMixingFn={this.updateLineMixingState.bind(this)} allTrains={this.state.data.data} />
             {lineSet}
             <ApiDebugger datasFetched={[this.state.data]}/>
             </div>);
