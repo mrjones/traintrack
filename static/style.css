@@ -142,6 +142,11 @@ h2 {
     margin-top: 0;
 }
 
+.stationLine li.expired,
+.stationLine li.expired a {
+    color: #CCCCCC;
+}
+
 .stationLine .header {
     font-weight: bold;
     border-bottom: 1px solid #999999;

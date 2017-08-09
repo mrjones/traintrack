@@ -26,11 +26,11 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
         const ts = arr.timestamp as number;
         const time = moment.unix(ts);
 
-        if (time > moment()) {
-          return <li key={ts}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
-        } else {
-          return <li key={ts}><s>{time.format("LT")}</s></li>;
+        let className = "upcoming";
+        if (time < moment()) {
+          className = "expired";
         }
+        return <li key={ts} className={className}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       }
     );
 
