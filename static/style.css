@@ -217,6 +217,12 @@ ul.lineView{
     background-color: #eee;
 }
 
+.intermingledArrivals .lineName {
+    color: white;
+    -webkit-text-stroke: 1px black;
+    padding: .1em;
+}
+
 .apiDebugger {
     font-size: 90%;
     border-top: 1px solid #999;

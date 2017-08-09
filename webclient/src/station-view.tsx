@@ -11,11 +11,52 @@ import { FilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
-class StationIntermingledLineProps { }
+class StationIntermingledLineProps {
+  public data: proto.ILineArrivals[];
+}
+
+class IntermingledArrivalInfo {
+  public line: string;
+  public timestamp: number | Long;
+  public direction: proto.Direction;
+  public tripId: string;
+  public lineColorHex: string;
+}
 
 class StationIntermingledLines extends React.Component<StationIntermingledLineProps, undefined> {
   public render(): JSX.Element {
-    return <div>StationIntermingledLines</div>;
+    let arrivalLis = this.sortArrivals(this.props.data).map((info: IntermingledArrivalInfo) => {
+      let key = info.line + "-" + info.timestamp + "-" + info.direction;
+      const time = moment.unix(info.timestamp);
+      let style = {
+        background: "#" + info.lineColorHex,
+      };
+      return <li key={key}><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()}) {utils.directionName(info.direction)}</li>;
+    });
+
+    return <ul className="intermingledArrivals">{arrivalLis}</ul>;
+  }
+
+  private sortArrivals(arrivals: proto.ILineArrivals[]): IntermingledArrivalInfo[] {
+    let infos = new Array<IntermingledArrivalInfo>();
+    arrivals.map((oneLine: proto.ILineArrivals) => {
+      oneLine.arrivals.map((oneArrival: proto.LineArrival) => {
+        let info = new IntermingledArrivalInfo();
+        info.line = oneLine.line;
+        info.direction = oneLine.direction;
+        info.timestamp = oneArrival.timestamp;
+        info.tripId = oneArrival.tripId;
+        info.lineColorHex = oneLine.lineColorHex;
+        infos.push(info);
+      });
+    });
+
+    infos.sort((a: IntermingledArrivalInfo, b: IntermingledArrivalInfo) => {
+      if (a.timestamp < b.timestamp) { return -1; }
+      if (a.timestamp > b.timestamp) { return 1; }
+      return 0;
+    });
+    return infos;
   }
 };
 
@@ -106,7 +147,8 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
   }
 
   private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
-    this.setState({filterPredicate: p});
+    this.setState({filterPredicate: p}
+    );
   }
 
   private updateLineMixingState(mixMultipleLines: boolean) {
@@ -116,15 +158,17 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
 
   public render() {
     let lineSet: JSX.Element[];
+    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
+
     if (this.state.mixing === MultipleLineMixing.SEPARATE) {
-      lineSet = this.state.data.data.line.filter(this.state.filterPredicate).map(
+      lineSet = visibleLines.map(
         (line: proto.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
           return <StationSingleLine data={line} key={key} />;
         });
     } else {
       lineSet = new Array<JSX.Element>();
-      lineSet.push(<StationIntermingledLines />);
+      lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed"/>);
     }
 
     const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
