@@ -283,9 +283,30 @@ fn list_stations(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result:
 
 fn debug(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let mut body = "<html><head><title>TTDebug</title></head><body><h1>Debug</h1><ul>".to_string();
-    vec!["dump_proto", "fetch_now"].iter().map(
+    vec!["dump_proto", "fetch_now", "freshness"].iter().map(
         |u| body.push_str(&format!("<li><a href='/debug/{}'>/{}</a></li>", u, u))).count();
     body.push_str("</ul></body></html>");
+
+    return Ok(body.as_bytes().to_vec());
+}
+
+fn feed_freshness(
+    tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let mut body = "<h1>Dump Proto</h1><ul>".to_string();
+    let now = chrono::Utc::now();
+    for feed_id in tt_context.fetcher.known_feed_ids() {
+        let feed = tt_context.fetcher.latest_value(feed_id);
+        match feed {
+            None => {
+                body.push_str(format!("<li>Feed {}: NO DATA</li>", feed_id).as_ref());
+            },
+            Some(feed) => {
+                let age_seconds = now.timestamp() - feed.timestamp.timestamp();
+                body.push_str(format!("<li>Feed {}: {}s ago ({})</li>", feed_id, age_seconds, feed.timestamp).as_ref());
+            }
+        }
+    }
+    body.push_str("</ul>");
 
     return Ok(body.as_bytes().to_vec());
 }
@@ -376,6 +397,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
                 node.then().on_get(PageType::Dynamic(dump_feed_links));
                 node.path(":feed_id").then().on_get(PageType::Dynamic(dump_proto));
             });
+            node.path("freshness").then().on_get(PageType::Dynamic(feed_freshness));
             node.path("fetch_now").then().on_get(PageType::Dynamic(fetch_now));
         });
 
