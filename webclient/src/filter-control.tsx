@@ -33,8 +33,8 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     this.state.directionStates.forEach((visible: boolean, direction: proto.Direction) => {
       let className = "toggleButton " + (visible ? "active" : "inactive");
       let name = direction.toString();
-      if (direction === proto.Direction.UPTOWN) { name = '\u25b2'; }
-      if (direction === proto.Direction.DOWNTOWN) { name = '\u25bc'; }
+      if (direction === proto.Direction.UPTOWN) { name = String.fromCodePoint(0x25B2); }
+      if (direction === proto.Direction.DOWNTOWN) { name = String.fromCodePoint(0x25BC); }
       togglers.push(<div key={utils.directionName(direction)} className={className}><a href="#" onClick={this.toggleDirection.bind(this, direction)}>{name}</a></div>);
     });
 
