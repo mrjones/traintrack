@@ -40,7 +40,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
           className = "expired";
         }
 
-        return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()})</li>;
+        return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       });
       directionUls.push(<div className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
     }
