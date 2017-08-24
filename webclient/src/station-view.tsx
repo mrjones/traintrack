@@ -31,7 +31,13 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
       let style = {
         background: "#" + info.lineColorHex,
       };
-      return <li key={key}><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()}) {utils.directionName(info.direction)}</li>;
+
+      let className = "upcoming";
+      if (time < moment()) {
+        className = "expired";
+      }
+
+      return <li key={key} className={className} ><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()}) {utils.directionName(info.direction)}</li>;
     });
 
     return <ul className="intermingledArrivals">{arrivalLis}</ul>;
