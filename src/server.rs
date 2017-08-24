@@ -215,10 +215,12 @@ fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, t
                         arr_proto.set_timestamp(stu.get_arrival().get_time());
 
                         for candidate in utils::possible_stop_ids(stu.get_stop_id()) {
-                            if let Some(info) = tt_context.stops.lookup_by_id(&candidate) {
-                                let mut station = arr_proto.mut_station();
-                                station.set_id(candidate.clone());
-                                station.set_name(info.name.clone());
+                            if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
+                                if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
+                                    let mut station = arr_proto.mut_station();
+                                    station.set_id(complex_id.to_string());
+                                    station.set_name(info.name.clone());
+                                }
                             }
                         }
 
