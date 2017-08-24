@@ -56,13 +56,6 @@ pub fn possible_stop_ids(initial_id: &str) -> Vec<String> {
 }
 
 pub fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) -> bool {
-    /*
-    return candidate_id == desired_id ||
-        candidate_id == format!("{}N", desired_id) ||
-        candidate_id == format!("{}S", desired_id) ||
-        possible_stop_ids(candidate_id).iter().map(
-            |id| stops.gtfs_id_to_complex_id(id) == Some(desired_id)).find(|x| *x).is_some();
-     */
     return possible_stop_ids(candidate_id).iter().map(
             |id| stops.gtfs_id_to_complex_id(id) == Some(desired_id)).find(|x| *x).is_some();
 }
@@ -102,12 +95,6 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
                 let trip_update = entity.get_trip_update();
                 let trip = trip_update.get_trip();
                 for stop_time_update in trip_update.get_stop_time_update() {
-                    // Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude
-
-                    // 338,617,235,IRT,Eastern Pky,Atlantic Av - Barclays Ctr,Bk,2 3,Subway,40.684359,-73.977666
-                    // 235,235,F18,IND,6th Av - Culver,York St,Bk,F,Subway,40.701397,-73.986751
-
-                    /* get_stop_id == 235S */
                     if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
                         min_relevant_ts = std::cmp::min(min_relevant_ts, feed.get_header().get_timestamp());
                         let direction = infer_direction_for_trip_id(trip.get_trip_id());
