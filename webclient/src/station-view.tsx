@@ -25,26 +25,31 @@ class IntermingledArrivalInfo {
 
 class StationIntermingledLines extends React.Component<StationIntermingledLineProps, undefined> {
   public render(): JSX.Element {
-    let arrivalLis = this.sortArrivals(this.props.data).map((info: IntermingledArrivalInfo) => {
-      let key = info.line + "-" + info.timestamp + "-" + info.direction;
-      const time = moment.unix(info.timestamp);
-      let style = {
-        background: "#" + info.lineColorHex,
-      };
+    let directionUls = new Array<JSX.Element>();
+    let directionDatas = this.sortArrivals(this.props.data);
+    for (let directionData of directionDatas) {
+      let lis = directionData[1].map((info: IntermingledArrivalInfo) => {
+        let key = info.line + "-" + info.timestamp + "-" + info.direction;
+        const time = moment.unix(info.timestamp as number);
+        let style = {
+          background: "#" + info.lineColorHex,
+        };
 
-      let className = "upcoming";
-      if (time < moment()) {
-        className = "expired";
-      }
+        let className = "upcoming";
+        if (time < moment()) {
+          className = "expired";
+        }
 
-      return <li key={key} className={className} ><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()}) {utils.directionName(info.direction)}</li>;
-    });
+        return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> {time.format("LT")} ({time.fromNow()})</li>;
+      });
+      directionUls.push(<div className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
+    }
 
-    return <ul className="intermingledArrivals">{arrivalLis}</ul>;
+    return <div>{directionUls}</div>;
   }
 
-  private sortArrivals(arrivals: proto.ILineArrivals[]): IntermingledArrivalInfo[] {
-    let infos = new Array<IntermingledArrivalInfo>();
+  private sortArrivals(arrivals: proto.ILineArrivals[]): Map<proto.Direction, IntermingledArrivalInfo[]> {
+    let infoMap = new Map<proto.Direction, IntermingledArrivalInfo[]>();
     arrivals.map((oneLine: proto.ILineArrivals) => {
       oneLine.arrivals.map((oneArrival: proto.LineArrival) => {
         let info = new IntermingledArrivalInfo();
@@ -53,16 +58,22 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
         info.timestamp = oneArrival.timestamp;
         info.tripId = oneArrival.tripId;
         info.lineColorHex = oneLine.lineColorHex;
-        infos.push(info);
+
+        if (!infoMap.has(oneLine.direction)) {
+          infoMap.set(oneLine.direction, new Array<IntermingledArrivalInfo>());
+        }
+        infoMap.get(oneLine.direction).push(info);
       });
     });
 
-    infos.sort((a: IntermingledArrivalInfo, b: IntermingledArrivalInfo) => {
-      if (a.timestamp < b.timestamp) { return -1; }
-      if (a.timestamp > b.timestamp) { return 1; }
-      return 0;
-    });
-    return infos;
+    for (let info of infoMap) {
+      info[1].sort((a: IntermingledArrivalInfo, b: IntermingledArrivalInfo) => {
+        if (a.timestamp < b.timestamp) { return -1; }
+        if (a.timestamp > b.timestamp) { return 1; }
+        return 0;
+      });
+    }
+    return infoMap;
   }
 };
 

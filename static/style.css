@@ -147,11 +147,18 @@ h2 {
     color: #CCCCCC;
 }
 
-.stationLine .header {
+.header {
     font-weight: bold;
     border-bottom: 1px solid #999999;
     padding: .2em;
     margin-bottom: .5em;
+}
+
+.intermingledArrivals .header {
+    background-color: #CCCCCC;
+}
+
+.stationLine .header {
     text-shadow: 0px 0px 1px black;
     color: white;
 }
@@ -215,6 +222,12 @@ ul.lineView{
 
 .trainItinerary tr:nth-child(even) {
     background-color: #eee;
+}
+
+.intermingledArrivals ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: .5em;
 }
 
 .intermingledArrivals .expired {
