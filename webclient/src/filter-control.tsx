@@ -12,6 +12,7 @@ class FilterControlProps {
 class FilterControlState {
   public directionStates: Map<proto.Direction, boolean>;
   public lineStates: Map<string, boolean>;
+  public lineColors: Map<string, string>;
   public mixMultipleLines: boolean;
 };
 
@@ -22,6 +23,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     this.state = {
       directionStates: new Map<proto.Direction, boolean>(),
       lineStates: new Map<string, boolean>(),
+      lineColors: new Map<string, string>(),
       mixMultipleLines: false,
     };
   }
@@ -29,18 +31,25 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public render(): JSX.Element {
     let togglers = new Array<JSX.Element>();
     this.state.directionStates.forEach((visible: boolean, direction: proto.Direction) => {
-      let prefixWord = visible ? "Hide" : "Show";
-      togglers.push(<span key={utils.directionName(direction)}>[<a href="#" onClick={this.toggleDirection.bind(this, direction)}>{prefixWord} {utils.directionName(direction)}</a>]</span>);
+      let className = "toggleButton " + (visible ? "active" : "inactive");
+      let name = direction.toString();
+      if (direction === proto.Direction.UPTOWN) { name = '\u25b2'; }
+      if (direction === proto.Direction.DOWNTOWN) { name = '\u25bc'; }
+      togglers.push(<div key={utils.directionName(direction)} className={className}><a href="#" onClick={this.toggleDirection.bind(this, direction)}>{name}</a></div>);
     });
+
     this.state.lineStates.forEach((visible: boolean, line: string) => {
-      let prefixWord = visible ? "Hide" : "Show";
-      togglers.push(<span key={line}>[<a href="#" onClick={this.toggleLine.bind(this, line)}>{prefixWord} {line}</a>]</span>);
+      let style = {
+        background: "#" + this.state.lineColors.get(line),
+      };
+      let className = "toggleButton " + (visible ? "active" : "inactive");
+      togglers.push(<div key={line} className={className} style={style}><a href="#" onClick={this.toggleLine.bind(this, line)}>{line}</a></div>);
     });
 
     let mixingWord = this.state.mixMultipleLines ? "Separate lines" : "Mix lines";
     togglers.push(<span key="mixing">[<a href="#" onClick={this.toggleMixing.bind(this)}>{mixingWord}</a>]</span>);
 
-    return <div>
+    return <div className="filterControl">
       {togglers}
       </div>;
   }
@@ -52,6 +61,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public componentWillReceiveProps(nextProps: FilterControlProps) {
     let directionStates = new Map<proto.Direction, boolean>();
     let lineStates = new Map<string, boolean>();
+    let lineColors = new Map<string, string>();
     nextProps.allTrains.line.map((line: proto.LineArrivals) => {
       const existingDState = this.state.directionStates.get(line.direction);
       if (existingDState === undefined) {
@@ -59,6 +69,8 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       } else {
         directionStates.set(line.direction, existingDState);
       }
+
+      lineColors.set(line.line, line.lineColorHex);
 
       const existingLState = this.state.lineStates.get(line.line);
       if (existingLState === undefined) {
@@ -71,6 +83,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     this.setState({
       directionStates: directionStates,
       lineStates: lineStates,
+      lineColors: lineColors,
     });
   }
 

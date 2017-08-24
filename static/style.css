@@ -251,6 +251,30 @@ ul.lineView{
     padding-top: .5em;
 }
 
+.filterControl .toggleButton {
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    border: 1px solid black;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 2em;
+    font-weight: bold;
+    margin-right: .25em;
+    margin-bottom: .25em;
+    background-color: #ccc;
+}
+
+.filterControl .toggleButton a {
+    -webkit-text-stroke: 1px black;
+    color: white;
+    text-decoration: none;
+}
+
+.filterControl .toggleButton.inactive {
+    opacity: .5;
+}
+
 /* Desktop-only tweaks*/
 @media (min-width: 1024px) {
     html {font-size: 1em;}
