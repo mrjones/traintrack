@@ -413,6 +413,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
 
         node.path("style.css").then().on_get(PageType::new_static_page(
                     format!("{}/style.css", static_dir)));
+        node.path("favicon.ico").then().on_get(PageType::new_static_page(
+                    format!("{}/favicon.ico", static_dir)));
         node.path("hack559.js").then().on_get(PageType::new_static_page(
                     format!("{}/hack559.js", static_dir)));
         node.path("app").many(|mut node| {
