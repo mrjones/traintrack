@@ -14,6 +14,7 @@ class FilterControlState {
   public lineStates: Map<string, boolean>;
   public lineColors: Map<string, string>;
   public mixMultipleLines: boolean;
+  public expanded: boolean;
 };
 
 export class FilterControl extends React.Component<FilterControlProps, FilterControlState> {
@@ -25,16 +26,22 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       lineStates: new Map<string, boolean>(),
       lineColors: new Map<string, string>(),
       mixMultipleLines: false,
+      expanded: false,
     };
   }
 
   public render(): JSX.Element {
+    if (!this.state.expanded) {
+      return <div className="filterControl">
+        <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter</a>
+        </div>;
+    }
     let togglers = new Array<JSX.Element>();
     this.state.directionStates.forEach((visible: boolean, direction: proto.Direction) => {
-      let className = "toggleButton " + (visible ? "active" : "inactive");
-      let name = direction.toString();
-      if (direction === proto.Direction.UPTOWN) { name = String.fromCodePoint(0x25B2); }
-      if (direction === proto.Direction.DOWNTOWN) { name = String.fromCodePoint(0x25BC); }
+      let className = "toggleButton autowidth " + (visible ? "active" : "inactive");
+      let name = utils.directionName(direction);
+//      if (direction === proto.Direction.UPTOWN) { name = String.fromCodePoint(0x25B2); }
+//      if (direction === proto.Direction.DOWNTOWN) { name = String.fromCodePoint(0x25BC); }
       togglers.push(<div key={utils.directionName(direction)} className={className}><a href="#" onClick={this.toggleDirection.bind(this, direction)}>{name}</a></div>);
     });
 
@@ -46,8 +53,8 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       togglers.push(<div key={line} className={className} style={style}><a href="#" onClick={this.toggleLine.bind(this, line)}>{line}</a></div>);
     });
 
-    let mixingWord = this.state.mixMultipleLines ? "Separate lines" : "Mix lines";
-    togglers.push(<span key="mixing">[<a href="#" onClick={this.toggleMixing.bind(this)}>{mixingWord}</a>]</span>);
+    let mixingWord = this.state.mixMultipleLines ? "Separate" : "Mix lines";
+    togglers.push(<div key="mixing" className="toggleButton autowidth"><a href="#" onClick={this.toggleMixing.bind(this)}>{mixingWord}</a></div>);
 
     return <div className="filterControl">
       {togglers}
@@ -85,6 +92,10 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       lineStates: lineStates,
       lineColors: lineColors,
     });
+  }
+
+  private toggleExpanded() {
+    this.setState({expanded: !this.state.expanded});
   }
 
   private filterPredicate(line: proto.LineArrivals): boolean {

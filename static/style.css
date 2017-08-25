@@ -275,6 +275,33 @@ ul.lineView{
     opacity: .5;
 }
 
+.filterControl .toggleButton.autowidth {
+    width: auto;
+    padding-left: .5em;
+    padding-right: .5em;
+}
+
+.filterControl .toggleButton.autowidth a{
+    -webkit-text-stroke: 0;
+    color: #262228;
+}
+
+.filterControl .toggleExpander {
+    display: inline-block;
+    border: .5px solid black;
+    font-weight: bold;
+    height: 2em;
+    line-height: 2em;
+    background-color: #CCC;
+    text-decoration: none;
+    padding-left: .5em;
+    padding-right: .5em;
+    margin-bottom: .25em;
+    color: #262228;
+}
+
+
+
 /* Desktop-only tweaks*/
 @media (min-width: 1024px) {
     html {font-size: 1em;}
