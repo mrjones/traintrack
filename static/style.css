@@ -272,7 +272,7 @@ ul.lineView{
 }
 
 .filterControl .toggleButton.inactive {
-    opacity: .5;
+    opacity: .33;
 }
 
 .filterControl .toggleButton.autowidth {
@@ -300,7 +300,20 @@ ul.lineView{
     color: #262228;
 }
 
-
+.filterControl .toggleSeparator {
+    width: 0;
+    border: 0;
+    border-left: 1px solid black;
+    display: inline-block;
+    height: 2em;
+    line-height: 2em;
+    margin-left: 0;
+    margin-right: .25em;
+    margin-bottom: .25em;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+}
 
 /* Desktop-only tweaks*/
 @media (min-width: 1024px) {

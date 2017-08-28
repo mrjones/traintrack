@@ -33,7 +33,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public render(): JSX.Element {
     if (!this.state.expanded) {
       return <div className="filterControl">
-        <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter</a>
+        <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter&nbsp;&raquo;</a>
         </div>;
     }
     let togglers = new Array<JSX.Element>();
@@ -45,6 +45,8 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       togglers.push(<div key={utils.directionName(direction)} className={className}><a href="#" onClick={this.toggleDirection.bind(this, direction)}>{name}</a></div>);
     });
 
+    togglers.push(<div className="toggleSeparator" />);
+
     this.state.lineStates.forEach((visible: boolean, line: string) => {
       let style = {
         background: "#" + this.state.lineColors.get(line),
@@ -53,10 +55,15 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       togglers.push(<div key={line} className={className} style={style}><a href="#" onClick={this.toggleLine.bind(this, line)}>{line}</a></div>);
     });
 
-    let mixingWord = this.state.mixMultipleLines ? "Separate" : "Mix lines";
-    togglers.push(<div key="mixing" className="toggleButton autowidth"><a href="#" onClick={this.toggleMixing.bind(this)}>{mixingWord}</a></div>);
+    togglers.push(<div className="toggleSeparator" />);
+
+    let className = "togglebutton autowidth " + (this.state.mixMultipleLines ? "active" : "inactive");
+//    let mixingWord = this.state.mixMultipleLines ? "Separate" : "Group by line";
+    togglers.push(<div key="mixing" className={className}><a href="#" onClick={this.toggleMixing.bind(this)}>Combined</a></div>);
 
     return <div className="filterControl">
+      <div key="filter" className="toggleButton autowidth"><a href="#" onClick={this.toggleExpanded.bind(this)}>&laquo;&nbsp;Filter</a></div>
+      <div className="toggleSeparator" />
       {togglers}
       </div>;
   }
