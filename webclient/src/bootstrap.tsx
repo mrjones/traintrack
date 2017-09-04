@@ -15,33 +15,69 @@ import { TrainItineraryWrapper } from './train-itinerary';
 
 type TTState = {
   foo: string;
+  stationId: string;
 }
 
 const initialState: TTState = {
   foo: "initial-test",
+  stationId: "028",
 };
 
-type TTAction = { }
+export enum TTActionTypes {
+  UPDATE_STATION_ID = "UPDATE_STATION_ID",
+};
 
-function reducer(state: TTState = initialState, action: TTAction): TTState {
-  return state;
+function updateStationId(newStationId: string): UpdateStationIdAction {
+  return {
+    type: TTActionTypes.UPDATE_STATION_ID,
+    payload: newStationId,
+  };
+}
+
+interface TTAction<T, P> {
+  readonly type: T;
+  readonly payload: P;
+}
+
+type UpdateStationIdAction = TTAction<TTActionTypes.UPDATE_STATION_ID, string>;
+
+type TTActions = UpdateStationIdAction;
+
+function reducer<T, P>(state: TTState = initialState, action: TTActions): TTState {
+  console.log("REDUCER");
+  let partialState: Partial<TTState> | undefined;
+  switch (action.type) {
+  case TTActionTypes.UPDATE_STATION_ID:
+    console.log("UPDATE STATION ID");
+    partialState = { stationId: action.payload };
+  }
+  return partialState != null ? { ...state, ...partialState } : state;
 }
 
 let store = Redux.createStore(reducer);
 
-const mapStateToProps = (state: TTState) => ({
-  message: "The message is: " + state.foo,
+const mapStateToProps = (state: TTState): FooComponentStateProps => ({
+  message: "The station is: " + state.stationId,
 });
 
-const dispatchToProps = { };
+const dispatchToProps = (dispatch: Redux.Dispatch<TTState>): FooComponentDispatchProps => ({
+  onChangeStation: (newId: string) => dispatch(updateStationId(newId)),
+});
 
-const propsType = returntypeof(mapStateToProps);
-type Props = typeof propsType & typeof dispatchToProps;
-type State = {}
+interface FooComponentStateProps {
+  message: string;
+}
 
-class ReduxFooComponent extends React.Component<Props, State> {
+interface FooComponentDispatchProps {
+  onChangeStation(newId: string): any;
+}
+
+class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComponentDispatchProps, {}> {
   public render(): JSX.Element {
-    return <div>Foo component: {this.props.message}</div>;
+    return (<div>
+            Foo component: {this.props.message}
+            <div><a href="#" onClick={this.props.onChangeStation.bind(this, "12345")}>Change</a></div>
+            </div>);
   }
 };
 
