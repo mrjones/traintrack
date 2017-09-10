@@ -61,8 +61,8 @@ function changeStation(newStationId: string) {
 }
 
 interface TTAction<T, P> {
-  readonly type: T;
-  readonly payload: P;
+  type: T;
+  payload: P;
 }
 
 type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
