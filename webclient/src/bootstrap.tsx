@@ -14,6 +14,14 @@ import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
+class TTContext {
+  public contextStuff: string;
+
+  public constructor() {
+    this.contextStuff = "[from constructor]";
+  }
+}
+
 type TTState = {
   stationId: string;
   stationName: string;
@@ -50,12 +58,12 @@ function finishChangeStation(newStationInfo: string): FinishChangeStationAction 
 
 function changeStation(newStationId: string) {
   console.log("changeStation");
-  return (dispatch: Redux.Dispatch<TTState>) => {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, extraApi: TTContext) => {
     dispatch(startChangeStation(newStationId));
 
     setTimeout(() => {
       console.log("running change station callback");
-      dispatch(finishChangeStation("Union Street"));
+      dispatch(finishChangeStation("Union Street " + extraApi.contextStuff));
     }, 2000);
   };
 }
@@ -96,7 +104,8 @@ function reducer<T, P>(state: TTState = initialState, action: TTActions): TTStat
   return partialState != null ? { ...state, ...partialState } : state;
 }
 
-let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk));
+let context = new TTContext();
+let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
 const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => ({
   message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName + ", and tag is: " + ownProps.tag,
