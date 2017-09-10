@@ -15,35 +15,17 @@ import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
+import { TTActionTypes, TTState, StartChangeStationAction, FinishChangeStationAction, initialState, transition } from './state-machine';
+
 import * as proto from './webclient_api_pb';
 
 class TTContext {
-  public contextStuff: string;
   public dataFetcher: DataFetcher;
 
   public constructor(dataFetcher: DataFetcher) {
-    this.contextStuff = "[from constructor]";
     this.dataFetcher = dataFetcher;
   }
 }
-
-type TTState = {
-  stationId: string;
-  stationName: string;
-
-  loading: boolean;
-}
-
-const initialState: TTState = {
-  stationId: "028",
-  stationName: "Not loaded yet.",
-  loading: false,
-};
-
-export enum TTActionTypes {
-  START_CHANGE_STATION = "START_CHANGE_STATION",
-  FINISH_CHANGE_STATION = "FINISH_CHANGE_STATION",
-};
 
 function startChangeStation(newStationId: string): StartChangeStationAction {
   console.log("startChangeStation");
@@ -74,44 +56,8 @@ function changeStation(newStationId: string) {
   };
 }
 
-interface TTAction<T, P> {
-  type: T;
-  payload: P;
-}
-
-type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
-type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STATION, string>;
-
-type TTActions = StartChangeStationAction | FinishChangeStationAction;
-
-function reducer<T, P>(state: TTState = initialState, action: TTActions): TTState {
-  console.log("REDUCER state.stationId = " + state.stationId);
-  let partialState: Partial<TTState> | undefined;
-  switch (action.type) {
-  case TTActionTypes.START_CHANGE_STATION: {
-    console.log("START_CHANGE_STATION -> " + action.payload);
-    partialState = {
-      loading: true,
-      stationId: action.payload,
-      stationName: "::Loading::",
-    };
-    break;
-  }
-  case TTActionTypes.FINISH_CHANGE_STATION: {
-    console.log("FINISH_CHANGE_STATION -> " + action.payload);
-    partialState = {
-      stationName: action.payload,
-      loading: false,
-    };
-    break;
-  }
-  }
-
-  return partialState != null ? { ...state, ...partialState } : state;
-}
-
 let context = new TTContext(new DataFetcher());
-let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
+let store = Redux.createStore(transition, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
 const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => ({
   message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName + ", and tag is: " + ownProps.tag,

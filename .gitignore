@@ -1,6 +1,6 @@
 bin/
-lastgood.txt
-lastresponse.txt
+lastgood*.txt
+lastresponse*.txt
 log/
 target
 build/feedproxy/feedproxy
