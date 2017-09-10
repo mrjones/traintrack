@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
+import thunk from "redux-thunk";
 
 import { returntypeof } from 'react-redux-typescript';
 
@@ -14,23 +15,48 @@ import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
 type TTState = {
-  foo: string;
   stationId: string;
+  stationName: string;
+
+  loading: boolean;
 }
 
 const initialState: TTState = {
-  foo: "initial-test",
   stationId: "028",
+  stationName: "Not loaded yet.",
+  loading: false,
 };
 
 export enum TTActionTypes {
-  UPDATE_STATION_ID = "UPDATE_STATION_ID",
+  START_CHANGE_STATION = "START_CHANGE_STATION",
+  FINISH_CHANGE_STATION = "FINISH_CHANGE_STATION",
 };
 
-function updateStationId(newStationId: string): UpdateStationIdAction {
+function startChangeStation(newStationId: string): StartChangeStationAction {
+  console.log("startChangeStation");
   return {
-    type: TTActionTypes.UPDATE_STATION_ID,
+    type: TTActionTypes.START_CHANGE_STATION,
     payload: newStationId,
+  };
+}
+
+function finishChangeStation(newStationInfo: string): FinishChangeStationAction {
+  console.log("finishChangeStation");
+  return {
+    type: TTActionTypes.FINISH_CHANGE_STATION,
+    payload: newStationInfo,
+  };
+}
+
+function changeStation(newStationId: string) {
+  console.log("changeStation");
+  return (dispatch: Redux.Dispatch<TTState>) => {
+    dispatch(startChangeStation(newStationId));
+
+    setTimeout(() => {
+      console.log("running change station callback");
+      dispatch(finishChangeStation("Union Street"));
+    }, 2000);
   };
 }
 
@@ -39,33 +65,51 @@ interface TTAction<T, P> {
   readonly payload: P;
 }
 
-type UpdateStationIdAction = TTAction<TTActionTypes.UPDATE_STATION_ID, string>;
+type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
+type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STATION, string>;
 
-type TTActions = UpdateStationIdAction;
+type TTActions = StartChangeStationAction | FinishChangeStationAction;
 
 function reducer<T, P>(state: TTState = initialState, action: TTActions): TTState {
-  console.log("REDUCER");
+  console.log("REDUCER state.stationId = " + state.stationId);
   let partialState: Partial<TTState> | undefined;
   switch (action.type) {
-  case TTActionTypes.UPDATE_STATION_ID:
-    console.log("UPDATE STATION ID");
-    partialState = { stationId: action.payload };
+  case TTActionTypes.START_CHANGE_STATION: {
+    console.log("START_CHANGE_STATION -> " + action.payload);
+    partialState = {
+      loading: true,
+      stationId: action.payload,
+      stationName: "::Loading::",
+    };
+    break;
   }
+  case TTActionTypes.FINISH_CHANGE_STATION: {
+    console.log("FINISH_CHANGE_STATION -> " + action.payload);
+    partialState = {
+      stationName: action.payload,
+      loading: false,
+    };
+    break;
+  }
+  }
+
   return partialState != null ? { ...state, ...partialState } : state;
 }
 
-let store = Redux.createStore(reducer);
+let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk));
 
 const mapStateToProps = (state: TTState): FooComponentStateProps => ({
-  message: "The station is: " + state.stationId,
+  message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName,
+  loading: state.loading,
 });
 
 const dispatchToProps = (dispatch: Redux.Dispatch<TTState>): FooComponentDispatchProps => ({
-  onChangeStation: (newId: string) => dispatch(updateStationId(newId)),
+  onChangeStation: (newId: string) => dispatch(changeStation(newId)),
 });
 
 interface FooComponentStateProps {
   message: string;
+  loading: boolean;
 }
 
 interface FooComponentDispatchProps {
@@ -77,6 +121,7 @@ class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComp
     return (<div>
             Foo component: {this.props.message}
             <div><a href="#" onClick={this.props.onChangeStation.bind(this, "12345")}>Change</a></div>
+            <div>Loading: {this.props.loading ? "yes" : "no"}</div>
             </div>);
   }
 };
