@@ -98,14 +98,18 @@ function reducer<T, P>(state: TTState = initialState, action: TTActions): TTStat
 
 let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk));
 
-const mapStateToProps = (state: TTState): FooComponentStateProps => ({
-  message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName,
+const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => ({
+  message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName + ", and tag is: " + ownProps.tag,
   loading: state.loading,
 });
 
 const dispatchToProps = (dispatch: Redux.Dispatch<TTState>): FooComponentDispatchProps => ({
   onChangeStation: (newId: string) => dispatch(changeStation(newId)),
 });
+
+interface FooComponentExplicitProps {
+  tag: string;
+}
 
 interface FooComponentStateProps {
   message: string;
@@ -116,12 +120,13 @@ interface FooComponentDispatchProps {
   onChangeStation(newId: string): any;
 }
 
-class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComponentDispatchProps, {}> {
+class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComponentDispatchProps & FooComponentExplicitProps, {}> {
   public render(): JSX.Element {
     return (<div>
             Foo component: {this.props.message}
             <div><a href="#" onClick={this.props.onChangeStation.bind(this, "12345")}>Change</a></div>
             <div>Loading: {this.props.loading ? "yes" : "no"}</div>
+            <div>Tag: {this.props.tag}</div>
             </div>);
   }
 };
@@ -134,7 +139,7 @@ ReactDOM.render(
       <Helmet>
         <meta name="viewport" content="initial-scale=1" />
       </Helmet>
-    <ConnectedComponent />
+    <ConnectedComponent tag="myTag"/>
     <ReactRouter.BrowserRouter>
         <div className="app">
           <div className="app_title">
