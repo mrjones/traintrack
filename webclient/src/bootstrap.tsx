@@ -14,11 +14,16 @@ import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
+import { DataFetcher, DebuggableResult } from './datafetcher';
+import * as proto from './webclient_api_pb';
+
 class TTContext {
   public contextStuff: string;
+  public dataFetcher: DataFetcher;
 
-  public constructor() {
+  public constructor(dataFetcher: DataFetcher) {
     this.contextStuff = "[from constructor]";
+    this.dataFetcher = dataFetcher;
   }
 }
 
@@ -58,13 +63,14 @@ function finishChangeStation(newStationInfo: string): FinishChangeStationAction 
 
 function changeStation(newStationId: string) {
   console.log("changeStation");
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, extraApi: TTContext) => {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
     dispatch(startChangeStation(newStationId));
 
-    setTimeout(() => {
-      console.log("running change station callback");
-      dispatch(finishChangeStation("Union Street " + extraApi.contextStuff));
-    }, 2000);
+    context.dataFetcher.fetchStationStatus(newStationId)
+      .then((result: DebuggableResult<proto.StationStatus>) => {
+        console.log("Got result: " + result.data.name);
+        dispatch(finishChangeStation(result.data.name));
+      });
   };
 }
 
@@ -104,7 +110,7 @@ function reducer<T, P>(state: TTState = initialState, action: TTActions): TTStat
   return partialState != null ? { ...state, ...partialState } : state;
 }
 
-let context = new TTContext();
+let context = new TTContext(new DataFetcher());
 let store = Redux.createStore(reducer, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
 const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => ({
@@ -133,7 +139,7 @@ class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComp
   public render(): JSX.Element {
     return (<div>
             Foo component: {this.props.message}
-            <div><a href="#" onClick={this.props.onChangeStation.bind(this, "12345")}>Change</a></div>
+            <div><a href="#" onClick={this.props.onChangeStation.bind(this, "602")}>Change</a></div>
             <div>Loading: {this.props.loading ? "yes" : "no"}</div>
             <div>Tag: {this.props.tag}</div>
             </div>);
