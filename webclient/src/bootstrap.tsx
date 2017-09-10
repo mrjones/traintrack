@@ -15,7 +15,7 @@ import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { TTActionTypes, TTState, StartChangeStationAction, FinishChangeStationAction, initialState, transition } from './state-machine';
+import { TTActionTypes, TTState, StartChangeStationAction, FinishChangeStationAction, InstallStationDetailsAction, initialState, transition } from './state-machine';
 
 import * as proto from './webclient_api_pb';
 
@@ -35,10 +35,17 @@ function startChangeStation(newStationId: string): StartChangeStationAction {
   };
 }
 
-function finishChangeStation(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): FinishChangeStationAction {
+function finishChangeStation(): FinishChangeStationAction {
   console.log("finishChangeStation");
   return {
     type: TTActionTypes.FINISH_CHANGE_STATION,
+    payload: {},
+  };
+}
+
+function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
+  return {
+    type: TTActionTypes.INSTALL_STATION_DETAILS,
     payload: [newStationId, newStationInfo],
   };
 }
@@ -48,11 +55,20 @@ function changeStation(newStationId: string) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
     dispatch(startChangeStation(newStationId));
 
-    context.dataFetcher.fetchStationStatus(newStationId)
-      .then((result: DebuggableResult<proto.StationStatus>) => {
-        console.log("Got result: " + result.data.name);
-        dispatch(finishChangeStation(newStationId, result));
-      });
+    let state: TTState = getState();
+    if (state.stationDetails.has(newStationId)) {
+      // &&         state.stationDetails.get(newStationId).data.dataTimestamp
+      // TODO(mrjones): Split into multiple actions to avoid re-writing?
+      dispatch(finishChangeStation());
+    } else {
+      console.log("Fetching " + newStationId);
+      context.dataFetcher.fetchStationStatus(newStationId)
+        .then((result: DebuggableResult<proto.StationStatus>) => {
+          console.log("Got result: " + result.data.name);
+          dispatch(installStationDetails(newStationId, result));
+          dispatch(finishChangeStation());
+        });
+    }
   };
 }
 
