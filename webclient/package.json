@@ -9,6 +9,7 @@
     "@types/react-router-dom": "^4.0.4",
     "es6-map": "^0.1.5",
     "google-protobuf": "^3.2.0",
+    "immutable": "^3.8.1",
     "moment": "^2.18.1",
     "protobufjs": "^6.8.0",
     "react": "^15.4.2",

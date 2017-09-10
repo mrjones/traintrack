@@ -35,11 +35,11 @@ function startChangeStation(newStationId: string): StartChangeStationAction {
   };
 }
 
-function finishChangeStation(newStationInfo: string): FinishChangeStationAction {
+function finishChangeStation(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): FinishChangeStationAction {
   console.log("finishChangeStation");
   return {
     type: TTActionTypes.FINISH_CHANGE_STATION,
-    payload: newStationInfo,
+    payload: [newStationId, newStationInfo],
   };
 }
 
@@ -51,7 +51,7 @@ function changeStation(newStationId: string) {
     context.dataFetcher.fetchStationStatus(newStationId)
       .then((result: DebuggableResult<proto.StationStatus>) => {
         console.log("Got result: " + result.data.name);
-        dispatch(finishChangeStation(result.data.name));
+        dispatch(finishChangeStation(newStationId, result));
       });
   };
 }
@@ -59,10 +59,20 @@ function changeStation(newStationId: string) {
 let context = new TTContext(new DataFetcher());
 let store = Redux.createStore(transition, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
-const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => ({
-  message: "The station ID is: " + state.stationId + ", and name is: " + state.stationName + ", and tag is: " + ownProps.tag,
-  loading: state.loading,
-});
+const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => {
+  if (state.stationDetails.has(state.currentStationId)) {
+    let details = state.stationDetails.get(state.currentStationId);
+    return {
+      message: "The station ID is: " + state.currentStationId + ", and name is: " + details.data.name + ", and tag is: " + ownProps.tag + ", and the data timestamp is" + details.data.dataTimestamp,
+      loading: state.loading,
+    };
+  } else {
+    return {
+      message: "Data not loaded",
+      loading: state.loading,
+    };
+  }
+};
 
 const dispatchToProps = (dispatch: Redux.Dispatch<TTState>): FooComponentDispatchProps => ({
   onChangeStation: (newId: string) => dispatch(changeStation(newId)),
@@ -81,14 +91,40 @@ interface FooComponentDispatchProps {
   onChangeStation(newId: string): any;
 }
 
-class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComponentDispatchProps & FooComponentExplicitProps, {}> {
+interface FooComponentState {
+  currentText: string;
+}
+
+class ReduxFooComponent extends React.Component<FooComponentStateProps & FooComponentDispatchProps & FooComponentExplicitProps, FooComponentState> {
+
+  public constructor() {
+    super();
+    this.state = {
+      currentText: "602",
+    };
+  }
+
   public render(): JSX.Element {
     return (<div>
             Foo component: {this.props.message}
+            <div>
+              <input type="text" value={this.state.currentText} onChange={this.handleTextChanged.bind(this)} />
+            <input type="submit" onClick={this.handleSubmit.bind(this)}/>
+            </div>
             <div><a href="#" onClick={this.props.onChangeStation.bind(this, "602")}>Change</a></div>
             <div>Loading: {this.props.loading ? "yes" : "no"}</div>
             <div>Tag: {this.props.tag}</div>
             </div>);
+  }
+
+  private handleTextChanged(e: React.FormEvent<HTMLInputElement>) {
+    this.setState({
+      currentText: e.currentTarget.value,
+    });
+  }
+
+  private handleSubmit() {
+    this.props.onChangeStation(this.state.currentText);
   }
 };
 
