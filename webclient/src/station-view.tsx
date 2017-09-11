@@ -1,6 +1,8 @@
 import * as moment from "moment";
 import * as React from "react";
+import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
+import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
 
 import * as utils from './utils';
@@ -10,6 +12,8 @@ import { ApiDebugger } from './debug';
 import { FilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
+
+import { TTState } from './state-machine';
 
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
@@ -115,6 +119,7 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
 enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
+// OLD
 class StationMultiLineState {
   public stationId: string;
   public stationName: string;
@@ -128,13 +133,48 @@ class StationMultiLineProps {
   public dataFetcher: DataFetcher;
 }
 
-class StationMultiLine extends React.Component<StationMultiLineProps, StationMultiLineState> {
-  constructor(props: StationMultiLineProps) {
+// NEW
+class StationMultiLineExplicitProps {
+  public dataFetcher: DataFetcher;
+}
+class StationMultiLineStateProps {
+  stationId: string;
+  stationName: string;
+  data: DebuggableResult<proto.StationStatus>;
+}
+class StationMultiLineDispatchProps { }
+class StationMultiLineLocalState {
+  public filterPredicate: (l: proto.LineArrivals) => boolean;
+  public mixing: MultipleLineMixing;
+}
+
+const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
+  if (state.stationDetails.has(state.currentStationId)) {
+    let details: DebuggableResult<proto.StationStatus> =
+      state.stationDetails.get(state.currentStationId);
+    return {
+      stationId: state.currentStationId,
+      stationName: details.data.name,
+      data: details,
+    };
+  } else {
+    return {
+      stationId: state.currentStationId,
+      stationName: "Not loaded yet",
+      data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
+    };
+  }
+};
+
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLineDispatchProps => ({});
+
+class StationMultiLine extends React.Component<StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps, StationMultiLineLocalState> {
+  constructor(props: any) {
     super(props);
     this.state = {
-      stationId: "",
-      stationName: "Loading...",
-      data: new DebuggableResult(new proto.StationStatus(), "unknown"),
+//      stationId: "",
+//      stationName: "Loading...",
+//      data: new DebuggableResult(new proto.StationStatus(), "unknown"),
       filterPredicate: (l: proto.LineArrivals) => { return true; },
       mixing: MultipleLineMixing.SEPARATE,
     };
@@ -145,12 +185,13 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
   }
 
   public componentDidUpdate() {
-    if (this.props.stationId !== this.state.stationId) {
-      this.stationChanged();
-    }
+//    if (this.props.stationId !== this.state.stationId) {
+//      this.stationChanged();
+//    }
   }
 
   private stationChanged() {
+/*
     const component = this;
     this.props.dataFetcher
       .fetchStationStatus(this.props.stationId)
@@ -161,6 +202,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
           data: stationStatus,
         });
       });
+*/
   }
 
   private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
@@ -175,7 +217,8 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
 
   public render() {
     let lineSet: JSX.Element[];
-    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
+//    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
+    let visibleLines = this.props.data.data.line.filter(this.state.filterPredicate.bind(this));
 
     if (this.state.mixing === MultipleLineMixing.SEPARATE) {
       lineSet = visibleLines.map(
@@ -188,17 +231,19 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed"/>);
     }
 
-    const dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
+    const dataTs = moment.unix(this.props.data.data.dataTimestamp as number);
 
     return (<div className="stationInfo">
-            <h2>{this.state.stationName}</h2>
+            <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
-            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} updateMixingFn={this.updateLineMixingState.bind(this)} allTrains={this.state.data.data} />
+            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} updateMixingFn={this.updateLineMixingState.bind(this)} allTrains={this.props.data.data} />
             {lineSet}
-            <ApiDebugger datasFetched={[this.state.data]}/>
+            <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);
   };
 }
+
+export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(StationMultiLine);
 
 class StationPageProps {
   public initialStationId: string;
@@ -255,7 +300,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <StationMultiLine stationId={this.state.displayedStationId} dataFetcher={this.props.dataFetcher}/>
+      <ConnectedStationMultiLine dataFetcher={this.props.dataFetcher}/>
     </div>);
   }
 }
