@@ -119,28 +119,13 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
 enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
-// OLD
-class StationMultiLineState {
-  public stationId: string;
-  public stationName: string;
-  public data: DebuggableResult<proto.StationStatus>;
-  public filterPredicate: (l: proto.LineArrivals) => boolean;
-  public mixing: MultipleLineMixing;
-};
-
-class StationMultiLineProps {
-  public stationId: string;
-  public dataFetcher: DataFetcher;
-}
-
-// NEW
 class StationMultiLineExplicitProps {
   public dataFetcher: DataFetcher;
 }
 class StationMultiLineStateProps {
-  stationId: string;
-  stationName: string;
-  data: DebuggableResult<proto.StationStatus>;
+  public stationId: string;
+  public stationName: string;
+  public data: DebuggableResult<proto.StationStatus>;
 }
 class StationMultiLineDispatchProps { }
 class StationMultiLineLocalState {
@@ -160,7 +145,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
   } else {
     return {
       stationId: state.currentStationId,
-      stationName: "Not loaded yet",
+      stationName: state.loading ? "Loading..." : "No data for station: " + state.currentStationId,
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
     };
   }
@@ -172,37 +157,13 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
   constructor(props: any) {
     super(props);
     this.state = {
-//      stationId: "",
-//      stationName: "Loading...",
-//      data: new DebuggableResult(new proto.StationStatus(), "unknown"),
       filterPredicate: (l: proto.LineArrivals) => { return true; },
       mixing: MultipleLineMixing.SEPARATE,
     };
   }
 
-  public componentDidMount() {
-    this.stationChanged();
-  }
-
-  public componentDidUpdate() {
-//    if (this.props.stationId !== this.state.stationId) {
-//      this.stationChanged();
-//    }
-  }
-
   private stationChanged() {
-/*
-    const component = this;
-    this.props.dataFetcher
-      .fetchStationStatus(this.props.stationId)
-      .then((stationStatus: DebuggableResult<proto.StationStatus>) => {
-        component.setState({
-          stationId: component.props.stationId,
-          stationName: stationStatus.data.name,
-          data: stationStatus,
-        });
-      });
-*/
+    // TODO(mrjones): move to redux
   }
 
   private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
