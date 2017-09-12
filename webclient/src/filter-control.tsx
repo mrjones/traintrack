@@ -22,7 +22,6 @@ class FilterControlDispatchProps {
 class FilterControlExplicitProps { }
 class FilterControlLocalState {
   public lineColors: Map<string, string>;
-  public mixMultipleLines: boolean;
   public expanded: boolean;
 };
 
@@ -77,7 +76,6 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
 
     this.state = {
       lineColors: new Map<string, string>(),
-      mixMultipleLines: false,
       expanded: false,
     };
   }
