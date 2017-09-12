@@ -130,6 +130,7 @@ class StationMultiLineStateProps {
   public filterPredicate: (l: proto.LineArrivals) => boolean;
   public mixing: MultipleLineMixing;
   public lineVisibility: Immutable.Map<string, boolean>;
+  public directionVisibility: Immutable.Map<proto.Direction, boolean>;
 }
 class StationMultiLineDispatchProps { }
 class StationMultiLineLocalState { }
@@ -145,6 +146,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       filterPredicate: state.filterPredicate,
       lineVisibility: state.lineVisibility,
+      directionVisibility: state.directionVisibility,
     };
   } else {
     return {
@@ -154,6 +156,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       filterPredicate: state.filterPredicate,
       lineVisibility: state.lineVisibility,
+      directionVisibility: state.directionVisibility,
     };
   }
 };
@@ -183,7 +186,7 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
   public render() {
     let lineSet: JSX.Element[];
 //    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
-    let visibleLines = this.props.data.data.line.filter((line: proto.LineArrivals) => utils.lineVisible(line, this.props.lineVisibility));
+    let visibleLines = this.props.data.data.line.filter((line: proto.LineArrivals) => utils.lineVisible(line, this.props.lineVisibility, this.props.directionVisibility));
 
     if (this.props.mixing === MultipleLineMixing.SEPARATE) {
       lineSet = visibleLines.map(

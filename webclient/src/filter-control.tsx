@@ -25,15 +25,16 @@ class FilterControlStateProps {
   public allTrains: proto.StationStatus;
   public mixMultipleLines: boolean;
   public lineStates: Immutable.Map<string, boolean>;
+  public directionStates: Immutable.Map<proto.Direction, boolean>;
 };
 class FilterControlDispatchProps {
   public onMixingChange: (newMixing: boolean) => any;
   public onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => any;
   public onLineVisibilityChange: (line: string, visible: boolean) => any;
+  public onDirectionVisibilityChange: (line: proto.Direction, visible: boolean) => any;
 };
 class FilterControlExplicitProps { }
 class FilterControlLocalState {
-  public directionStates: Map<proto.Direction, boolean>;
   public lineColors: Map<string, string>;
   public mixMultipleLines: boolean;
   public expanded: boolean;
@@ -43,6 +44,13 @@ function changeLineVisibility(line: string, visible: boolean) {
   return {
     type: TTActionTypes.CHANGE_LINE_VISIBILITY,
     payload: [line, visible],
+  };
+}
+
+function changeDirectionVisibility(direction: proto.Direction, visible: boolean) {
+  return {
+    type: TTActionTypes.CHANGE_DIRECTION_VISIBILITY,
+    payload: [direction, visible],
   };
 }
 
@@ -66,12 +74,14 @@ const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): 
       allTrains: state.stationDetails.get(state.currentStationId).data,
       mixMultipleLines: state.mixMultipleLines,
       lineStates: state.lineVisibility,
+      directionStates: state.directionVisibility,
     };
   } else {
     return {
       allTrains: new proto.StationStatus(),
       mixMultipleLines: state.mixMultipleLines,
       lineStates: state.lineVisibility,
+      directionStates: state.directionVisibility,
     };
   }
 };
@@ -80,6 +90,7 @@ const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDis
   onMixingChange: (newMixing: boolean) => dispatch(changeMixing(newMixing)),
   onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => dispatch(changeFilterPredicate(newPredicate)),
   onLineVisibilityChange: (line: string, visible: boolean) => dispatch(changeLineVisibility(line, visible)),
+  onDirectionVisibilityChange: (direction: proto.Direction, visible: boolean) => dispatch(changeDirectionVisibility(direction, visible)),
 });
 
 export class FilterControl extends React.Component<FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps, FilterControlLocalState> {
@@ -87,7 +98,6 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
     super(props);
 
     this.state = {
-      directionStates: new Map<proto.Direction, boolean>(),
       lineColors: new Map<string, string>(),
       mixMultipleLines: false,
       expanded: false,
@@ -101,7 +111,11 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
         </div>;
     }
     let togglers = new Array<JSX.Element>();
-    this.state.directionStates.forEach((visible: boolean, direction: proto.Direction) => {
+    utils.directionsForStation(this.props.allTrains).map((direction: proto.Direction) => {
+      let visible = this.props.directionStates.get(direction);
+      if (visible === undefined) {
+        visible = true;
+      }
       let className = "toggleButton autowidth " + (visible ? "active" : "inactive");
       let name = utils.directionName(direction);
 //      if (direction === proto.Direction.UPTOWN) { name = String.fromCodePoint(0x25B2); }
@@ -111,9 +125,7 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
 
     togglers.push(<div key="sep1" className="toggleSeparator" />);
 
-    let allLines = utils.linesForStation(this.props.allTrains);
-
-    allLines.map((line: string) => {
+    utils.linesForStation(this.props.allTrains).map((line: string) => {
       let visible = this.props.lineStates.get(line);
       if (visible === undefined) {
         visible = true;
@@ -174,21 +186,12 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
   }
 
   public componentWillReceiveProps(nextProps: FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps) {
-    let directionStates = new Map<proto.Direction, boolean>();
     let lineColors = new Map<string, string>();
     nextProps.allTrains.line.map((line: proto.LineArrivals) => {
-      const existingDState = this.state.directionStates.get(line.direction);
-      if (existingDState === undefined) {
-        directionStates.set(line.direction, true);
-      } else {
-        directionStates.set(line.direction, existingDState);
-      }
-
       lineColors.set(line.line, line.lineColorHex);
     });
 
     this.setState({
-      directionStates: directionStates,
       lineColors: lineColors,
     });
   }
@@ -202,7 +205,7 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
   }
 
   private directionVisible(direction: proto.Direction): boolean {
-    const dState = this.state.directionStates.get(direction);
+    const dState = this.props.directionStates.get(direction);
     if (dState === undefined) {
       return true;
     } else {
@@ -220,13 +223,11 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
   }
 
   private toggleDirection(direction: proto.Direction) {
-    const dState = this.state.directionStates.get(direction);
-    if (dState === undefined) {
-      console.log("toggleDirection: Unknown direction: " + utils.directionName(direction));
-      this.state.directionStates.set(direction, false);
-    } else {
-      this.state.directionStates.set(direction, !dState);
+    let oldVisibility = this.props.directionStates.get(direction);
+    if (oldVisibility === undefined) {
+      oldVisibility = true;
     }
+    this.props.onDirectionVisibilityChange(direction, !oldVisibility);
   };
 
   private toggleLine(line: string) {
