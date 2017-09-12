@@ -21,7 +21,7 @@ class FilterControlDispatchProps {
 };
 class FilterControlExplicitProps { }
 class FilterControlLocalState {
-  public lineColors: Map<string, string>;
+  public lineColors: Map<string, string>;  // TODO: move to props
   public expanded: boolean;
 };
 
@@ -124,40 +124,6 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
       <div key="sep3" className="toggleSeparator" />
       {togglers}
       </div>;
-  }
-
-  public componentDidMount() {
-
-    /*
-    console.log("FilterControl :: componentDidMount");
-
-    let directionStates = new Map<proto.Direction, boolean>();
-    let lineStates = new Map<string, boolean>();
-    let lineColors = new Map<string, string>();
-    this.props.allTrains.line.map((line: proto.LineArrivals) => {
-      const existingDState = this.state.directionStates.get(line.direction);
-      if (existingDState === undefined) {
-        directionStates.set(line.direction, true);
-      } else {
-        directionStates.set(line.direction, existingDState);
-      }
-
-      lineColors.set(line.line, line.lineColorHex);
-
-      const existingLState = this.state.lineStates.get(line.line);
-      if (existingLState === undefined) {
-        lineStates.set(line.line, true);
-      } else {
-        lineStates.set(line.line, existingLState);
-      }
-    });
-
-    this.setState({
-      directionStates: directionStates,
-      lineStates: lineStates,
-      lineColors: lineColors,
-    });
-    */
   }
 
   public componentWillReceiveProps(nextProps: FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps) {
