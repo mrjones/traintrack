@@ -47,19 +47,19 @@ function changeMixing(newMixing: boolean) {
 }
 
 const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlStateProps => {
-  if (state.stationDetails.has(state.currentStationId)) {
+  if (state.core.stationDetails.has(state.core.currentStationId)) {
     return {
-      allTrains: state.stationDetails.get(state.currentStationId).data,
-      mixMultipleLines: state.mixMultipleLines,
-      lineStates: state.lineVisibility,
-      directionStates: state.directionVisibility,
+      allTrains: state.core.stationDetails.get(state.core.currentStationId).data,
+      mixMultipleLines: state.core.mixMultipleLines,
+      lineStates: state.core.lineVisibility,
+      directionStates: state.core.directionVisibility,
     };
   } else {
     return {
       allTrains: new proto.StationStatus(),
-      mixMultipleLines: state.mixMultipleLines,
-      lineStates: state.lineVisibility,
-      directionStates: state.directionVisibility,
+      mixMultipleLines: state.core.mixMultipleLines,
+      lineStates: state.core.lineVisibility,
+      directionStates: state.core.directionVisibility,
     };
   }
 };

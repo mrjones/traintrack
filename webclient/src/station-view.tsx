@@ -135,25 +135,25 @@ class StationMultiLineDispatchProps { }
 class StationMultiLineLocalState { }
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
-  if (state.stationDetails.has(state.currentStationId)) {
+  if (state.core.stationDetails.has(state.core.currentStationId)) {
     let details: DebuggableResult<proto.StationStatus> =
-      state.stationDetails.get(state.currentStationId);
+      state.core.stationDetails.get(state.core.currentStationId);
     return {
-      stationId: state.currentStationId,
+      stationId: state.core.currentStationId,
       stationName: details.data.name,
       data: details,
-      mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      lineVisibility: state.lineVisibility,
-      directionVisibility: state.directionVisibility,
+      mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
+      lineVisibility: state.core.lineVisibility,
+      directionVisibility: state.core.directionVisibility,
     };
   } else {
     return {
-      stationId: state.currentStationId,
-      stationName: state.loading ? "Loading..." : "No data for station: " + state.currentStationId,
+      stationId: state.core.currentStationId,
+      stationName: state.core.loading ? "Loading..." : "No data for station: " + state.core.currentStationId,
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
-      mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      lineVisibility: state.lineVisibility,
-      directionVisibility: state.directionVisibility,
+      mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
+      lineVisibility: state.core.lineVisibility,
+      directionVisibility: state.core.directionVisibility,
     };
   }
 };
@@ -287,6 +287,5 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
     return <StationPage initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />;
   }
 }
-
 
 let globalDataFetcher = new DataFetcher();

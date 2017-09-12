@@ -56,7 +56,7 @@ function changeStation(newStationId: string) {
     dispatch(startChangeStation(newStationId));
 
     let state: TTState = getState();
-    if (state.stationDetails.has(newStationId)) {
+    if (state.core.stationDetails.has(newStationId)) {
       // &&         state.stationDetails.get(newStationId).data.dataTimestamp
       // TODO(mrjones): Split into multiple actions to avoid re-writing?
       dispatch(finishChangeStation());
@@ -73,19 +73,22 @@ function changeStation(newStationId: string) {
 }
 
 let context = new TTContext(new DataFetcher());
-let store = Redux.createStore(transition, initialState, Redux.applyMiddleware(thunk.withExtraArgument(context)));
+let store = Redux.createStore(
+  Redux.combineReducers({core: transition}),
+  initialState,
+  Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
 const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => {
-  if (state.stationDetails.has(state.currentStationId)) {
-    let details = state.stationDetails.get(state.currentStationId);
+  if (state.core.stationDetails.has(state.core.currentStationId)) {
+    let details = state.core.stationDetails.get(state.core.currentStationId);
     return {
-      message: "The station ID is: " + state.currentStationId + ", and name is: " + details.data.name + ", and tag is: " + ownProps.tag + ", and the data timestamp is" + details.data.dataTimestamp,
-      loading: state.loading,
+      message: "The station ID is: " + state.core.currentStationId + ", and name is: " + details.data.name + ", and tag is: " + ownProps.tag + ", and the data timestamp is" + details.data.dataTimestamp,
+      loading: state.core.loading,
     };
   } else {
     return {
       message: "Data not loaded",
-      loading: state.loading,
+      loading: state.core.loading,
     };
   }
 };

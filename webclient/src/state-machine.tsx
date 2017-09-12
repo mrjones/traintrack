@@ -3,7 +3,8 @@ import * as proto from './webclient_api_pb';
 import { DebuggableResult } from './datafetcher';
 import * as Immutable from 'immutable';
 
-export type TTState = {
+// TODO(mrjones): split up and refactor
+export type TTCoreState = {
   currentStationId: string;
   stationDetails: Immutable.Map<string, DebuggableResult<proto.StationStatus> >;
   loading: boolean;
@@ -11,6 +12,10 @@ export type TTState = {
   mixMultipleLines: boolean;
   lineVisibility: Immutable.Map<string, boolean>;
   directionVisibility: Immutable.Map<proto.Direction, boolean>;
+}
+
+export type TTState = {
+  core: TTCoreState;
 }
 
 export interface TTAction<T, P> {
@@ -40,7 +45,7 @@ export type TTActions =
   StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction;
 
-export const initialState: TTState = {
+export const initialState: TTCoreState = {
   currentStationId: "028",
   stationDetails: Immutable.Map(),
   loading: false,
@@ -50,9 +55,9 @@ export const initialState: TTState = {
   directionVisibility: Immutable.Map<proto.Direction, boolean>(),
 };
 
-export function transition<T, P>(state: TTState = initialState, action: TTActions): TTState {
+export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
   console.log("REDUCER state.currentStationId = " + state.currentStationId);
-  let partialState: Partial<TTState> | undefined;
+  let partialState: Partial<TTCoreState> | undefined;
   switch (action.type) {
   case TTActionTypes.START_CHANGE_STATION: {
     console.log("START_CHANGE_STATION -> " + action.payload);
