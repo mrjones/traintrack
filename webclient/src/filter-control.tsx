@@ -8,19 +8,6 @@ import * as utils from './utils';
 
 import { TTActionTypes, TTState } from './state-machine';
 
-class FilterControlProps {
-  public updateFilterPredicateFn: (newFn: (l: proto.LineArrivals) => boolean) => void;
-  public updateMixingFn: (mixMultipleLines: boolean) => void;
-  public allTrains: proto.StationStatus;
-};
-
-class FilterControlState {
-  public directionStates: Map<proto.Direction, boolean>;
-  public lineStates: Map<string, boolean>;
-  public lineColors: Map<string, string>;
-  public expanded: boolean;
-};
-
 class FilterControlStateProps {
   public allTrains: proto.StationStatus;
   public mixMultipleLines: boolean;
@@ -29,7 +16,6 @@ class FilterControlStateProps {
 };
 class FilterControlDispatchProps {
   public onMixingChange: (newMixing: boolean) => any;
-  public onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => any;
   public onLineVisibilityChange: (line: string, visible: boolean) => any;
   public onDirectionVisibilityChange: (line: proto.Direction, visible: boolean) => any;
 };
@@ -61,13 +47,6 @@ function changeMixing(newMixing: boolean) {
   };
 }
 
-function changeFilterPredicate(newPredicate: (l: proto.LineArrivals) => boolean) {
-  return {
-    type: TTActionTypes.CHANGE_FILTER_PREDICATE,
-    payload: newPredicate,
-  };
-}
-
 const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlStateProps => {
   if (state.stationDetails.has(state.currentStationId)) {
     return {
@@ -88,7 +67,6 @@ const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): 
 
 const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDispatchProps => ({
   onMixingChange: (newMixing: boolean) => dispatch(changeMixing(newMixing)),
-  onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => dispatch(changeFilterPredicate(newPredicate)),
   onLineVisibilityChange: (line: string, visible: boolean) => dispatch(changeLineVisibility(line, visible)),
   onDirectionVisibilityChange: (direction: proto.Direction, visible: boolean) => dispatch(changeDirectionVisibility(direction, visible)),
 });
@@ -151,7 +129,6 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
   }
 
   public componentDidMount() {
-    this.props.onFilterPredicateChange(this.filterPredicate.bind(this));
 
     /*
     console.log("FilterControl :: componentDidMount");
@@ -198,10 +175,6 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
 
   private toggleExpanded() {
     this.setState({expanded: !this.state.expanded});
-  }
-
-  private filterPredicate(line: proto.LineArrivals): boolean {
-    return this.directionVisible(line.direction) && this.lineVisible(line.line);
   }
 
   private directionVisible(direction: proto.Direction): boolean {

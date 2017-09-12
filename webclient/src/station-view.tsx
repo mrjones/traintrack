@@ -127,7 +127,6 @@ class StationMultiLineStateProps {
   public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
-  public filterPredicate: (l: proto.LineArrivals) => boolean;
   public mixing: MultipleLineMixing;
   public lineVisibility: Immutable.Map<string, boolean>;
   public directionVisibility: Immutable.Map<proto.Direction, boolean>;
@@ -144,7 +143,6 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       stationName: details.data.name,
       data: details,
       mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      filterPredicate: state.filterPredicate,
       lineVisibility: state.lineVisibility,
       directionVisibility: state.directionVisibility,
     };
@@ -154,7 +152,6 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       stationName: state.loading ? "Loading..." : "No data for station: " + state.currentStationId,
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
       mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      filterPredicate: state.filterPredicate,
       lineVisibility: state.lineVisibility,
       directionVisibility: state.directionVisibility,
     };
@@ -173,11 +170,6 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
     // TODO(mrjones): move to redux
   }
 
-  private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
-//    this.setState({filterPredicate: p}
-//    );
-  }
-
   private updateLineMixingState(mixMultipleLines: boolean) {
 //    this.setState({mixing: mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE});
 
@@ -185,7 +177,6 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
 
   public render() {
     let lineSet: JSX.Element[];
-//    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
     let visibleLines = this.props.data.data.line.filter((line: proto.LineArrivals) => utils.lineVisible(line, this.props.lineVisibility, this.props.directionVisibility));
 
     if (this.props.mixing === MultipleLineMixing.SEPARATE) {

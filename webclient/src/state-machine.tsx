@@ -9,7 +9,6 @@ export type TTState = {
   loading: boolean;
 
   mixMultipleLines: boolean;
-  filterPredicate: (l: proto.LineArrivals) => boolean;
   lineVisibility: Immutable.Map<string, boolean>;
   directionVisibility: Immutable.Map<proto.Direction, boolean>;
 }
@@ -25,7 +24,6 @@ export enum TTActionTypes {
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
 
   CHANGE_LINE_MIXING = "CHANGE_LINE_MIXING",
-  CHANGE_FILTER_PREDICATE = "CHANGE_FILTER_PREDICATE", // TODO: remove
   CHANGE_LINE_VISIBILITY = "CHANGE_LINE_VISIBILITY",
   CHANGE_DIRECTION_VISIBILITY = "CHANGE_DIRECTION_VISIBILITY",
 };
@@ -35,13 +33,12 @@ export type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STA
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
 export type ChangeLineMixingAction = TTAction<TTActionTypes.CHANGE_LINE_MIXING, boolean>;
-export type ChangeFilterPredicateAction = TTAction<TTActionTypes.CHANGE_FILTER_PREDICATE, (l: proto.LineArrivals) => boolean>;
 export type ChangeLineVisibilityAction = TTAction<TTActionTypes.CHANGE_LINE_VISIBILITY, [string, boolean]>;
 export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRECTION_VISIBILITY, [proto.Direction, boolean]>;
 
 export type TTActions =
   StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction |
-  ChangeLineMixingAction | ChangeFilterPredicateAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction;
+  ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction;
 
 export const initialState: TTState = {
   currentStationId: "028",
@@ -49,7 +46,6 @@ export const initialState: TTState = {
   loading: false,
 
   mixMultipleLines: false,
-  filterPredicate: (l: proto.LineArrivals) => { return true; },
   lineVisibility: Immutable.Map<string, boolean>(),
   directionVisibility: Immutable.Map<proto.Direction, boolean>(),
 };
@@ -85,12 +81,6 @@ export function transition<T, P>(state: TTState = initialState, action: TTAction
   case TTActionTypes.CHANGE_LINE_MIXING: {
     partialState = {
       mixMultipleLines: action.payload,
-    };
-    break;
-  }
-  case TTActionTypes.CHANGE_FILTER_PREDICATE: {
-    partialState = {
-      filterPredicate: action.payload,
     };
     break;
   }
