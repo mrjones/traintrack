@@ -1,3 +1,4 @@
+import * as Immutable from 'immutable';
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactRedux from "react-redux";
@@ -9,7 +10,7 @@ import * as utils from './utils';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
-import { FilterControl } from './filter-control';
+import { ConnectedFilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
@@ -126,12 +127,12 @@ class StationMultiLineStateProps {
   public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
-}
-class StationMultiLineDispatchProps { }
-class StationMultiLineLocalState {
   public filterPredicate: (l: proto.LineArrivals) => boolean;
   public mixing: MultipleLineMixing;
+  public lineVisibility: Immutable.Map<string, boolean>;
 }
+class StationMultiLineDispatchProps { }
+class StationMultiLineLocalState { }
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
   if (state.stationDetails.has(state.currentStationId)) {
@@ -141,12 +142,18 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       stationId: state.currentStationId,
       stationName: details.data.name,
       data: details,
+      mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
+      filterPredicate: state.filterPredicate,
+      lineVisibility: state.lineVisibility,
     };
   } else {
     return {
       stationId: state.currentStationId,
       stationName: state.loading ? "Loading..." : "No data for station: " + state.currentStationId,
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
+      mixing: state.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
+      filterPredicate: state.filterPredicate,
+      lineVisibility: state.lineVisibility,
     };
   }
 };
@@ -156,10 +163,7 @@ const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLine
 class StationMultiLine extends React.Component<StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps, StationMultiLineLocalState> {
   constructor(props: any) {
     super(props);
-    this.state = {
-      filterPredicate: (l: proto.LineArrivals) => { return true; },
-      mixing: MultipleLineMixing.SEPARATE,
-    };
+    this.state = { }
   }
 
   private stationChanged() {
@@ -167,21 +171,21 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
   }
 
   private updateFilterPredicate(p: (l: proto.LineArrivals) => boolean) {
-    this.setState({filterPredicate: p}
-    );
+//    this.setState({filterPredicate: p}
+//    );
   }
 
   private updateLineMixingState(mixMultipleLines: boolean) {
-    this.setState({mixing: mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE});
+//    this.setState({mixing: mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE});
 
   }
 
   public render() {
     let lineSet: JSX.Element[];
 //    let visibleLines = this.state.data.data.line.filter(this.state.filterPredicate.bind(this));
-    let visibleLines = this.props.data.data.line.filter(this.state.filterPredicate.bind(this));
+    let visibleLines = this.props.data.data.line.filter((line: proto.LineArrivals) => utils.lineVisible(line, this.props.lineVisibility));
 
-    if (this.state.mixing === MultipleLineMixing.SEPARATE) {
+    if (this.props.mixing === MultipleLineMixing.SEPARATE) {
       lineSet = visibleLines.map(
         (line: proto.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
@@ -197,7 +201,7 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
-            <FilterControl updateFilterPredicateFn={this.updateFilterPredicate.bind(this)} updateMixingFn={this.updateLineMixingState.bind(this)} allTrains={this.props.data.data} />
+            <ConnectedFilterControl />
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);

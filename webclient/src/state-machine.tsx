@@ -5,10 +5,12 @@ import * as Immutable from 'immutable';
 
 export type TTState = {
   currentStationId: string;
-
   stationDetails: Immutable.Map<string, DebuggableResult<proto.StationStatus> >;
-
   loading: boolean;
+
+  mixMultipleLines: boolean;
+  filterPredicate: (l: proto.LineArrivals) => boolean;
+  lineVisibility: Immutable.Map<string, boolean>;
 }
 
 export interface TTAction<T, P> {
@@ -20,19 +22,32 @@ export enum TTActionTypes {
   START_CHANGE_STATION = "START_CHANGE_STATION",
   FINISH_CHANGE_STATION = "FINISH_CHANGE_STATION",
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
+
+  CHANGE_LINE_MIXING = "CHANGE_LINE_MIXING",
+  CHANGE_FILTER_PREDICATE = "CHANGE_FILTER_PREDICATE", // TODO: remove
+  CHANGE_LINE_VISIBILITY = "CHANGE_LINE_VISIBILITY",
 };
 
 export type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
 export type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STATION, any>;
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
+export type ChangeLineMixingAction = TTAction<TTActionTypes.CHANGE_LINE_MIXING, boolean>;
+export type ChangeFilterPredicateAction = TTAction<TTActionTypes.CHANGE_FILTER_PREDICATE, (l: proto.LineArrivals) => boolean>;
+export type ChangeLineVisibilityAction = TTAction<TTActionTypes.CHANGE_LINE_VISIBILITY, [string, boolean]>;
+
 export type TTActions =
-  StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction;
+  StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction |
+  ChangeLineMixingAction | ChangeFilterPredicateAction | ChangeLineVisibilityAction;
 
 export const initialState: TTState = {
   currentStationId: "028",
   stationDetails: Immutable.Map(),
   loading: false,
+
+  mixMultipleLines: false,
+  filterPredicate: (l: proto.LineArrivals) => { return true; },
+  lineVisibility: Immutable.Map<string, boolean>(),
 };
 
 export function transition<T, P>(state: TTState = initialState, action: TTActions): TTState {
@@ -60,6 +75,24 @@ export function transition<T, P>(state: TTState = initialState, action: TTAction
     let data: DebuggableResult<proto.StationStatus> = action.payload[1];
     partialState = {
       stationDetails: state.stationDetails.set(id, data),
+    };
+    break;
+  }
+  case TTActionTypes.CHANGE_LINE_MIXING: {
+    partialState = {
+      mixMultipleLines: action.payload,
+    };
+    break;
+  }
+  case TTActionTypes.CHANGE_FILTER_PREDICATE: {
+    partialState = {
+      filterPredicate: action.payload,
+    };
+    break;
+  }
+  case TTActionTypes.CHANGE_LINE_VISIBILITY: {
+    partialState = {
+      lineVisibility: state.lineVisibility.set(action.payload[0], action.payload[1]),
     };
     break;
   }

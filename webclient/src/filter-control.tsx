@@ -1,7 +1,12 @@
+import * as Immutable from 'immutable';
 import * as React from "react";
+import * as ReactRedux from "react-redux";
+import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
 
 import * as utils from './utils';
+
+import { TTActionTypes, TTState } from './state-machine';
 
 class FilterControlProps {
   public updateFilterPredicateFn: (newFn: (l: proto.LineArrivals) => boolean) => void;
@@ -13,17 +18,76 @@ class FilterControlState {
   public directionStates: Map<proto.Direction, boolean>;
   public lineStates: Map<string, boolean>;
   public lineColors: Map<string, string>;
+  public expanded: boolean;
+};
+
+class FilterControlStateProps {
+  public allTrains: proto.StationStatus;
+  public mixMultipleLines: boolean;
+  public lineStates: Immutable.Map<string, boolean>;
+};
+class FilterControlDispatchProps {
+  public onMixingChange: (newMixing: boolean) => any;
+  public onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => any;
+  public onLineVisibilityChange: (line: string, visible: boolean) => any;
+};
+class FilterControlExplicitProps { }
+class FilterControlLocalState {
+  public directionStates: Map<proto.Direction, boolean>;
+  public lineColors: Map<string, string>;
   public mixMultipleLines: boolean;
   public expanded: boolean;
 };
 
-export class FilterControl extends React.Component<FilterControlProps, FilterControlState> {
-  public constructor(props: FilterControlProps) {
+function changeLineVisibility(line: string, visible: boolean) {
+  return {
+    type: TTActionTypes.CHANGE_LINE_VISIBILITY,
+    payload: [line, visible],
+  };
+}
+
+function changeMixing(newMixing: boolean) {
+  return {
+    type: TTActionTypes.CHANGE_LINE_MIXING,
+    payload: newMixing,
+  };
+}
+
+function changeFilterPredicate(newPredicate: (l: proto.LineArrivals) => boolean) {
+  return {
+    type: TTActionTypes.CHANGE_FILTER_PREDICATE,
+    payload: newPredicate,
+  };
+}
+
+const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlStateProps => {
+  if (state.stationDetails.has(state.currentStationId)) {
+    return {
+      allTrains: state.stationDetails.get(state.currentStationId).data,
+      mixMultipleLines: state.mixMultipleLines,
+      lineStates: state.lineVisibility,
+    };
+  } else {
+    return {
+      allTrains: new proto.StationStatus(),
+      mixMultipleLines: state.mixMultipleLines,
+      lineStates: state.lineVisibility,
+    };
+  }
+};
+
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDispatchProps => ({
+  onMixingChange: (newMixing: boolean) => dispatch(changeMixing(newMixing)),
+  onFilterPredicateChange: (newPredicate: (l: proto.LineArrivals) => boolean) => dispatch(changeFilterPredicate(newPredicate)),
+  onLineVisibilityChange: (line: string, visible: boolean) => dispatch(changeLineVisibility(line, visible)),
+});
+
+export class FilterControl extends React.Component<FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps, FilterControlLocalState> {
+  public constructor(props: any) {
     super(props);
 
     this.state = {
       directionStates: new Map<proto.Direction, boolean>(),
-      lineStates: new Map<string, boolean>(),
       lineColors: new Map<string, string>(),
       mixMultipleLines: false,
       expanded: false,
@@ -45,9 +109,15 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       togglers.push(<div key={utils.directionName(direction)} className={className}><a href="#" onClick={this.toggleDirection.bind(this, direction)}>{name}</a></div>);
     });
 
-    togglers.push(<div className="toggleSeparator" />);
+    togglers.push(<div key="sep1" className="toggleSeparator" />);
 
-    this.state.lineStates.forEach((visible: boolean, line: string) => {
+    let allLines = utils.linesForStation(this.props.allTrains);
+
+    allLines.map((line: string) => {
+      let visible = this.props.lineStates.get(line);
+      if (visible === undefined) {
+        visible = true;
+      }
       let style = {
         background: "#" + this.state.lineColors.get(line),
       };
@@ -55,28 +125,29 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       togglers.push(<div key={line} className={className} style={style}><a href="#" onClick={this.toggleLine.bind(this, line)}>{line}</a></div>);
     });
 
-    togglers.push(<div className="toggleSeparator" />);
+    togglers.push(<div key="sep2" className="toggleSeparator" />);
 
-    let className = "togglebutton autowidth " + (this.state.mixMultipleLines ? "active" : "inactive");
+    let className = "togglebutton autowidth " + (this.props.mixMultipleLines ? "active" : "inactive");
 //    let mixingWord = this.state.mixMultipleLines ? "Separate" : "Group by line";
     togglers.push(<div key="mixing" className={className}><a href="#" onClick={this.toggleMixing.bind(this)}>Combined</a></div>);
 
     return <div className="filterControl">
       <div key="filter" className="toggleButton autowidth"><a href="#" onClick={this.toggleExpanded.bind(this)}>&laquo;&nbsp;Filter</a></div>
-      <div className="toggleSeparator" />
+      <div key="sep3" className="toggleSeparator" />
       {togglers}
       </div>;
   }
 
   public componentDidMount() {
-    this.props.updateFilterPredicateFn(this.filterPredicate.bind(this));
-  }
+    this.props.onFilterPredicateChange(this.filterPredicate.bind(this));
 
-  public componentWillReceiveProps(nextProps: FilterControlProps) {
+    /*
+    console.log("FilterControl :: componentDidMount");
+
     let directionStates = new Map<proto.Direction, boolean>();
     let lineStates = new Map<string, boolean>();
     let lineColors = new Map<string, string>();
-    nextProps.allTrains.line.map((line: proto.LineArrivals) => {
+    this.props.allTrains.line.map((line: proto.LineArrivals) => {
       const existingDState = this.state.directionStates.get(line.direction);
       if (existingDState === undefined) {
         directionStates.set(line.direction, true);
@@ -99,6 +170,27 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       lineStates: lineStates,
       lineColors: lineColors,
     });
+    */
+  }
+
+  public componentWillReceiveProps(nextProps: FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps) {
+    let directionStates = new Map<proto.Direction, boolean>();
+    let lineColors = new Map<string, string>();
+    nextProps.allTrains.line.map((line: proto.LineArrivals) => {
+      const existingDState = this.state.directionStates.get(line.direction);
+      if (existingDState === undefined) {
+        directionStates.set(line.direction, true);
+      } else {
+        directionStates.set(line.direction, existingDState);
+      }
+
+      lineColors.set(line.line, line.lineColorHex);
+    });
+
+    this.setState({
+      directionStates: directionStates,
+      lineColors: lineColors,
+    });
   }
 
   private toggleExpanded() {
@@ -119,7 +211,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   }
 
   private lineVisible(line: string): boolean {
-    const dState = this.state.lineStates.get(line);
+    const dState = this.props.lineStates.get(line);
     if (dState === undefined) {
       return true;
     } else {
@@ -138,18 +230,17 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   };
 
   private toggleLine(line: string) {
-    const lState = this.state.lineStates.get(line);
-    if (lState === undefined) {
-      console.log("toggleLine: Unknown line: " + line);
-      this.state.lineStates.set(line, false);
-    } else {
-      this.state.lineStates.set(line, !lState);
+    let oldVisibility = this.props.lineStates.get(line);
+    if (oldVisibility === undefined) {
+      oldVisibility = true;
     }
+
+    this.props.onLineVisibilityChange(line, !oldVisibility);
   };
 
   private toggleMixing() {
-    const newMixing = !this.state.mixMultipleLines;
-    this.setState({mixMultipleLines: newMixing});
-    this.props.updateMixingFn(newMixing);
+    this.props.onMixingChange(!this.props.mixMultipleLines);
   }
 };
+
+export let ConnectedFilterControl = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(FilterControl);
