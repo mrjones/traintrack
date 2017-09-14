@@ -8,13 +8,13 @@ import * as proto from './webclient_api_pb';
 
 import * as utils from './utils';
 
-import { DataFetcher, DebuggableResult } from './datafetcher';
+import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { ConnectedFilterControl } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
-import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction, InstallStationListAction, Loadable } from './state-machine';
 
 // TODO(mrjones): Move this somewhere better
 function installStationList(allStations: proto.StationList): InstallStationListAction {
@@ -135,8 +135,8 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
   }
 };
 
-// TODO(mrjones): this is duplicated in bootstrap.tsx
 function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
+  console.log("installStationDetails");
   return {
     type: TTActionTypes.INSTALL_STATION_DETAILS,
     payload: [newStationId, newStationInfo],
@@ -173,12 +173,12 @@ class StationMultiLineDispatchProps {
 class StationMultiLineLocalState { }
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
-  if (state.core.stationDetails.has(ownProps.stationId)) {
-    let details: DebuggableResult<proto.StationStatus> =
-      state.core.stationDetails.get(ownProps.stationId);
+  let maybeData: Loadable<DebuggableResult<proto.StationStatus>> =
+    state.core.stationDetails.get(ownProps.stationId);
+  if (maybeData !== undefined && maybeData.valid) {
     return {
-      stationName: details.data.name,
-      data: details,
+      stationName: maybeData.data.data.name,
+      data: maybeData.data,
       mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       lineVisibility: state.core.lineVisibility,
       directionVisibility: state.core.directionVisibility,

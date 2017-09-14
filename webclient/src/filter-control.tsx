@@ -47,9 +47,10 @@ function changeMixing(newMixing: boolean) {
 }
 
 const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlStateProps => {
-  if (state.core.stationDetails.has(state.core.currentStationId)) {
+  let maybeStation = state.core.stationDetails.get(state.core.currentStationId);
+  if (maybeStation !== undefined && maybeStation.valid) {
     return {
-      allTrains: state.core.stationDetails.get(state.core.currentStationId).data,
+      allTrains: maybeStation.data.data,
       mixMultipleLines: state.core.mixMultipleLines,
       lineStates: state.core.lineVisibility,
       directionStates: state.core.directionVisibility,

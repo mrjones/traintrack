@@ -11,10 +11,16 @@ export class TTContext {
   }
 }
 
+export type Loadable<T> = {
+  loading: boolean;
+  valid: boolean;
+  data: T,
+}
+
 // TODO(mrjones): split up and refactor
 export type TTCoreState = {
   currentStationId: string;
-  stationDetails: Immutable.Map<string, DebuggableResult<proto.StationStatus> >;
+  stationDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationStatus>>>;
   loading: boolean;
 
   mixMultipleLines: boolean;
@@ -73,7 +79,6 @@ export const initialState: TTCoreState = {
 };
 
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
-  console.log("REDUCER state.currentStationId = " + state.currentStationId);
   let partialState: Partial<TTCoreState> | undefined;
   switch (action.type) {
   case TTActionTypes.START_CHANGE_STATION: {
@@ -94,31 +99,40 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_STATION_DETAILS: {
     let id: string = action.payload[0];
-    let data: DebuggableResult<proto.StationStatus> = action.payload[1];
+    let obj: Loadable<DebuggableResult<proto.StationStatus>> = {
+      data: action.payload[1],
+      loading: false,
+      valid: true,
+    };
+    console.log("INSTALL_STATION_DETAILS -> " + id);
     partialState = {
-      stationDetails: state.stationDetails.set(id, data),
+      stationDetails: state.stationDetails.set(id, obj),
     };
     break;
   }
   case TTActionTypes.CHANGE_LINE_MIXING: {
+    console.log("CHANGE_LINE_MIXING -> " + action.payload);
     partialState = {
       mixMultipleLines: action.payload,
     };
     break;
   }
   case TTActionTypes.CHANGE_LINE_VISIBILITY: {
+    console.log("CHANGE_LINE_VISIBILITY -> " + action.payload[0] + "::" + action.payload[1]);
     partialState = {
       lineVisibility: state.lineVisibility.set(action.payload[0], action.payload[1]),
     };
     break;
   }
   case TTActionTypes.CHANGE_DIRECTION_VISIBILITY: {
+    console.log("CHANGE_DIRECTION_VISIBILITY -> " + action.payload[0] + "::" + action.payload[1]);
     partialState = {
       directionVisibility: state.directionVisibility.set(action.payload[0], action.payload[1]),
     };
     break;
   }
   case TTActionTypes.INSTALL_STATION_LIST: {
+    console.log("INSTALL_STATION_LIST");
     partialState = {
       allStations: action.payload,
     };
