@@ -19,9 +19,7 @@ export type Loadable<T> = {
 
 // TODO(mrjones): split up and refactor
 export type TTCoreState = {
-  currentStationId: string;
   stationDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationStatus>>>;
-  loading: boolean;
 
   mixMultipleLines: boolean;
   lineVisibility: Immutable.Map<string, boolean>;
@@ -40,8 +38,6 @@ export interface TTAction<T, P> {
 }
 
 export enum TTActionTypes {
-  START_CHANGE_STATION = "START_CHANGE_STATION",
-  FINISH_CHANGE_STATION = "FINISH_CHANGE_STATION",
   START_LOADING_STATION_DETAILS = "START_LOADING_STATION_DETAILS",
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
 
@@ -52,8 +48,6 @@ export enum TTActionTypes {
   INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
 };
 
-export type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
-export type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STATION, any>;
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
@@ -64,14 +58,12 @@ export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRE
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
 
 export type TTActions =
-  StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction | StartLoadingStationDetailsAction |
+  InstallStationDetailsAction | StartLoadingStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
   InstallStationListAction;
 
 export const initialState: TTCoreState = {
-  currentStationId: "028",
   stationDetails: Immutable.Map(),
-  loading: false,
 
   mixMultipleLines: false,
   lineVisibility: Immutable.Map<string, boolean>(),
@@ -83,22 +75,6 @@ export const initialState: TTCoreState = {
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
   let partialState: Partial<TTCoreState> | undefined;
   switch (action.type) {
-  case TTActionTypes.START_CHANGE_STATION: {
-    console.log("START_CHANGE_STATION -> " + action.payload);
-    partialState = {
-      loading: true,
-      currentStationId: action.payload,
-    };
-    break;
-  }
-  case TTActionTypes.FINISH_CHANGE_STATION: {
-    console.log("FINISH_CHANGE_STATION -> " + action.payload);
-
-    partialState = {
-      loading: false,
-    };
-    break;
-  }
   case TTActionTypes.START_LOADING_STATION_DETAILS: {
     let id: string = action.payload;
     console.log("START_LOADING_STATION_DETAILS -> " + id);
