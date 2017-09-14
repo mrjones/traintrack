@@ -20,6 +20,8 @@ export type TTCoreState = {
   mixMultipleLines: boolean;
   lineVisibility: Immutable.Map<string, boolean>;
   directionVisibility: Immutable.Map<proto.Direction, boolean>;
+
+  allStations: proto.StationList,
 }
 
 export type TTState = {
@@ -39,6 +41,8 @@ export enum TTActionTypes {
   CHANGE_LINE_MIXING = "CHANGE_LINE_MIXING",
   CHANGE_LINE_VISIBILITY = "CHANGE_LINE_VISIBILITY",
   CHANGE_DIRECTION_VISIBILITY = "CHANGE_DIRECTION_VISIBILITY",
+
+  INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
 };
 
 export type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
@@ -49,9 +53,12 @@ export type ChangeLineMixingAction = TTAction<TTActionTypes.CHANGE_LINE_MIXING, 
 export type ChangeLineVisibilityAction = TTAction<TTActionTypes.CHANGE_LINE_VISIBILITY, [string, boolean]>;
 export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRECTION_VISIBILITY, [proto.Direction, boolean]>;
 
+export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
+
 export type TTActions =
   StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction |
-  ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction;
+  ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
+  InstallStationListAction;
 
 export const initialState: TTCoreState = {
   currentStationId: "028",
@@ -61,6 +68,8 @@ export const initialState: TTCoreState = {
   mixMultipleLines: false,
   lineVisibility: Immutable.Map<string, boolean>(),
   directionVisibility: Immutable.Map<proto.Direction, boolean>(),
+
+  allStations: new proto.StationList(),
 };
 
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
@@ -106,6 +115,12 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   case TTActionTypes.CHANGE_DIRECTION_VISIBILITY: {
     partialState = {
       directionVisibility: state.directionVisibility.set(action.payload[0], action.payload[1]),
+    };
+    break;
+  }
+  case TTActionTypes.INSTALL_STATION_LIST: {
+    partialState = {
+      allStations: action.payload,
     };
     break;
   }

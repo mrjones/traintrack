@@ -11,10 +11,27 @@ import * as utils from './utils';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { ConnectedFilterControl } from './filter-control';
-import { StationPicker } from './navigation';
+import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
-import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
+
+// TODO(mrjones): Move this somewhere better
+function installStationList(allStations: proto.StationList): InstallStationListAction {
+  return {
+    type: TTActionTypes.INSTALL_STATION_LIST,
+    payload: allStations,
+  };
+}
+
+function fetchStationList() {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    context.dataFetcher.fetchStationList()
+      .then((result: DebuggableResult<proto.StationList>) => {
+        dispatch(installStationList(result.data));
+      });
+  };
+}
 
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
@@ -127,15 +144,11 @@ function installStationDetails(newStationId: string, newStationInfo: DebuggableR
 }
 
 function loadStationDetails(stationId: string) {
-  console.log("loadStationDetails(" + stationId + ") scaffolding");
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    console.log("loadStationDetails(" + stationId + ") executing fetch");
     context.dataFetcher.fetchStationStatus(stationId)
       .then((result: DebuggableResult<proto.StationStatus>) => {
-        console.log("installStationDetails(" + stationId + ", ...)");
         dispatch(installStationDetails(stationId, result));
-        //          dispatch(finishChangeStation());
-        });
+      });
   };
 }
 
@@ -155,6 +168,8 @@ class StationMultiLineStateProps {
 }
 class StationMultiLineDispatchProps {
   public fetchStationData: (stationId: string) => any;
+  // TODO(mrjones): This belongs on StationPage (or higher) once that component is Redux-ified
+  public initializeData: () => any;
 }
 class StationMultiLineLocalState { }
 
@@ -184,6 +199,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
 
 const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLineDispatchProps => ({
   fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId)),
+  initializeData: () => dispatch(fetchStationList()),
 });
 
 class StationMultiLine extends React.Component<StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps, StationMultiLineLocalState> {
@@ -203,7 +219,9 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
   }
 
   public componentWillMount() {
+    // TODO(mrjones): batch?
     this.fetchDataIfNecessary();
+    this.props.initializeData();
   }
 
   public componentWillReceiveProps(nextProps: StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps) {
@@ -283,7 +301,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
     let stationPickerToggle;
     let className = "";
     if (this.state.stationPickerDisplayed) {
-      stationPicker = <StationPicker initialStationId={this.props.initialStationId} stationPickedFn={this.handleStationChanged.bind(this)} dataFetcher={this.props.dataFetcher} />;
+      stationPicker = <ConnectedStationPicker stationId={this.props.initialStationId} />;
       stationPickerToggle = <a href="#" onClick={this.toggleStationPicker.bind(this)}>Hide stations</a>;
       className = "jumpLink open";
     } else {

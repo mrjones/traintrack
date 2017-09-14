@@ -1,10 +1,13 @@
 import * as React from "react";
+import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
+import * as Redux from "redux";
 
 import * as proto from './webclient_api_pb';
 
 import { ApiDebugger } from './debug';
 import { DataFetcher, DebuggableResult } from './datafetcher';
+import { TTState } from './state-machine';
 
 class LinePickerProps {
   public dataFetcher: DataFetcher;
@@ -61,47 +64,34 @@ export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteCo
   }
 }
 
-class StationPickerState {
+class StationPickerDataProps {
+  public allStations: proto.StationList;
+}
+class StationPickerDispatchProps { }
+class StationPickerExplicitProps {
+  public stationId: string;
+}
+type StationPickerAllProps = StationPickerDataProps & StationPickerDispatchProps & StationPickerExplicitProps;
+
+class StationPickerLocalState {
   public currentJumpText: string;
   public currentFilterText: string;
-  public allStations: proto.StationList;
-};
-
-class StationPickerProps {
-  public initialStationId: string;
-  public stationPickedFn: (newStation: string) => void;
-  public dataFetcher: DataFetcher;
 }
 
-export class StationPicker extends React.Component<StationPickerProps, StationPickerState> {
-  constructor(props: StationPickerProps) {
+const mapStateToProps = (state: TTState, ownProps: StationPickerExplicitProps): StationPickerDataProps => ({
+  allStations: state.core.allStations,
+});
+
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationPickerDispatchProps => ({ });
+
+export class StationPicker extends React.Component<StationPickerAllProps, StationPickerLocalState> {
+  constructor(props: StationPickerAllProps) {
     super(props);
 
     this.state = {
-      currentJumpText: props.initialStationId,
+      currentJumpText: props.stationId,
       currentFilterText: "",
-      allStations: new proto.StationList(),
     };
-  }
-
-  public componentDidMount() {
-    this.props.dataFetcher.fetchStationList().then((stationList: DebuggableResult<proto.StationList>) => {
-      this.setState({allStations: stationList.data});
-    });
-  }
-
-  private handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    for (let station of this.state.allStations.station) {
-      if (station.id === this.state.currentJumpText) {
-        console.log("Matched: " + station.name);
-      }
-    }
-    this.props.stationPickedFn(this.state.currentJumpText);
-  }
-
-  private handleCurrentTextChanged(e: React.FormEvent<HTMLInputElement>) {
-    this.setState({currentJumpText: e.currentTarget.value});
   }
 
   private handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
@@ -112,7 +102,7 @@ export class StationPicker extends React.Component<StationPickerProps, StationPi
     let i = 0;
     const max = 10;
     let done = false;
-    let stationLis = this.state.allStations.station.map(
+    let stationLis = this.props.allStations.station.map(
       (station: proto.Station) => {
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
@@ -128,13 +118,8 @@ export class StationPicker extends React.Component<StationPickerProps, StationPi
     return (<div className="stationPicker">
   <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
     <ul>{stationLis}</ul>
-            {/*
-    <hr/>
-  <form onSubmit={this.handleSubmit.bind(this)}>
-  </form>
-    <input id="stationIdBox" type="text" value={this.state.currentJumpText} onChange={this.handleCurrentTextChanged.bind(this)} autoComplete="off"/>
-    <input type="submit" value="Jump (by ID)"/>
-             */}
     </div>);
   }
 }
+
+export let ConnectedStationPicker = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(StationPicker);
