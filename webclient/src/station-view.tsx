@@ -262,7 +262,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
-            <ConnectedFilterControl />
+            <ConnectedFilterControl stationId={this.props.stationId}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);

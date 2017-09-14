@@ -8,7 +8,7 @@ import * as utils from './utils';
 
 import { TTActionTypes, TTState } from './state-machine';
 
-class FilterControlStateProps {
+class FilterControlDataProps {
   public allTrains: proto.StationStatus;
   public mixMultipleLines: boolean;
   public lineStates: Immutable.Map<string, boolean>;
@@ -19,11 +19,16 @@ class FilterControlDispatchProps {
   public onLineVisibilityChange: (line: string, visible: boolean) => any;
   public onDirectionVisibilityChange: (line: proto.Direction, visible: boolean) => any;
 };
-class FilterControlExplicitProps { }
+class FilterControlExplicitProps {
+  // TODO(mrjones): This is awkward, since it's only used in mapStateToProps, so it seems like it belongs elsewhere
+  public stationId: string;
+}
 class FilterControlLocalState {
   public lineColors: Map<string, string>;  // TODO: move to props
   public expanded: boolean;
 };
+
+type FilterControlProps = FilterControlDataProps & FilterControlDispatchProps & FilterControlExplicitProps;
 
 function changeLineVisibility(line: string, visible: boolean) {
   return {
@@ -46,8 +51,8 @@ function changeMixing(newMixing: boolean) {
   };
 }
 
-const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlStateProps => {
-  let maybeStation = state.core.stationDetails.get(state.core.currentStationId);
+const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlDataProps => {
+  let maybeStation = state.core.stationDetails.get(ownProps.stationId);
   if (maybeStation !== undefined && maybeStation.valid) {
     return {
       allTrains: maybeStation.data.data,
@@ -71,7 +76,7 @@ const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDis
   onDirectionVisibilityChange: (direction: proto.Direction, visible: boolean) => dispatch(changeDirectionVisibility(direction, visible)),
 });
 
-export class FilterControl extends React.Component<FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps, FilterControlLocalState> {
+export class FilterControl extends React.Component<FilterControlProps, FilterControlLocalState> {
   public constructor(props: any) {
     super(props);
 
@@ -127,7 +132,7 @@ export class FilterControl extends React.Component<FilterControlStateProps & Fil
       </div>;
   }
 
-  public componentWillReceiveProps(nextProps: FilterControlStateProps & FilterControlDispatchProps & FilterControlExplicitProps) {
+  public componentWillReceiveProps(nextProps: FilterControlProps) {
     let lineColors = new Map<string, string>();
     nextProps.allTrains.line.map((line: proto.LineArrivals) => {
       lineColors.set(line.line, line.lineColorHex);
