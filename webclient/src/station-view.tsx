@@ -14,7 +14,7 @@ import { ConnectedFilterControl } from './filter-control';
 import { StationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
-import { TTState } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction } from './state-machine';
 
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
@@ -118,61 +118,96 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
   }
 };
 
+// TODO(mrjones): this is duplicated in bootstrap.tsx
+function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
+  return {
+    type: TTActionTypes.INSTALL_STATION_DETAILS,
+    payload: [newStationId, newStationInfo],
+  };
+}
+
+function loadStationDetails(stationId: string) {
+  console.log("loadStationDetails(" + stationId + ") scaffolding");
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    console.log("loadStationDetails(" + stationId + ") executing fetch");
+    context.dataFetcher.fetchStationStatus(stationId)
+      .then((result: DebuggableResult<proto.StationStatus>) => {
+        console.log("installStationDetails(" + stationId + ", ...)");
+        dispatch(installStationDetails(stationId, result));
+        //          dispatch(finishChangeStation());
+        });
+  };
+}
+
 enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
 class StationMultiLineExplicitProps {
   public dataFetcher: DataFetcher;
+  public stationId: string;
 }
 class StationMultiLineStateProps {
-  public stationId: string;
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
   public mixing: MultipleLineMixing;
   public lineVisibility: Immutable.Map<string, boolean>;
   public directionVisibility: Immutable.Map<proto.Direction, boolean>;
+  public hasData: boolean;
 }
-class StationMultiLineDispatchProps { }
+class StationMultiLineDispatchProps {
+  public fetchStationData: (stationId: string) => any;
+}
 class StationMultiLineLocalState { }
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
-  if (state.core.stationDetails.has(state.core.currentStationId)) {
+  if (state.core.stationDetails.has(ownProps.stationId)) {
     let details: DebuggableResult<proto.StationStatus> =
-      state.core.stationDetails.get(state.core.currentStationId);
+      state.core.stationDetails.get(ownProps.stationId);
     return {
-      stationId: state.core.currentStationId,
       stationName: details.data.name,
       data: details,
       mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       lineVisibility: state.core.lineVisibility,
       directionVisibility: state.core.directionVisibility,
+      hasData: true,
     };
   } else {
     return {
-      stationId: state.core.currentStationId,
-      stationName: state.core.loading ? "Loading..." : "No data for station: " + state.core.currentStationId,
+      stationName: "Loading...";
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
       mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       lineVisibility: state.core.lineVisibility,
       directionVisibility: state.core.directionVisibility,
+      hasData: false,
     };
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLineDispatchProps => ({});
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLineDispatchProps => ({
+  fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId)),
+});
 
 class StationMultiLine extends React.Component<StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps, StationMultiLineLocalState> {
   constructor(props: any) {
     super(props);
-    this.state = { }
+    this.state = { };
   }
 
-  private stationChanged() {
-    // TODO(mrjones): move to redux
+  private fetchDataIfNecessary() {
+    if (!this.props.hasData) {
+      this.props.fetchStationData(this.props.stationId);
+    }
   }
 
-  private updateLineMixingState(mixMultipleLines: boolean) {
-//    this.setState({mixing: mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE});
+  private fetchData() {
+    this.props.fetchStationData(this.props.stationId);
+  }
 
+  public componentWillMount() {
+    this.fetchDataIfNecessary();
+  }
+
+  public componentWillReceiveProps(nextProps: StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps) {
+    this.fetchDataIfNecessary();
   }
 
   public render() {
@@ -194,7 +229,7 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
 
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
-            <PubInfo reloadFn={this.stationChanged.bind(this)} pubTimestamp={dataTs} />
+            <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
             <ConnectedFilterControl />
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
@@ -259,7 +294,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine dataFetcher={this.props.dataFetcher}/>
+      <ConnectedStationMultiLine dataFetcher={this.props.dataFetcher} stationId={this.props.initialStationId}/>
     </div>);
   }
 }

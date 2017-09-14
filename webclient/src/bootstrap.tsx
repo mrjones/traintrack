@@ -15,17 +15,9 @@ import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
 
 import { DataFetcher, DebuggableResult } from './datafetcher';
-import { TTActionTypes, TTState, StartChangeStationAction, FinishChangeStationAction, InstallStationDetailsAction, initialState, transition } from './state-machine';
+import { TTActionTypes, TTContext, TTState, StartChangeStationAction, FinishChangeStationAction, InstallStationDetailsAction, initialState, transition } from './state-machine';
 
 import * as proto from './webclient_api_pb';
-
-class TTContext {
-  public dataFetcher: DataFetcher;
-
-  public constructor(dataFetcher: DataFetcher) {
-    this.dataFetcher = dataFetcher;
-  }
-}
 
 function startChangeStation(newStationId: string): StartChangeStationAction {
   console.log("startChangeStation");
@@ -75,7 +67,7 @@ function changeStation(newStationId: string) {
 let context = new TTContext(new DataFetcher());
 let store = Redux.createStore(
   Redux.combineReducers({core: transition}),
-  initialState,
+  {core: initialState},
   Redux.applyMiddleware(thunk.withExtraArgument(context)));
 
 const mapStateToProps = (state: TTState, ownProps: FooComponentExplicitProps): FooComponentStateProps => {

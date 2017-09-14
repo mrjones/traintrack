@@ -1,7 +1,15 @@
 import * as proto from './webclient_api_pb';
 
-import { DebuggableResult } from './datafetcher';
+import { DataFetcher, DebuggableResult } from './datafetcher';
 import * as Immutable from 'immutable';
+
+export class TTContext {
+  public dataFetcher: DataFetcher;
+
+  public constructor(dataFetcher: DataFetcher) {
+    this.dataFetcher = dataFetcher;
+  }
+}
 
 // TODO(mrjones): split up and refactor
 export type TTCoreState = {
