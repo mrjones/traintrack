@@ -14,7 +14,7 @@ import { ConnectedFilterControl } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 
-import { TTActionTypes, TTContext, TTState, InstallStationDetailsAction, InstallStationListAction, Loadable } from './state-machine';
+import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, Loadable } from './state-machine';
 
 // TODO(mrjones): Move this somewhere better
 function installStationList(allStations: proto.StationList): InstallStationListAction {
@@ -135,8 +135,14 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
   }
 };
 
+function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
+  return {
+    type: TTActionTypes.START_LOADING_STATION_DETAILS,
+    payload: stationId,
+  };
+}
+
 function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
-  console.log("installStationDetails");
   return {
     type: TTActionTypes.INSTALL_STATION_DETAILS,
     payload: [newStationId, newStationInfo],
@@ -145,6 +151,13 @@ function installStationDetails(newStationId: string, newStationInfo: DebuggableR
 
 function loadStationDetails(stationId: string) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    let existing = getState().core.stationDetails.get(stationId);
+    if (existing !== undefined && existing.loading) {
+      // Someone is already loading this
+      // TODO(mrjone): check for errors which might wedge us in "loading"
+      return;
+    }
+    dispatch(startLoadingStationDetails(stationId));
     context.dataFetcher.fetchStationStatus(stationId)
       .then((result: DebuggableResult<proto.StationStatus>) => {
         dispatch(installStationDetails(stationId, result));
@@ -171,6 +184,8 @@ class StationMultiLineDispatchProps {
   public initializeData: () => any;
 }
 class StationMultiLineLocalState { }
+
+type StationMultiLineProps = StationMultiLineExplicitProps & StationMultiLineStateProps & StationMultiLineDispatchProps;
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
   let maybeData: Loadable<DebuggableResult<proto.StationStatus>> =
@@ -201,15 +216,15 @@ const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLine
   initializeData: () => dispatch(fetchStationList()),
 });
 
-class StationMultiLine extends React.Component<StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps, StationMultiLineLocalState> {
-  constructor(props: any) {
+class StationMultiLine extends React.Component<StationMultiLineProps, StationMultiLineLocalState> {
+  constructor(props: StationMultiLineProps) {
     super(props);
     this.state = { };
   }
 
-  private fetchDataIfNecessary() {
-    if (!this.props.hasData) {
-      this.props.fetchStationData(this.props.stationId);
+  private fetchDataIfNecessary(props: StationMultiLineProps) {
+    if (!props.hasData) {
+      props.fetchStationData(props.stationId);
     }
   }
 
@@ -219,12 +234,12 @@ class StationMultiLine extends React.Component<StationMultiLineStateProps & Stat
 
   public componentWillMount() {
     // TODO(mrjones): batch?
-    this.fetchDataIfNecessary();
+    this.fetchDataIfNecessary(this.props);
     this.props.initializeData();
   }
 
-  public componentWillReceiveProps(nextProps: StationMultiLineStateProps & StationMultiLineDispatchProps & StationMultiLineExplicitProps) {
-    this.fetchDataIfNecessary();
+  public componentWillReceiveProps(nextProps: StationMultiLineProps) {
+    this.fetchDataIfNecessary(nextProps);
   }
 
   public render() {

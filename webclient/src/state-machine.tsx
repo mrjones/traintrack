@@ -42,6 +42,7 @@ export interface TTAction<T, P> {
 export enum TTActionTypes {
   START_CHANGE_STATION = "START_CHANGE_STATION",
   FINISH_CHANGE_STATION = "FINISH_CHANGE_STATION",
+  START_LOADING_STATION_DETAILS = "START_LOADING_STATION_DETAILS",
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
 
   CHANGE_LINE_MIXING = "CHANGE_LINE_MIXING",
@@ -53,6 +54,7 @@ export enum TTActionTypes {
 
 export type StartChangeStationAction = TTAction<TTActionTypes.START_CHANGE_STATION, string>;
 export type FinishChangeStationAction = TTAction<TTActionTypes.FINISH_CHANGE_STATION, any>;
+export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
 export type ChangeLineMixingAction = TTAction<TTActionTypes.CHANGE_LINE_MIXING, boolean>;
@@ -62,7 +64,7 @@ export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRE
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
 
 export type TTActions =
-  StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction |
+  StartChangeStationAction | FinishChangeStationAction | InstallStationDetailsAction | StartLoadingStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
   InstallStationListAction;
 
@@ -94,6 +96,22 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
 
     partialState = {
       loading: false,
+    };
+    break;
+  }
+  case TTActionTypes.START_LOADING_STATION_DETAILS: {
+    let id: string = action.payload;
+    console.log("START_LOADING_STATION_DETAILS -> " + id);
+    let defaultValue: Loadable<DebuggableResult<proto.StationStatus>> = {
+      data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
+      loading: true,
+      valid: false,
+    };
+    let loadable: Loadable<DebuggableResult<proto.StationStatus>> =
+      state.stationDetails.get(id, defaultValue);
+    loadable.loading = true;
+    partialState = {
+      stationDetails: state.stationDetails.set(id, loadable),
     };
     break;
   }
