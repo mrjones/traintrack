@@ -170,7 +170,7 @@ enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 class StationMultiLineExplicitProps {
   public stationId: string;
 }
-class StationMultiLineStateProps {
+class StationMultiLineDataProps {
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
   public mixing: MultipleLineMixing;
@@ -185,9 +185,9 @@ class StationMultiLineDispatchProps {
 }
 class StationMultiLineLocalState { }
 
-type StationMultiLineProps = StationMultiLineExplicitProps & StationMultiLineStateProps & StationMultiLineDispatchProps;
+type StationMultiLineProps = StationMultiLineExplicitProps & StationMultiLineDataProps & StationMultiLineDispatchProps;
 
-const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineStateProps => {
+const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineDataProps => {
   let maybeData: Loadable<DebuggableResult<proto.StationStatus>> =
     state.core.stationDetails.get(ownProps.stationId);
   if (maybeData !== undefined && maybeData.valid) {
