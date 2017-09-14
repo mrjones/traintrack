@@ -155,7 +155,6 @@ function loadStationDetails(stationId: string) {
 enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
 class StationMultiLineExplicitProps {
-  public dataFetcher: DataFetcher;
   public stationId: string;
 }
 class StationMultiLineStateProps {
@@ -259,7 +258,6 @@ export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDi
 
 class StationPageProps {
   public initialStationId: string;
-  public dataFetcher: DataFetcher;
 }
 
 class StationPageState {
@@ -312,17 +310,14 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine dataFetcher={this.props.dataFetcher} stationId={this.props.initialStationId}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId}/>
     </div>);
   }
 }
 
 export class StationPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  private dataFetcher: DataFetcher;
-
   constructor(props: ReactRouter.RouteComponentProps<any>) {
     super(props);
-    this.dataFetcher = globalDataFetcher;
 
     this.state = {
       stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028",
@@ -337,8 +332,6 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
   }
 
   public render() {
-    return <StationPage initialStationId={this.state.stationId} dataFetcher={this.dataFetcher} />;
+    return <StationPage initialStationId={this.state.stationId}  />;
   }
 }
-
-let globalDataFetcher = new DataFetcher();
