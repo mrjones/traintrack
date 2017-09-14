@@ -172,7 +172,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
     };
   } else {
     return {
-      stationName: "Loading...";
+      stationName: "Loading...",
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
       mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
       lineVisibility: state.core.lineVisibility,
