@@ -15,8 +15,6 @@ import { TrainItineraryWrapper } from './train-itinerary';
 import { DataFetcher } from './datafetcher';
 import { TTContext, initialState, transition } from './state-machine';
 
-import * as proto from './webclient_api_pb';
-
 let context = new TTContext(new DataFetcher());
 let store = Redux.createStore(
   Redux.combineReducers({core: transition}),

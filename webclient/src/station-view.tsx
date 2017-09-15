@@ -33,6 +33,36 @@ function fetchStationList() {
   };
 }
 
+function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
+  return {
+    type: TTActionTypes.START_LOADING_STATION_DETAILS,
+    payload: stationId,
+  };
+}
+
+function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
+  return {
+    type: TTActionTypes.INSTALL_STATION_DETAILS,
+    payload: [newStationId, newStationInfo],
+  };
+}
+
+function loadStationDetails(stationId: string) {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    let existing = getState().core.stationDetails.get(stationId);
+    if (existing !== undefined && existing.loading) {
+      // Someone is already loading this
+      // TODO(mrjone): check for errors which might wedge us in "loading"
+      return;
+    }
+    dispatch(startLoadingStationDetails(stationId));
+    context.dataFetcher.fetchStationStatus(stationId)
+      .then((result: DebuggableResult<proto.StationStatus>) => {
+        dispatch(installStationDetails(stationId, result));
+      });
+  };
+}
+
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
 }
@@ -134,36 +164,6 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
       </div>);
   }
 };
-
-function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
-  return {
-    type: TTActionTypes.START_LOADING_STATION_DETAILS,
-    payload: stationId,
-  };
-}
-
-function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
-  return {
-    type: TTActionTypes.INSTALL_STATION_DETAILS,
-    payload: [newStationId, newStationInfo],
-  };
-}
-
-function loadStationDetails(stationId: string) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    let existing = getState().core.stationDetails.get(stationId);
-    if (existing !== undefined && existing.loading) {
-      // Someone is already loading this
-      // TODO(mrjone): check for errors which might wedge us in "loading"
-      return;
-    }
-    dispatch(startLoadingStationDetails(stationId));
-    context.dataFetcher.fetchStationStatus(stationId)
-      .then((result: DebuggableResult<proto.StationStatus>) => {
-        dispatch(installStationDetails(stationId, result));
-      });
-  };
-}
 
 enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
@@ -276,8 +276,6 @@ class StationPageProps {
 }
 
 class StationPageState {
-  public stationIdAtLoad: string;
-  public displayedStationId: string;
   public stationPickerDisplayed: boolean;
 };
 
@@ -286,23 +284,8 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
     super(props);
 
     this.state = {
-      stationIdAtLoad: props.initialStationId,
-      displayedStationId: props.initialStationId,
       stationPickerDisplayed: false,
     };
-  }
-
-  private handleStationChanged(newStationId: string) {
-    this.setState({displayedStationId: newStationId});
-  }
-
-  public componentDidUpdate() {
-    if (this.props.initialStationId != this.state.stationIdAtLoad) {
-      this.setState({
-        stationIdAtLoad: this.props.initialStationId,
-        displayedStationId: this.props.initialStationId,
-      });
-    }
   }
 
   private toggleStationPicker() {
