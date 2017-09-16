@@ -28,6 +28,7 @@ export type TTCoreState = {
   allStations: proto.StationList,
 
   allLines: Loadable<DebuggableResult<proto.LineList>>,
+  lineDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationList>>>;
 }
 
 export type TTState = {
@@ -50,6 +51,7 @@ export enum TTActionTypes {
   INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
 
   INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
+  INSTALL_LINE_DETAILS = "INSTALL_LINE_DETAILS",
 };
 
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
@@ -62,11 +64,13 @@ export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRE
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
 
 export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
+export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<proto.StationList>]>;
 
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
-  InstallStationListAction | InstallLineListAction;
+  InstallStationListAction |
+  InstallLineListAction | InstallLineDetailsAction;
 
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
@@ -77,6 +81,7 @@ export const initialState: TTCoreState = {
 
   allStations: new proto.StationList(),
   allLines: {loading: false, valid: false},
+  lineDetails: Immutable.Map(),
 };
 
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
@@ -143,6 +148,19 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     console.log("INSTALL_LINE_LIST");
     partialState = {
       allLines: {loading: false, valid: true, data: action.payload},
+    };
+    break;
+  }
+  case TTActionTypes.INSTALL_LINE_DETAILS: {
+    let id: string = action.payload[0];
+    let obj: Loadable<DebuggableResult<proto.StationList>> = {
+      data: action.payload[1],
+      loading: false,
+      valid: true,
+    };
+    console.log("INSTALL_LINE_DETAILS -> " + id);
+    partialState = {
+      lineDetails: state.lineDetails.set(id, obj),
     };
     break;
   }

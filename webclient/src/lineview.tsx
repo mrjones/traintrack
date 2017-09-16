@@ -1,37 +1,76 @@
 import * as React from "react";
+import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
+import * as Redux from "redux";
 
 import * as proto from './webclient_api_pb';
 
 import { ApiDebugger } from './debug';
-import { DataFetcher, DebuggableResult } from './datafetcher';
+import { DebuggableResult } from './datafetcher';
 
-class LineViewProps {
-  public dataFetcher: DataFetcher;
+import { TTActionTypes, TTContext, TTState, InstallLineDetailsAction, Loadable } from './state-machine';
+
+function installLineDetails(lineId: string, stations: DebuggableResult<proto.StationList>): InstallLineDetailsAction {
+  return {
+    type: TTActionTypes.INSTALL_LINE_DETAILS,
+    payload: [lineId, stations],
+  };
+}
+
+function fetchLineDetails(lineId: string) {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    let existing = getState().core.lineDetails.get(lineId);
+    if (existing !== undefined && existing.loading) {
+      // Someone is already loading this
+      // TODO(mrjone): check for errors which might wedge us in "loading"
+      return;
+    }
+//    dispatch(startLoadingStationDetails(stationId));
+    context.dataFetcher.fetchStationsForLine(lineId)
+      .then((stationList: DebuggableResult<proto.StationList>) => {
+        dispatch(installLineDetails(lineId, stationList));
+      });
+  };
+}
+
+class LineViewDataProps {
+  public stationList: DebuggableResult<proto.StationList>;
+  public hasData: boolean;
+}
+class LineViewDispatchProps {
+  fetchLineData: (lineId: string) => any;
+}
+class LineViewExplicitProps {
   public lineId: string;
 }
+type LineViewProps = LineViewDataProps & LineViewDispatchProps & LineViewExplicitProps;
+class LineViewLocalState { }
 
-class LineViewState {
-  public stationList: DebuggableResult<proto.StationList>;
-}
-
-export default class LineView extends React.Component<LineViewProps, any> {
+export default class LineView extends React.Component<LineViewProps, LineViewLocalState> {
   constructor(props: LineViewProps) {
     super(props);
-    this.state = {
-      stationList: new DebuggableResult<proto.StationList>(new proto.StationList(), ""),
-    };
+    this.state = { };
   }
 
-  public componentDidMount() {
-    this.props.dataFetcher.fetchStationsForLine(this.props.lineId)
-      .then((stationList: DebuggableResult<proto.StationList>) => {
-        this.setState({stationList: stationList});
-      });
+  private fetchDataIfNecessary(props: LineViewProps) {
+    if (!props.hasData) {
+      props.fetchLineData(props.lineId);
+    }
+  }
+
+  public componentWillMount() {
+    this.fetchDataIfNecessary(this.props);
+  }
+
+  public componentWillReceiveProps(nextProps: LineViewProps) {
+    this.fetchDataIfNecessary(nextProps);
   }
 
   public render(): JSX.Element {
-    let stationLis = this.state.stationList.data.station.map((station: proto.Station) => {
+    if (!this.props.hasData) {
+      return <div>Loading...</div>;
+    }
+    let stationLis = this.props.stationList.data.station.map((station: proto.Station) => {
       return <li key={station.name}>
         <ReactRouter.Link to={`/app/station/${station.id}`}>
           {station.name}
@@ -42,10 +81,32 @@ export default class LineView extends React.Component<LineViewProps, any> {
     return (<div>
               <h1>LineView: {this.props.lineId}</h1>
             <ul className="lineView">{stationLis}</ul>
-            <ApiDebugger datasFetched={[this.state.stationList]}/>
+            <ApiDebugger datasFetched={[this.props.stationList]}/>
             </div>);
   }
 }
+
+const mapStateToProps = (state: TTState, ownProps: LineViewExplicitProps): LineViewDataProps => {
+  let maybeData: Loadable<DebuggableResult<proto.StationList>> =
+    state.core.lineDetails.get(ownProps.lineId);
+  if (maybeData !== undefined && maybeData.valid) {
+    return {
+      stationList: maybeData.data,
+      hasData: true,
+    };
+  } else {
+    return {
+      stationList: new DebuggableResult<proto.StationList>(new proto.StationList(), null, null),
+      hasData: false,
+    };
+  }
+};
+
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): LineViewDispatchProps => ({
+  fetchLineData: (lineId: string) => dispatch(fetchLineDetails(lineId)),
+});
+
+export let ConnectedLineView = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(LineView);
 
 export class LineViewRouterWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   constructor(props: ReactRouter.RouteComponentProps<any>) {
@@ -53,6 +114,6 @@ export class LineViewRouterWrapper extends React.Component<ReactRouter.RouteComp
   }
 
   public render(): JSX.Element {
-    return <LineView lineId={this.props.match.params.lineId} dataFetcher={new DataFetcher()}/>;
+    return <ConnectedLineView lineId={this.props.match.params.lineId} />;
   }
 }
