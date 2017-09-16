@@ -14,7 +14,7 @@ export class TTContext {
 export type Loadable<T> = {
   loading: boolean;
   valid: boolean;
-  data: T,
+  data?: T;
 }
 
 // TODO(mrjones): split up and refactor
@@ -26,6 +26,8 @@ export type TTCoreState = {
   directionVisibility: Immutable.Map<proto.Direction, boolean>;
 
   allStations: proto.StationList,
+
+  allLines: Loadable<DebuggableResult<proto.LineList>>,
 }
 
 export type TTState = {
@@ -46,6 +48,8 @@ export enum TTActionTypes {
   CHANGE_DIRECTION_VISIBILITY = "CHANGE_DIRECTION_VISIBILITY",
 
   INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
+
+  INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
 };
 
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
@@ -57,10 +61,12 @@ export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRE
 
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
 
+export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
+
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
-  InstallStationListAction;
+  InstallStationListAction | InstallLineListAction;
 
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
@@ -70,6 +76,7 @@ export const initialState: TTCoreState = {
   directionVisibility: Immutable.Map<proto.Direction, boolean>(),
 
   allStations: new proto.StationList(),
+  allLines: {loading: false, valid: false},
 };
 
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
@@ -129,6 +136,13 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     console.log("INSTALL_STATION_LIST");
     partialState = {
       allStations: action.payload,
+    };
+    break;
+  }
+  case TTActionTypes.INSTALL_LINE_LIST: {
+    console.log("INSTALL_LINE_LIST");
+    partialState = {
+      allLines: {loading: false, valid: true, data: action.payload},
     };
     break;
   }

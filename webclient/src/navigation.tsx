@@ -6,34 +6,37 @@ import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
 
 import { ApiDebugger } from './debug';
-import { DataFetcher, DebuggableResult } from './datafetcher';
-import { TTState } from './state-machine';
+import { DebuggableResult } from './datafetcher';
+import { TTActionTypes, TTContext, TTState, InstallLineListAction } from './state-machine';
 
-class LinePickerProps {
-  public dataFetcher: DataFetcher;
-}
-
-class LinePickerState {
+class LinePickerDataProps {
+  public dataLoaded: boolean;
   public lineList: DebuggableResult<proto.LineList>;
 }
+class LinePickerDispatchProps {
+  // TODO(mrjones): Is this the right place?
+  public initializeData: () => any;
+}
+class LinePickerExplicitProps { }
+class LinePickerLocalState { }
 
-export default class LinePicker extends React.Component<LinePickerProps, any> {
+type LinePickerProps = LinePickerDataProps & LinePickerDispatchProps & LinePickerExplicitProps;
+
+export default class LinePicker extends React.Component<LinePickerProps, LinePickerLocalState> {
   constructor(props: LinePickerProps) {
     super(props);
-    this.state = {
-      lineList: new DebuggableResult<proto.LineList>(new proto.LineList(), ""),
-    };
+    this.state = { };
   }
 
   public componentDidMount() {
-    this.props.dataFetcher.fetchLineList()
-      .then((res: DebuggableResult<proto.LineList>) => {
-        this.setState({lineList: res});
-      });
+    this.props.initializeData();
   }
 
   public render(): JSX.Element {
-    let lineLis = this.state.lineList.data.line.map((line: proto.Line) => {
+    if (!this.props.dataLoaded) {
+      return <div>Loading...</div>;
+    }
+    let lineLis = this.props.lineList.data.line.map((line: proto.Line) => {
       let c = "#" + line.colorHex;
       let liStyle = {
         background: c,
@@ -49,10 +52,40 @@ export default class LinePicker extends React.Component<LinePickerProps, any> {
 
     return (<div>
             <ul className="lineList">{lineLis}</ul>
-            <ApiDebugger datasFetched={[this.state.lineList]} />
+            <ApiDebugger datasFetched={[this.props.lineList]} />
             </div>);
   }
 }
+
+function installLineList(allLines: DebuggableResult<proto.LineList>): InstallLineListAction {
+  return {
+    type: TTActionTypes.INSTALL_LINE_LIST,
+    payload: allLines,
+  };
+}
+
+function loadLineList() {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    if (getState().core.allLines.valid || getState().core.allLines.loading) {
+      return;
+    }
+    context.dataFetcher.fetchLineList()
+      .then((result: DebuggableResult<proto.LineList>) => {
+        dispatch(installLineList(result));
+      });
+  };
+}
+
+const mapLineStateToProps = (state: TTState, ownProps: LinePickerExplicitProps): LinePickerDataProps => ({
+  dataLoaded: state.core.allLines.valid,
+  lineList: state.core.allLines.data,
+});
+
+const mapLineDispatchToProps = (dispatch: Redux.Dispatch<TTState>): LinePickerDispatchProps => ({
+  initializeData: () => dispatch(loadLineList()),
+});
+
+export let ConnectedLinePicker = ReactRedux.connect(mapLineStateToProps, mapLineDispatchToProps)(LinePicker);
 
 export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   constructor(props: ReactRouter.RouteComponentProps<any>) {
@@ -60,7 +93,7 @@ export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteCo
   }
 
   public render(): JSX.Element {
-    return <LinePicker dataFetcher={new DataFetcher()}/>;
+    return <ConnectedLinePicker />;
   }
 }
 
@@ -78,11 +111,11 @@ class StationPickerLocalState {
   public currentFilterText: string;
 }
 
-const mapStateToProps = (state: TTState, ownProps: StationPickerExplicitProps): StationPickerDataProps => ({
+const mapStationStateToProps = (state: TTState, ownProps: StationPickerExplicitProps): StationPickerDataProps => ({
   allStations: state.core.allStations,
 });
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationPickerDispatchProps => ({ });
+const mapStationDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationPickerDispatchProps => ({ });
 
 export class StationPicker extends React.Component<StationPickerAllProps, StationPickerLocalState> {
   constructor(props: StationPickerAllProps) {
@@ -122,4 +155,4 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
   }
 }
 
-export let ConnectedStationPicker = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(StationPicker);
+export let ConnectedStationPicker = ReactRedux.connect(mapStationStateToProps, mapStationDispatchToProps)(StationPicker);
