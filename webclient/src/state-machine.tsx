@@ -29,6 +29,8 @@ export type TTCoreState = {
 
   allLines: Loadable<DebuggableResult<proto.LineList>>,
   lineDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationList>>>;
+
+  trainItineraries: Immutable.Map<string, Loadable<DebuggableResult<proto.ITrainItinerary>>>;
 }
 
 export type TTState = {
@@ -52,6 +54,8 @@ export enum TTActionTypes {
 
   INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
   INSTALL_LINE_DETAILS = "INSTALL_LINE_DETAILS",
+
+  INSTALL_TRAIN_ITINERARY = "INSTALL_TRAIN_ITINERARY",
 };
 
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
@@ -66,11 +70,14 @@ export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LI
 export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
 export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<proto.StationList>]>;
 
+export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_ITINERARY, [string, DebuggableResult<proto.ITrainItinerary>]>;
+
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
   ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
   InstallStationListAction |
-  InstallLineListAction | InstallLineDetailsAction;
+  InstallLineListAction | InstallLineDetailsAction |
+  InstallTrainItineraryAction;
 
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
@@ -82,6 +89,8 @@ export const initialState: TTCoreState = {
   allStations: new proto.StationList(),
   allLines: {loading: false, valid: false},
   lineDetails: Immutable.Map(),
+
+  trainItineraries: Immutable.Map(),
 };
 
 export function transition<T, P>(state: TTCoreState = initialState, action: TTActions): TTCoreState {
@@ -161,6 +170,19 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     console.log("INSTALL_LINE_DETAILS -> " + id);
     partialState = {
       lineDetails: state.lineDetails.set(id, obj),
+    };
+    break;
+  }
+  case TTActionTypes.INSTALL_TRAIN_ITINERARY: {
+    let id: string = action.payload[0];
+    let obj: Loadable<DebuggableResult<proto.ITrainItinerary>> = {
+      data: action.payload[1],
+      loading: false,
+      valid: true,
+    };
+    console.log("INSTALL_TRAIN_ITINERARY -> " + id);
+    partialState = {
+      trainItineraries: state.trainItineraries.set(id, obj),
     };
     break;
   }

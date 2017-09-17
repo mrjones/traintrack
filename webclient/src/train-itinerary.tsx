@@ -1,13 +1,54 @@
 import * as React from "react";
+import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
+import * as Redux from "redux";
 import * as moment from "moment";
 
 import * as proto from './webclient_api_pb';
 
-import { DataFetcher, DebuggableResult } from './datafetcher';
+import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { PubInfo } from './pub-info';
 
+import { Loadable, TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
+
+function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResult<proto.ITrainItinerary>): InstallTrainItineraryAction {
+  return {
+    type: TTActionTypes.INSTALL_TRAIN_ITINERARY,
+    payload: [newTrainId, newTrainInfo],
+  };
+}
+
+function loadTrainItinerary(trainId: string) {
+  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+    let existing = getState().core.trainItineraries.get(trainId);
+    if (existing !== undefined && existing.loading) {
+      // Someone is already loading this
+      // TODO(mrjone): check for errors which might wedge us in "loading"
+      return;
+    }
+//    dispatch(startLoadingTrainItinerary(stationId));
+    context.dataFetcher.fetchTrainItinerary(trainId).then(
+      (result: DebuggableResult<proto.ITrainItinerary>) => {
+        dispatch(installTrainItinerary(trainId, result));
+      });
+  };
+}
+
+class TrainItineraryDataProps {
+  public hasData: boolean;
+  public data: DebuggableResult<proto.ITrainItinerary>;
+}
+class TrainItineraryDispatchProps {
+  public loadItinerary: (trainId: string) => any;
+}
+class TrainItineraryExplicitProps {
+  public trainId: string;
+}
+type TrainItineraryProps = TrainItineraryDataProps & TrainItineraryDispatchProps & TrainItineraryExplicitProps;
+
+class TrainItineraryLocalState { }
+/*
 class TrainItineraryState {
   data: DebuggableResult<proto.ITrainItinerary>;
   loaded: boolean;
@@ -16,26 +57,30 @@ class TrainItineraryProps {
   dataFetcher: DataFetcher;
   trainId: string;
 }
+*/
 
-export class TrainItinerary extends React.Component<TrainItineraryProps, TrainItineraryState> {
+export class TrainItinerary extends React.Component<TrainItineraryProps, TrainItineraryLocalState> {
   constructor(props: TrainItineraryProps) {
     super(props);
 
-    this.state = {
-      data: new DebuggableResult<proto.ITrainItinerary>(null, ""),
-      loaded: false,
-    };
+    this.state = { };
   }
 
-  public componentDidMount() {
-    this.loadData();
+  public componentWillMount() {
+    this.props.loadItinerary(this.props.trainId);
+  }
+
+  public componentWillReceiveProps(nextProps: TrainItineraryProps) {
+    if (this.props.trainId !== nextProps.trainId) {
+      this.props.loadItinerary(nextProps.trainId);
+    }
   }
 
   public render(): JSX.Element {
     let body = <div>Loading...</div>;
     let dataTs = moment.unix(0);
-    if (this.state.loaded) {
-      const rows = this.state.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
+    if (this.props.hasData) {
+      const rows = this.props.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
         let stationElt = <span>Unknown station</span>;
         if (arrival.station && arrival.station.name && arrival.station.id) {
@@ -54,24 +99,45 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
         </tbody>
       </table>;
 
-      dataTs = moment.unix(this.state.data.data.dataTimestamp as number);
+      dataTs = moment.unix(this.props.data.data.dataTimestamp as number);
     }
 
     return <div className="page">
       <div className="pageTitle"><h2>Train {this.props.trainId}</h2></div>
-      <PubInfo reloadFn={this.loadData.bind(this)} pubTimestamp={dataTs} />
+      <PubInfo reloadFn={this.reloadData.bind(this)} pubTimestamp={dataTs} />
       {body}
-      <ApiDebugger datasFetched={[this.state.data]} />
+      <ApiDebugger datasFetched={[this.props.data]} />
     </div>;
   }
 
-  private loadData() {
-    this.props.dataFetcher.fetchTrainItinerary(this.props.trainId).then(
-      (res: DebuggableResult<proto.ITrainItinerary>) => {
-        this.setState({data: res, loaded: true});
-      });
+  private reloadData() {
+    this.props.loadItinerary(this.props.trainId);
   }
 }
+
+const mapStateToProps = (state: TTState, ownProps: TrainItineraryExplicitProps): TrainItineraryDataProps => {
+  let maybeData: Loadable<DebuggableResult<proto.ITrainItinerary>> =
+    state.core.trainItineraries.get(ownProps.trainId);
+  if (maybeData !== undefined && maybeData.valid) {
+    return {
+      hasData: true,
+      data: maybeData.data,
+    };
+  } else {
+    return {
+      hasData: false,
+      data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
+    };
+  }
+};
+
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): TrainItineraryDispatchProps => {
+  return {
+    loadItinerary: (trainId: string) => dispatch(loadTrainItinerary(trainId)),
+  };
+};
+
+export let ConnectedTrainItinerary = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(TrainItinerary);
 
 export class TrainItineraryWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   constructor(props: ReactRouter.RouteComponentProps<any>) {
@@ -79,6 +145,6 @@ export class TrainItineraryWrapper extends React.Component<ReactRouter.RouteComp
   }
 
   public render(): JSX.Element {
-    return <TrainItinerary dataFetcher={new DataFetcher()} trainId={this.props.match.params.trainId} />;
+    return <ConnectedTrainItinerary trainId={this.props.match.params.trainId} />;
   }
 }
