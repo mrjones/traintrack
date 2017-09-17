@@ -48,16 +48,6 @@ class TrainItineraryExplicitProps {
 type TrainItineraryProps = TrainItineraryDataProps & TrainItineraryDispatchProps & TrainItineraryExplicitProps;
 
 class TrainItineraryLocalState { }
-/*
-class TrainItineraryState {
-  data: DebuggableResult<proto.ITrainItinerary>;
-  loaded: boolean;
-}
-class TrainItineraryProps {
-  dataFetcher: DataFetcher;
-  trainId: string;
-}
-*/
 
 export class TrainItinerary extends React.Component<TrainItineraryProps, TrainItineraryLocalState> {
   constructor(props: TrainItineraryProps) {
