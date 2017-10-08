@@ -8,13 +8,13 @@ import * as proto from './webclient_api_pb';
 
 import * as utils from './utils';
 
+import { Loadable } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { ConnectedFilterControl } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
-
-import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, Loadable } from './state-machine';
+import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
 
 // TODO(mrjones): Move this somewhere better
 function installStationList(allStations: proto.StationList): InstallStationListAction {

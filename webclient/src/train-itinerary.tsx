@@ -6,11 +6,11 @@ import * as moment from "moment";
 
 import * as proto from './webclient_api_pb';
 
+import { Loadable, itemIsBeingLoaded } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { PubInfo } from './pub-info';
-
-import { Loadable, TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
 
 function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResult<proto.ITrainItinerary>): InstallTrainItineraryAction {
   return {
@@ -21,13 +21,11 @@ function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResul
 
 function loadTrainItinerary(trainId: string) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    let existing = getState().core.trainItineraries.get(trainId);
-    if (existing !== undefined && existing.loading) {
-      // Someone is already loading this
-      // TODO(mrjone): check for errors which might wedge us in "loading"
+    if (itemIsBeingLoaded(trainId, getState().core.trainItineraries)) {
       return;
     }
-//    dispatch(startLoadingTrainItinerary(stationId));
+    // dispatch(startLoadingTrainItinerary(stationId));
+    // TODO(mrjones): check for errors which might wedge us in "loading"
     context.dataFetcher.fetchTrainItinerary(trainId).then(
       (result: DebuggableResult<proto.ITrainItinerary>) => {
         dispatch(installTrainItinerary(trainId, result));

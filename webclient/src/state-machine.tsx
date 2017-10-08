@@ -1,5 +1,6 @@
 import * as proto from './webclient_api_pb';
 
+import { Loadable } from './async';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import * as Immutable from 'immutable';
 
@@ -9,12 +10,6 @@ export class TTContext {
   public constructor(dataFetcher: DataFetcher) {
     this.dataFetcher = dataFetcher;
   }
-}
-
-export type Loadable<T> = {
-  loading: boolean;
-  valid: boolean;
-  data?: T;
 }
 
 // TODO(mrjones): split up and refactor

@@ -5,10 +5,10 @@ import * as Redux from "redux";
 
 import * as proto from './webclient_api_pb';
 
+import { Loadable, itemIsBeingLoaded } from './async';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
-
-import { TTActionTypes, TTContext, TTState, InstallLineDetailsAction, Loadable } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallLineDetailsAction } from './state-machine';
 
 function installLineDetails(lineId: string, stations: DebuggableResult<proto.StationList>): InstallLineDetailsAction {
   return {
@@ -19,13 +19,11 @@ function installLineDetails(lineId: string, stations: DebuggableResult<proto.Sta
 
 function fetchLineDetails(lineId: string) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    let existing = getState().core.lineDetails.get(lineId);
-    if (existing !== undefined && existing.loading) {
-      // Someone is already loading this
-      // TODO(mrjone): check for errors which might wedge us in "loading"
+    if (itemIsBeingLoaded(lineId, getState().core.lineDetails)) {
       return;
     }
-//    dispatch(startLoadingStationDetails(stationId));
+    // dispatch(startLoadingStationDetails(stationId));
+    // TODO(mrjone): check for errors which might wedge us in "loading"
     context.dataFetcher.fetchStationsForLine(lineId)
       .then((stationList: DebuggableResult<proto.StationList>) => {
         dispatch(installLineDetails(lineId, stationList));
@@ -38,7 +36,7 @@ class LineViewDataProps {
   public hasData: boolean;
 }
 class LineViewDispatchProps {
-  fetchLineData: (lineId: string) => any;
+  public fetchLineData: (lineId: string) => any;
 }
 class LineViewExplicitProps {
   public lineId: string;
