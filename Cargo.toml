@@ -2,9 +2,11 @@
 name = "traintrack"
 version = "0.1.0"
 authors = ["Matt Jones <jonesmr@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 base64 = "*"
+built = "*"
 chrono = "*"
 chrono-tz = "*"
 csv = "*"
@@ -24,6 +26,9 @@ serde_derive = "*"
 serde_json = "*"
 time = "*"
 tiny_http = "*"
+
+[build-dependencies]
+built = "0.1"
 
 [[bin]]
 name = "traintrack"

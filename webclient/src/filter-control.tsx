@@ -89,7 +89,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public render(): JSX.Element {
     if (!this.state.expanded) {
       return <div className="filterControl">
-        <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter&nbsp;&raquo;</a>
+        <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter +</a>
         </div>;
     }
     let togglers = new Array<JSX.Element>();
@@ -126,7 +126,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     togglers.push(<div key="mixing" className={className}><a href="#" onClick={this.toggleMixing.bind(this)}>Combined</a></div>);
 
     return <div className="filterControl">
-      <div key="filter" className="toggleButton autowidth"><a href="#" onClick={this.toggleExpanded.bind(this)}>&laquo;&nbsp;Filter</a></div>
+      <div key="filter" className="toggleButton autowidth"><a href="#" onClick={this.toggleExpanded.bind(this)}>Filter -</a></div>
       <div key="sep3" className="toggleSeparator" />
       {togglers}
       </div>;

@@ -1,3 +1,4 @@
+extern crate built;
 extern crate chrono;
 extern crate getopts;
 #[macro_use]
@@ -19,6 +20,11 @@ mod server;
 mod stops;
 mod utils;
 mod webclient_api;
+
+pub mod built_info {
+    // The file has been placed there by the build script.
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;
@@ -110,6 +116,8 @@ fn main() {
 
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
+
+    println!("Built at: {}", built::util::strptime(built_info::BUILT_TIME_UTC).rfc822());
 
     let server_context = server::TTContext::new(stops, fetcher);
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
