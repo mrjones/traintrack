@@ -47,7 +47,7 @@ class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebugge
 
     let waitTimeMessage = "";
     if (this.props.request.clientDebugInfo) {
-      waitTimeMessage = "client_total=" + this.props.request.clientDebugInfo.clientWaitTimeMs + "ms cached=" + this.props.request.clientDebugInfo.cached;
+      waitTimeMessage = "client_total=" + this.props.request.clientDebugInfo.clientWaitTimeMs + "ms cached=" + this.props.request.clientDebugInfo.cached + " server_build=" + this.props.request.serverDebugInfo.buildVersion;
     }
 
     return <div className="apiRequest">

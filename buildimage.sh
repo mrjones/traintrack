@@ -20,7 +20,7 @@ then
 fi
 
 echo "=== Compiling binaries"
-export TRAINTRACK_VERSION=${tag} ; cargo build --color=never --release
+TRAINTRACK_VERSION=${tag} cargo build --color=never --release
 mkdir -p bin
 cp target/release/traintrack bin/server
 cp target/release/feedproxy build/feedproxy/feedproxy

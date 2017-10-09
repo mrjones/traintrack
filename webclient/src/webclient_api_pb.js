@@ -30,6 +30,8 @@ $root.DebugInfo = (function() {
      * @exports IDebugInfo
      * @interface IDebugInfo
      * @property {number|Long} [processingTimeMs] DebugInfo processingTimeMs
+     * @property {string} [buildVersion] DebugInfo buildVersion
+     * @property {number|Long} [buildTimestamp] DebugInfo buildTimestamp
      */
 
     /**
@@ -53,6 +55,22 @@ $root.DebugInfo = (function() {
      * @instance
      */
     DebugInfo.prototype.processingTimeMs = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
+     * DebugInfo buildVersion.
+     * @member {string}buildVersion
+     * @memberof DebugInfo
+     * @instance
+     */
+    DebugInfo.prototype.buildVersion = "";
+
+    /**
+     * DebugInfo buildTimestamp.
+     * @member {number|Long}buildTimestamp
+     * @memberof DebugInfo
+     * @instance
+     */
+    DebugInfo.prototype.buildTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
      * Creates a new DebugInfo instance using the specified properties.
@@ -80,6 +98,10 @@ $root.DebugInfo = (function() {
             writer = $Writer.create();
         if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
             writer.uint32(/* id 1, wireType 0 =*/8).int64(message.processingTimeMs);
+        if (message.buildVersion != null && message.hasOwnProperty("buildVersion"))
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.buildVersion);
+        if (message.buildTimestamp != null && message.hasOwnProperty("buildTimestamp"))
+            writer.uint32(/* id 3, wireType 0 =*/24).int64(message.buildTimestamp);
         return writer;
     };
 
@@ -116,6 +138,12 @@ $root.DebugInfo = (function() {
             switch (tag >>> 3) {
             case 1:
                 message.processingTimeMs = reader.int64();
+                break;
+            case 2:
+                message.buildVersion = reader.string();
+                break;
+            case 3:
+                message.buildTimestamp = reader.int64();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -155,6 +183,12 @@ $root.DebugInfo = (function() {
         if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
             if (!$util.isInteger(message.processingTimeMs) && !(message.processingTimeMs && $util.isInteger(message.processingTimeMs.low) && $util.isInteger(message.processingTimeMs.high)))
                 return "processingTimeMs: integer|Long expected";
+        if (message.buildVersion != null && message.hasOwnProperty("buildVersion"))
+            if (!$util.isString(message.buildVersion))
+                return "buildVersion: string expected";
+        if (message.buildTimestamp != null && message.hasOwnProperty("buildTimestamp"))
+            if (!$util.isInteger(message.buildTimestamp) && !(message.buildTimestamp && $util.isInteger(message.buildTimestamp.low) && $util.isInteger(message.buildTimestamp.high)))
+                return "buildTimestamp: integer|Long expected";
         return null;
     };
 
@@ -179,6 +213,17 @@ $root.DebugInfo = (function() {
                 message.processingTimeMs = object.processingTimeMs;
             else if (typeof object.processingTimeMs === "object")
                 message.processingTimeMs = new $util.LongBits(object.processingTimeMs.low >>> 0, object.processingTimeMs.high >>> 0).toNumber();
+        if (object.buildVersion != null)
+            message.buildVersion = String(object.buildVersion);
+        if (object.buildTimestamp != null)
+            if ($util.Long)
+                (message.buildTimestamp = $util.Long.fromValue(object.buildTimestamp)).unsigned = false;
+            else if (typeof object.buildTimestamp === "string")
+                message.buildTimestamp = parseInt(object.buildTimestamp, 10);
+            else if (typeof object.buildTimestamp === "number")
+                message.buildTimestamp = object.buildTimestamp;
+            else if (typeof object.buildTimestamp === "object")
+                message.buildTimestamp = new $util.LongBits(object.buildTimestamp.low >>> 0, object.buildTimestamp.high >>> 0).toNumber();
         return message;
     };
 
@@ -195,17 +240,31 @@ $root.DebugInfo = (function() {
         if (!options)
             options = {};
         var object = {};
-        if (options.defaults)
+        if (options.defaults) {
             if ($util.Long) {
                 var long = new $util.Long(0, 0, false);
                 object.processingTimeMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
             } else
                 object.processingTimeMs = options.longs === String ? "0" : 0;
+            object.buildVersion = "";
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.buildTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.buildTimestamp = options.longs === String ? "0" : 0;
+        }
         if (message.processingTimeMs != null && message.hasOwnProperty("processingTimeMs"))
             if (typeof message.processingTimeMs === "number")
                 object.processingTimeMs = options.longs === String ? String(message.processingTimeMs) : message.processingTimeMs;
             else
                 object.processingTimeMs = options.longs === String ? $util.Long.prototype.toString.call(message.processingTimeMs) : options.longs === Number ? new $util.LongBits(message.processingTimeMs.low >>> 0, message.processingTimeMs.high >>> 0).toNumber() : message.processingTimeMs;
+        if (message.buildVersion != null && message.hasOwnProperty("buildVersion"))
+            object.buildVersion = message.buildVersion;
+        if (message.buildTimestamp != null && message.hasOwnProperty("buildTimestamp"))
+            if (typeof message.buildTimestamp === "number")
+                object.buildTimestamp = options.longs === String ? String(message.buildTimestamp) : message.buildTimestamp;
+            else
+                object.buildTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.buildTimestamp) : options.longs === Number ? new $util.LongBits(message.buildTimestamp.low >>> 0, message.buildTimestamp.high >>> 0).toNumber() : message.buildTimestamp;
         return object;
     };
 

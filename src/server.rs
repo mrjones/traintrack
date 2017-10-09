@@ -71,7 +71,7 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
-fn api_response<M: protobuf::Message>(data: &mut M, _: &TTContext, rustful_context: &rustful::Context, timer: RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
+fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rustful_context: &rustful::Context, timer: RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     use std::borrow::Borrow;
 
     match debug_getter {
@@ -82,6 +82,8 @@ fn api_response<M: protobuf::Message>(data: &mut M, _: &TTContext, rustful_conte
             let now_ms = now.timestamp() * 1000 + now.timestamp_subsec_millis() as i64;
 
             debug_info.set_processing_time_ms(now_ms - start_ms);
+            debug_info.set_build_version(tt_context.build_info.version.clone());
+            debug_info.set_build_timestamp(tt_context.build_info.timestamp.timestamp());
         },
         None => {},
     }

@@ -7,6 +7,8 @@ enum Direction {
 
 message DebugInfo {
   optional int64 processing_time_ms = 1;
+  optional string build_version = 2;
+  optional int64 build_timestamp = 3;
 }
 
 message LineArrival {

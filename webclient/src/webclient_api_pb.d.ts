@@ -5,6 +5,12 @@ export interface IDebugInfo {
 
     /** DebugInfo processingTimeMs */
     processingTimeMs?: (number|Long);
+
+    /** DebugInfo buildVersion */
+    buildVersion?: string;
+
+    /** DebugInfo buildTimestamp */
+    buildTimestamp?: (number|Long);
 }
 
 /** Represents a DebugInfo. */
@@ -18,6 +24,12 @@ export class DebugInfo {
 
     /** DebugInfo processingTimeMs. */
     public processingTimeMs: (number|Long);
+
+    /** DebugInfo buildVersion. */
+    public buildVersion: string;
+
+    /** DebugInfo buildTimestamp. */
+    public buildTimestamp: (number|Long);
 
     /**
      * Creates a new DebugInfo instance using the specified properties.
