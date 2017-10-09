@@ -117,8 +117,14 @@ fn main() {
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
 
-    println!("Built at: {}", built::util::strptime(built_info::BUILT_TIME_UTC).rfc822());
+    let build_timestamp = chrono::DateTime::from_utc(
+        chrono::NaiveDateTime::from_timestamp(
+            built::util::strptime(built_info::BUILT_TIME_UTC).to_timespec().sec, 0),
+            chrono::Utc);
+    println!("BUILD_TIMESTAMP={}", build_timestamp.to_rfc2822());
+    let tt_version = option_env!("TRAINTRACK_VERSION").unwrap_or("<not set>");
+    println!("TRAINTRACK_VERSION={}", tt_version);
 
-    let server_context = server::TTContext::new(stops, fetcher);
+    let server_context = server::TTContext::new(stops, fetcher, tt_version, build_timestamp);
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }

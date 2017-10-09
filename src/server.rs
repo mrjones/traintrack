@@ -16,16 +16,26 @@ use stops;
 use utils;
 use webclient_api;
 
+pub struct TTBuildInfo {
+    version: String,
+    timestamp: chrono::DateTime<chrono::Utc>,
+}
+
 pub struct TTContext {
     stops: stops::Stops,
     fetcher: std::sync::Arc<feedfetcher::Fetcher>,
+    build_info: TTBuildInfo,
 }
 
 impl TTContext {
-    pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>) -> TTContext {
+    pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>, tt_version: &str, build_timestamp: chrono::DateTime<chrono::Utc>) -> TTContext {
         return TTContext{
             stops: stops,
             fetcher: fetcher,
+            build_info: TTBuildInfo{
+                version: tt_version.to_string(),
+                timestamp: build_timestamp,
+            },
         }
     }
 
@@ -283,8 +293,9 @@ fn list_stations(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result:
     return Ok("<html><body><script language='javascript'>window.location = '/app/lines';</script></body></html>".as_bytes().to_vec());
 }
 
-fn debug(_: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
-    let mut body = "<html><head><title>TTDebug</title></head><body><h1>Debug</h1><ul>".to_string();
+fn debug(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();
+
     vec!["dump_proto", "fetch_now", "freshness"].iter().map(
         |u| body.push_str(&format!("<li><a href='/debug/{}'>/{}</a></li>", u, u))).count();
     body.push_str("</ul></body></html>");
