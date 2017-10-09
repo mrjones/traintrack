@@ -15,22 +15,22 @@ export function directionName(direction: proto.Direction): string {
   }
 }
 
-export function linesForStation(station: proto.StationStatus): Immutable.Set<string> {
-  let lines = Immutable.Set<string>();
+export function linesForStation(station: proto.StationStatus): Immutable.OrderedSet<string> {
+  let lines = Immutable.OrderedSet<string>();
   station.line.map((line: proto.LineArrivals) => {
     lines = lines.add(line.line);
   });
 
-  return lines;
+  return lines.sort().toOrderedSet();
 }
 
-export function directionsForStation(station: proto.StationStatus): Immutable.Set<proto.Direction> {
+export function directionsForStation(station: proto.StationStatus): Immutable.OrderedSet<proto.Direction> {
   let directions = Immutable.Set<proto.Direction>();
   station.line.map((line: proto.LineArrivals) => {
     directions = directions.add(line.direction);
   });
 
-  return directions;
+  return directions.sort().toOrderedSet();
 }
 
 export function lineVisible(line: proto.LineArrivals, lineVisibility: Immutable.Map<string, boolean>, directionVisibility: Immutable.Map<proto.Direction, boolean>): boolean {
