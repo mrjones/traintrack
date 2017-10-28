@@ -18,6 +18,7 @@ protobuf = "*"
 protobuf-json = "*"
 regex = "*"
 requests = "*"
+reqwest = "*"
 rustc-serialize = "*"
 #rustful = "*"
 rustful = { path = "../rustful" }
@@ -28,7 +29,7 @@ time = "*"
 tiny_http = "*"
 
 [build-dependencies]
-built = "0.1"
+built = "*"
 
 [[bin]]
 name = "traintrack"

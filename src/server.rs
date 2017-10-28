@@ -7,6 +7,7 @@ extern crate rustful;
 extern crate serde_json;
 extern crate std;
 
+use auth;
 use feedfetcher;
 use gtfs_realtime;
 use protobuf;
@@ -21,14 +22,24 @@ pub struct TTBuildInfo {
     timestamp: chrono::DateTime<chrono::Utc>,
 }
 
+pub struct GoogleApiInfo {
+    pub id: String,
+    pub secret: String,
+}
+
 pub struct TTContext {
     stops: stops::Stops,
     fetcher: std::sync::Arc<feedfetcher::Fetcher>,
     build_info: TTBuildInfo,
+    google_api_info: Option<GoogleApiInfo>,
 }
 
 impl TTContext {
-    pub fn new(stops: stops::Stops, fetcher: std::sync::Arc<feedfetcher::Fetcher>, tt_version: &str, build_timestamp: chrono::DateTime<chrono::Utc>) -> TTContext {
+    pub fn new(stops: stops::Stops,
+               fetcher: std::sync::Arc<feedfetcher::Fetcher>,
+               tt_version: &str,
+               build_timestamp: chrono::DateTime<chrono::Utc>,
+               google_api_info: Option<GoogleApiInfo>) -> TTContext {
         return TTContext{
             stops: stops,
             fetcher: fetcher,
@@ -36,6 +47,7 @@ impl TTContext {
                 version: tt_version.to_string(),
                 timestamp: build_timestamp,
             },
+            google_api_info: google_api_info,
         }
     }
 
@@ -68,6 +80,7 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
     tt_context.fetcher.fetch_once();
     return Ok("OK".to_string().as_bytes().to_vec());
 }
+
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
@@ -187,6 +200,36 @@ fn stations_byline_api(tt_context: &TTContext, rustful_context: rustful::Context
     }
 
     return api_response(&mut response, tt_context, &rustful_context, timer, Some(webclient_api::StationList::mut_debug_info));
+}
+
+fn google_login_redirect_handler(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let google_api_info = match tt_context.google_api_info {
+        Some(ref google_api_info) => Ok(google_api_info),
+        None => Err(result::TTError::Uncategorized("Google login not configured".to_string()))
+    }?;
+
+    let code = rustful_context.query.get("code")
+        .ok_or(result::TTError::Uncategorized("Missing code".to_string()))
+        .map(|x| x.to_string())?;
+
+    let host = rustful_context.headers.get::<rustful::header::Host>()
+        .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
+
+    let host_str = match host.port {
+        Some(port) => format!("{}:{}", host.hostname, port),
+        None => host.hostname.clone(),
+    };
+
+    let google_id = auth::exchange_google_auth_code_for_user_info(
+        &code,
+        &google_api_info.id,
+        &google_api_info.secret,
+        &host_str);
+    return Ok(format!("Welcome {:?}", google_id).as_bytes().to_vec());
+}
+
+fn login_link(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
+    return Ok("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2Flinode.mrjon.es%3A3838%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>".as_bytes().to_vec());
 }
 
 fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
@@ -366,6 +409,7 @@ impl PageType {
     }
 }
 
+
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, response: rustful::Response) {
         match self {
@@ -437,6 +481,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
                 format!("{}/singlepage.html", static_dir)));
         });
         node.path("webclient.js").then().on_get(PageType::new_static_page(webclient_js_file));
+        node.path("login").then().on_get(PageType::Dynamic(login_link));
+        node.path("google_login_redirect").then().on_get(PageType::Dynamic(google_login_redirect_handler));
         node.path("api").many(|mut node| {
             node.path("lines").then().on_get(PageType::Dynamic(line_list_api));
             node.path("station").many(|mut node| {

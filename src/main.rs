@@ -1,6 +1,7 @@
 extern crate built;
 extern crate chrono;
 extern crate getopts;
+//extern crate jsonwebtoken;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
@@ -11,7 +12,10 @@ extern crate protobuf_json;
 extern crate requests;
 extern crate rustc_serialize;
 extern crate rustful;
+#[macro_use]
+extern crate serde_derive;
 
+mod auth;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
@@ -80,6 +84,9 @@ fn main() {
     opts.optflag("d", "disable-background-fetch", "If true, won't periodically fetch feeds in the background..");
     opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
     opts.optopt("w", "webclient-js-file", "The file to serve as webclient.js.", "JS_FILE");
+
+    opts.optopt("i", "google-api-id", "The Google OAuth client id.", "ID");
+    opts.optopt("s", "google-api-secret", "The Google OAuth client secret.", "SECRET");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -117,6 +124,17 @@ fn main() {
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
 
+    let maybe_google_id = matches.opt_str("google-api-id");
+    let maybe_google_secret = matches.opt_str("google-api-secret");
+
+    let google_api_info = match matches.opt_str("google-api-id") {
+        Some(id) => match matches.opt_str("google-api-secret") {
+            Some(secret) => Some(server::GoogleApiInfo{id: id, secret: secret}),
+            None => None,
+        },
+        None => None,
+    };
+
     let build_timestamp = chrono::DateTime::from_utc(
         chrono::NaiveDateTime::from_timestamp(
             built::util::strptime(built_info::BUILT_TIME_UTC).to_timespec().sec, 0),
@@ -125,6 +143,7 @@ fn main() {
     let tt_version = option_env!("TRAINTRACK_VERSION").unwrap_or("<not set>");
     println!("TRAINTRACK_VERSION={}", tt_version);
 
-    let server_context = server::TTContext::new(stops, fetcher, tt_version, build_timestamp);
+    let server_context = server::TTContext::new(
+        stops, fetcher, tt_version, build_timestamp, google_api_info);
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }
