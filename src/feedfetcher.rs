@@ -1,7 +1,7 @@
 extern crate chrono;
 extern crate log;
 extern crate protobuf;
-extern crate requests;
+extern crate reqwest;
 extern crate std;
 extern crate time;
 
@@ -129,10 +129,16 @@ impl Fetcher {
             feed_url.push_str("/");
         }
         feed_url.push_str(format!("feed/{}", feed_id).as_ref());
-        let response = requests::get(feed_url).unwrap(); //handle error
-        assert_eq!(response.status_code(), requests::StatusCode::Ok);
+        let mut response: reqwest::Response = reqwest::get(&feed_url)?;
+        if !response.status().is_success() {
+            return Err(result::quick_err(format!(
+                "HTTP error: {}", response.status()).as_ref()));
+        }
 
-        let proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(response.content())?;
+        let mut response_body = vec![];
+        response.read_to_end(&mut response_body)?;
+        let proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(
+            &response_body)?;
 
         use chrono::TimeZone;
         return Ok(FetchResult{
@@ -155,15 +161,21 @@ impl Fetcher {
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", self.mta_api_key, feed_id);
         debug!("Fetching URL: {}", url);
 
-        let response = requests::get(url).unwrap(); // error
-        let body = response.content();
+        let mut response: reqwest::Response = reqwest::get(&url)?;
+        if !response.status().is_success() {
+            return Err(result::quick_err(
+                format!("HTTP error: {}", response.status()).as_ref()));
+        }
+
+        let mut body = vec![];
+        response.read_to_end(&mut body)?;
         trace!("Response was {} bytes", body.len());
 
         let lastresponse_fname = format!("lastresponse_{}.txt", feed_id);
         let lastgood_fname = format!("lastgood_{}.txt", feed_id);
 
         let mut file = std::fs::File::create(&lastresponse_fname)?;
-        file.write_all(&body)?;
+        file.write_all(&body);
 
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
@@ -177,7 +189,7 @@ impl Fetcher {
                         trace!("About to write {}. {} bytes.",
                               &lastgood_fname, body.len());
                         let mut file = std::fs::File::create(&lastgood_fname)?;
-                        file.write_all(&body)?;
+                        file.write_all(&body);
                         trace!("Succeeded writing {}. {} bytes.",
                                &lastgood_fname, body.len());
                     }

@@ -9,7 +9,6 @@ extern crate log4rs;
 extern crate maplit;
 extern crate protobuf;
 extern crate protobuf_json;
-extern crate requests;
 extern crate rustc_serialize;
 extern crate rustful;
 #[macro_use]

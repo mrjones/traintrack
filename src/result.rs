@@ -1,5 +1,6 @@
 extern crate csv;
 extern crate protobuf;
+extern crate reqwest;
 extern crate serde_json;
 extern crate std;
 
@@ -14,6 +15,7 @@ pub enum TTError {
 //    RenderError(liquid::Error),
     SerializationError(serde_json::Error),
     ParseIntError(std::num::ParseIntError),
+    HttpClientError(reqwest::Error),
     Uncategorized(String),
 }
 
@@ -45,6 +47,9 @@ impl std::fmt::Display for TTError {
             TTError::ParseIntError(ref err) => {
                 return write!(f, "ParseInt Error: {}", err);
             },
+            TTError::HttpClientError(ref err) => {
+                return write!(f, "Http Client Error: {}", err);
+            },
             TTError::Uncategorized(ref e) => std::fmt::Display::fmt(e, f),
         }
     }
@@ -60,6 +65,7 @@ impl std::error::Error for TTError {
 //            TTError::RenderError(_) => "RenderError",
             TTError::SerializationError(_) => "SerializationError",
             TTError::ParseIntError(_) => "ParseIntError",
+            TTError::HttpClientError(_) => "HttpClientError",
             TTError::Uncategorized(ref str) => str,
         }
     }
@@ -108,5 +114,11 @@ impl From<serde_json::Error> for TTError {
 impl From<std::num::ParseIntError> for TTError {
     fn from(err: std::num::ParseIntError) -> TTError {
         return TTError::ParseIntError(err);
+    }
+}
+
+impl From<reqwest::Error> for TTError {
+    fn from(err: reqwest::Error) -> TTError {
+        return TTError::HttpClientError(err);
     }
 }
