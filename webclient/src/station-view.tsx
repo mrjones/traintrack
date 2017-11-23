@@ -11,7 +11,7 @@ import * as utils from './utils';
 import { Loadable } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
-import { ConnectedFilterControl } from './filter-control';
+import { ConnectedFilterControl, FilterControlQueryParams } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
@@ -169,6 +169,7 @@ enum MultipleLineMixing { SEPARATE, INTERMINGLED };
 
 class StationMultiLineExplicitProps {
   public stationId: string;
+  public filterParams: FilterControlQueryParams;
 }
 class StationMultiLineDataProps {
   public stationName: string;
@@ -262,7 +263,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
-            <ConnectedFilterControl stationId={this.props.stationId}/>
+            <ConnectedFilterControl stationId={this.props.stationId} queryParams={this.props.filterParams}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);
@@ -273,6 +274,7 @@ export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDi
 
 class StationPageProps {
   public initialStationId: string;
+  public filterParams: FilterControlQueryParams;
 }
 
 class StationPageState {
@@ -308,7 +310,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine stationId={this.props.initialStationId}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId} filterParams={this.props.filterParams}/>
     </div>);
   }
 }
@@ -316,20 +318,15 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
 export class StationPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
   constructor(props: ReactRouter.RouteComponentProps<any>) {
     super(props);
-
-    this.state = {
-      stationId: this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028",
-    };
   }
 
-  public componentDidUpdate() {
-    let newStation = this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028";
-    if (newStation !== this.state.stationId) {
-      this.setState({stationId: newStation});
-    }
+  private stationId(): string {
+    return this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028";
   }
 
   public render() {
-    return <StationPage initialStationId={this.state.stationId}  />;
+    return <div>
+      <StationPage initialStationId={this.stationId()} filterParams={FilterControlQueryParams.parseFrom(this.props.location.search)}/>
+    </div>;
   }
 }

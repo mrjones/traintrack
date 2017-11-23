@@ -3,10 +3,27 @@ import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
+import * as History from "history";
+import * as querystring from "query-string";
 
 import * as utils from './utils';
 
 import { TTActionTypes, TTState } from './state-machine';
+
+export class FilterControlQueryParams {
+  public static parseFrom(query: History.Search): FilterControlQueryParams {
+    let parsed = querystring.parse(query);
+    return {
+      hiddenLines: parsed["hiddenLines"],
+      hiddenDirections: parsed["hiddenDirections"],
+      combined: parsed["combined"] === "true",
+    };
+  }
+
+  public hiddenLines: String;
+  public hiddenDirections: String;
+  public combined: boolean;
+}
 
 class FilterControlDataProps {
   public allTrains: proto.StationStatus;
@@ -22,6 +39,7 @@ class FilterControlDispatchProps {
 class FilterControlExplicitProps {
   // TODO(mrjones): This is awkward, since it's only used in mapStateToProps, so it seems like it belongs elsewhere
   public stationId: string;
+  public queryParams: FilterControlQueryParams;
 }
 class FilterControlLocalState {
   public lineColors: Map<string, string>;  // TODO: move to props
@@ -80,6 +98,25 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public constructor(props: any) {
     super(props);
 
+    if (this.props.queryParams.combined !== this.props.mixMultipleLines) {
+      this.props.onMixingChange(this.props.queryParams.combined);
+    }
+
+    for (const line of this.props.queryParams.hiddenLines) {
+      // TODO(mrjones): re-show visible lines
+      this.props.onLineVisibilityChange(line, false);
+    }
+
+    for (const dirChar of this.props.queryParams.hiddenDirections) {
+      if (dirChar === 'U') {
+        this.props.onDirectionVisibilityChange(proto.Direction.UPTOWN, false);
+      } else if (dirChar === 'D') {
+        this.props.onDirectionVisibilityChange(proto.Direction.DOWNTOWN, false);
+      } else {
+        console.log("Malformed hiddenDirection string: " + this.props.queryParams.hiddenDirections);
+      }
+    }
+
     this.state = {
       lineColors: new Map<string, string>(),
       expanded: false,
@@ -89,6 +126,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public render(): JSX.Element {
     if (!this.state.expanded) {
       return <div className="filterControl">
+        {JSON.stringify(this.props.queryParams)}
         <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter +</a>
         </div>;
     }
