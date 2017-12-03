@@ -88,8 +88,10 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let token = auth::generate_google_bearer_token()?;
 
-    return auth::do_firestore_request(
-        tt_context.firebase_api_key.unwrap(), &token).map(|t| t.as_bytes().to_vec());
+    match tt_context.firebase_api_key {
+        Some(ref key) => auth::do_firestore_request(key, &token).map(|t| t.as_bytes().to_vec()),
+        None => Ok("Missing --firebase-api-key".to_string().as_bytes().to_vec()),
+    }
 }
 
 

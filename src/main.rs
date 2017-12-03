@@ -87,7 +87,7 @@ fn main() {
 
     opts.optopt("i", "google-api-id", "The Google OAuth client id.", "ID");
     opts.optopt("s", "google-api-secret", "The Google OAuth client secret.", "SECRET");
-    opts.optopt("b", "firebase-api-key", "The firebase API key");
+    opts.optopt("b", "firebase-api-key", "The firebase API key", "KEY");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -145,6 +145,7 @@ fn main() {
     println!("TRAINTRACK_VERSION={}", tt_version);
 
     let server_context = server::TTContext::new(
-        stops, fetcher, tt_version, build_timestamp, google_api_info);
+        stops, fetcher, tt_version, build_timestamp, google_api_info,
+        matches.opt_str("firebase-api-key"));
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }
