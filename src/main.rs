@@ -2,6 +2,7 @@ extern crate built;
 extern crate chrono;
 extern crate getopts;
 //extern crate jsonwebtoken;
+extern crate frank_jwt;
 #[macro_use]
 extern crate log;
 extern crate log4rs;

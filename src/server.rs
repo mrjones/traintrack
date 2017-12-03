@@ -82,6 +82,13 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
 }
 
 
+fn firestore(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let token = auth::generate_google_bearer_token()?;
+
+    return auth::do_firestore_request("AIzaSyDLa3akAARrptwHtNM3LNRoux6wwaRrN1c", &token).map(|t| t.as_bytes().to_vec());
+}
+
+
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
 fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rustful_context: &rustful::Context, timer: RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
@@ -458,6 +465,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             });
             node.path("freshness").then().on_get(PageType::Dynamic(feed_freshness));
             node.path("fetch_now").then().on_get(PageType::Dynamic(fetch_now));
+            node.path("firestore").then().on_get(PageType::Dynamic(firestore));
         });
 
         node.path("stations").then().on_get(PageType::Dynamic(list_stations));
