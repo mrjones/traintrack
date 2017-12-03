@@ -32,6 +32,7 @@ pub struct TTContext {
     fetcher: std::sync::Arc<feedfetcher::Fetcher>,
     build_info: TTBuildInfo,
     google_api_info: Option<GoogleApiInfo>,
+    firebase_api_key: Option<String>,
 }
 
 impl TTContext {
@@ -39,7 +40,8 @@ impl TTContext {
                fetcher: std::sync::Arc<feedfetcher::Fetcher>,
                tt_version: &str,
                build_timestamp: chrono::DateTime<chrono::Utc>,
-               google_api_info: Option<GoogleApiInfo>) -> TTContext {
+               google_api_info: Option<GoogleApiInfo>,
+               firebase_api_key: Option<String>) -> TTContext {
         return TTContext{
             stops: stops,
             fetcher: fetcher,
@@ -48,6 +50,7 @@ impl TTContext {
                 timestamp: build_timestamp,
             },
             google_api_info: google_api_info,
+            firebase_api_key: firebase_api_key,
         }
     }
 
@@ -85,7 +88,8 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     let token = auth::generate_google_bearer_token()?;
 
-    return auth::do_firestore_request("AIzaSyDLa3akAARrptwHtNM3LNRoux6wwaRrN1c", &token).map(|t| t.as_bytes().to_vec());
+    return auth::do_firestore_request(
+        tt_context.firebase_api_key.unwrap(), &token).map(|t| t.as_bytes().to_vec());
 }
 
 

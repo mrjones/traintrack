@@ -87,6 +87,7 @@ fn main() {
 
     opts.optopt("i", "google-api-id", "The Google OAuth client id.", "ID");
     opts.optopt("s", "google-api-secret", "The Google OAuth client secret.", "SECRET");
+    opts.optopt("b", "firebase-api-key", "The firebase API key");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }

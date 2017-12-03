@@ -64,7 +64,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
 // https://firebase.google.com/docs/firestore/use-rest-api
 // https://console.firebase.google.com/project/mrjones-traintrack/overview
 // https://console.firebase.google.com/project/mrjones-traintrack/database/firestore/data~2F
-// mrjones@linode:~$ curl -H "Authorization: OAuth ya29.c.EloTBUy7gMRT-yxuXpMhRoLdfJ5R5pxLmYhsR9TJquRIc1YUGdmjKoCH9uutSS72O5N5urF4n5ZIfxQ9JL1Bb_PVMN5xooNBbo0EsTcj0_-xZsQtANKBMxQj6XE" 'https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key=AIzaSyDLa3akAARrptwHtNM3LNRoux6wwaRrN1c'
+// mrjones@linode:~$ curl -H "Authorization: OAuth ya29.c.EloTBUy7gMRT-yxuXpMhRoLdfJ5R5pxLmYhsR9TJquRIc1YUGdmjKoCH9uutSS72O5N5urF4n5ZIfxQ9JL1Bb_PVMN5xooNBbo0EsTcj0_-xZsQtANKBMxQj6XE" 'https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key=<firebase_key>'
 // https://cloud.google.com/firestore/docs/reference/rest/v1beta1/projects.databases.documents/runQuery
 pub fn generate_google_bearer_token() -> result::TTResult<String> {
     let mut now = chrono::Utc::now().timestamp();
