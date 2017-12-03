@@ -102,18 +102,22 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       this.props.onMixingChange(this.props.queryParams.combined);
     }
 
-    for (const line of this.props.queryParams.hiddenLines) {
-      // TODO(mrjones): re-show visible lines
-      this.props.onLineVisibilityChange(line, false);
+    if (this.props.queryParams.hiddenLines) {
+      for (const line of this.props.queryParams.hiddenLines) {
+        // TODO(mrjones): re-show visible lines
+        this.props.onLineVisibilityChange(line, false);
+      }
     }
 
-    for (const dirChar of this.props.queryParams.hiddenDirections) {
-      if (dirChar === 'U') {
-        this.props.onDirectionVisibilityChange(proto.Direction.UPTOWN, false);
-      } else if (dirChar === 'D') {
-        this.props.onDirectionVisibilityChange(proto.Direction.DOWNTOWN, false);
-      } else {
-        console.log("Malformed hiddenDirection string: " + this.props.queryParams.hiddenDirections);
+    if (this.props.queryParams.hiddenDirections) {
+      for (const dirChar of this.props.queryParams.hiddenDirections) {
+        if (dirChar === 'U') {
+          this.props.onDirectionVisibilityChange(proto.Direction.UPTOWN, false);
+        } else if (dirChar === 'D') {
+          this.props.onDirectionVisibilityChange(proto.Direction.DOWNTOWN, false);
+        } else {
+          console.log("Malformed hiddenDirection string: " + this.props.queryParams.hiddenDirections);
+        }
       }
     }
 
@@ -126,7 +130,6 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
   public render(): JSX.Element {
     if (!this.state.expanded) {
       return <div className="filterControl">
-        {JSON.stringify(this.props.queryParams)}
         <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter +</a>
         </div>;
     }
