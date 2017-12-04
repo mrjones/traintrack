@@ -33,6 +33,8 @@ pub struct TTContext {
     build_info: TTBuildInfo,
     google_api_info: Option<GoogleApiInfo>,
     firebase_api_key: Option<String>,
+    // TODO(mrjones): Make this a std::path?
+    google_service_account_pem_file: Option<String>,
 }
 
 impl TTContext {
@@ -41,7 +43,8 @@ impl TTContext {
                tt_version: &str,
                build_timestamp: chrono::DateTime<chrono::Utc>,
                google_api_info: Option<GoogleApiInfo>,
-               firebase_api_key: Option<String>) -> TTContext {
+               firebase_api_key: Option<String>,
+               google_service_account_pem_file: Option<String>) -> TTContext {
         return TTContext{
             stops: stops,
             fetcher: fetcher,
@@ -51,6 +54,7 @@ impl TTContext {
             },
             google_api_info: google_api_info,
             firebase_api_key: firebase_api_key,
+            google_service_account_pem_file: google_service_account_pem_file,
         }
     }
 
@@ -86,11 +90,17 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
 
 
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
-    let token = auth::generate_google_bearer_token()?;
+    match tt_context.google_service_account_pem_file {
+        Some(ref pem_path) => {
+            let token = auth::generate_google_bearer_token(pem_path)?;
 
-    match tt_context.firebase_api_key {
-        Some(ref key) => auth::do_firestore_request(key, &token).map(|t| t.as_bytes().to_vec()),
-        None => Ok("Missing --firebase-api-key".to_string().as_bytes().to_vec()),
+            match tt_context.firebase_api_key {
+                Some(ref key) => return auth::do_firestore_request(key, &token).map(|t| t.as_bytes().to_vec()),
+                None => return Ok("Missing --firebase-api-key".to_string().as_bytes().to_vec()),
+            }
+        }, None => {
+            return Ok("Missing --google-service-account-pem-file".to_string().as_bytes().to_vec());
+        }
     }
 }
 

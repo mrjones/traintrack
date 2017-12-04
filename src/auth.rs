@@ -66,7 +66,14 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
 // https://console.firebase.google.com/project/mrjones-traintrack/database/firestore/data~2F
 // mrjones@linode:~$ curl -H "Authorization: OAuth ya29.c.EloTBUy7gMRT-yxuXpMhRoLdfJ5R5pxLmYhsR9TJquRIc1YUGdmjKoCH9uutSS72O5N5urF4n5ZIfxQ9JL1Bb_PVMN5xooNBbo0EsTcj0_-xZsQtANKBMxQj6XE" 'https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key=<firebase_key>'
 // https://cloud.google.com/firestore/docs/reference/rest/v1beta1/projects.databases.documents/runQuery
-pub fn generate_google_bearer_token() -> result::TTResult<String> {
+
+    // 1. Go to https://console.cloud.google.com/apis/credentials?project=mrjones-traintrack
+    // 2. Click "Create Credentials" and select "Service Account Key"
+    // 3. Pick "JSON" as a format
+    // 4. Copy the value from the "private_key" field into a file, and replace '\n's with actual newlines
+    // pem_path should point to that file:
+
+pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> {
     let mut now = chrono::Utc::now().timestamp();
 
     let mut payload = frank_jwt::Payload::new();
@@ -92,17 +99,12 @@ pub fn generate_google_bearer_token() -> result::TTResult<String> {
     payload.insert("iat".to_string(), format!("{}", now));
     let header = frank_jwt::Header::new(frank_jwt::Algorithm::RS256);
 
-    let mut path = std::env::current_dir().unwrap();
+//    let mut path = std::env::current_dir().unwrap();
 
-    // 1. Go to https://console.cloud.google.com/apis/credentials?project=mrjones-traintrack
-    // 2. Click "Create Credentials" and select "Service Account Key"
-    // 3. Pick "JSON" as a format
-    // 4. Copy the value from the "private_key" field into a file, and replace '\n's with actual newlines
-    // This should point to that file:
-    path.push("google-service-account-key.pem");
-    let key_path = path.to_str().unwrap().to_string();
+//    path.push("google-service-account-key.pem");
+//    let key_path = path.to_str().unwrap().to_string();
 
-    let token = frank_jwt::encode(header, key_path, payload.clone());
+    let token = frank_jwt::encode(header, pem_path.to_string(), payload.clone());
 
     println!("TOKEN: {}", token);
     let client = reqwest::Client::new();

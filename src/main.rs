@@ -85,9 +85,10 @@ fn main() {
     opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
     opts.optopt("w", "webclient-js-file", "The file to serve as webclient.js.", "JS_FILE");
 
-    opts.optopt("i", "google-api-id", "The Google OAuth client id.", "ID");
-    opts.optopt("s", "google-api-secret", "The Google OAuth client secret.", "SECRET");
-    opts.optopt("b", "firebase-api-key", "The firebase API key", "KEY");
+    opts.optopt("", "google-api-id", "The Google OAuth client id.", "ID");
+    opts.optopt("", "google-api-secret", "The Google OAuth client secret.", "SECRET");
+    opts.optopt("", "firebase-api-key", "The firebase API key", "KEY");
+    opts.optopt("", "google-service-account-pem-file", ".pem file containing the Google service account's private key", "PATH");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -146,6 +147,7 @@ fn main() {
 
     let server_context = server::TTContext::new(
         stops, fetcher, tt_version, build_timestamp, google_api_info,
-        matches.opt_str("firebase-api-key"));
+        matches.opt_str("firebase-api-key"),
+        matches.opt_str("google-service-account-pem-file"));
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
 }

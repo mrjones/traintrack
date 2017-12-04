@@ -1,4 +1,6 @@
 # kubectl create secret generic traintrack-creds --from-literal=mta-api-key=$MTA_API_KEY
+# kubectl create secret generic mrjones-traintrack-service-account-key --from-file google-service-account-key.pem
+# kubectl create secret generic traintrack-google-creds --from-literal=google-api-id=<xxx>.apps.googleusercontent.com --from-literal=google-api-secret=$GOOGLE_API_KEY
 # kubectl apply -f kubernets.yaml
 # kubectl expose deployment traintrack --type=LoadBalancer --port=80 --target-port=3837
 apiVersion: extensions/v1beta1
@@ -22,13 +24,39 @@ spec:
             secretKeyRef:
               name: traintrack-creds
               key: mta-api-key
+        - name: GOOGLE_API_ID
+          valueFrom:
+            secretKeyRef:
+              name: traintrack-google-creds
+              key: google-api-id
+        - name: GOOGLE_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: traintrack-google-creds
+              key: google-api-secret
+        - name: FIREBASE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: traintrack-firebase-creds
+              key: firebase-api-key
         args: [
           # TODO: Remove
           "--mta-api-key", "$(MTA_API_KEY)",
           "--proxy-url", "http://$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_HOST):$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_PORT)",
+#          "--google-api-id", "$(GOOGLE_API_ID)",
+#          "--google-api-secret", "$(GOOGLE_API_SECRET)",
+#          "--firebase-api-key", "$(FIREBASE_API_KEY)",
         ]
         livenessProbe:
           httpGet:
             path: /
             port: 3837  # TODO(mrjones): get this from dockerfile?
           periodSeconds: 60
+        volumeMounts:
+        - name: mrjones-traintrack-service-account-key
+          mountPath: "/mnt/mrjones-traintrack-service-account-key"
+          readOnly: true
+      volumes:
+        - name: mrjones-traintrack-service-account-key
+          secret:
+            secretName: mrjones-traintrack-service-account-key
