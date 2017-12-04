@@ -40,11 +40,11 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
     let client = reqwest::Client::new();
     let mut res = client.post(url)
         .form(&params)
-        .send().unwrap(); // TODO(mrjones): convert error
+        .send()?; // TODO(mrjones): convert error
 
     assert!(res.status().is_success());
 
-    let response_json: GoogleResponse = res.json().unwrap();
+    let response_json: GoogleResponse = res.json()?;
 
     println!("{:?}", response_json);
 
@@ -99,11 +99,6 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
     payload.insert("iat".to_string(), format!("{}", now));
     let header = frank_jwt::Header::new(frank_jwt::Algorithm::RS256);
 
-//    let mut path = std::env::current_dir().unwrap();
-
-//    path.push("google-service-account-key.pem");
-//    let key_path = path.to_str().unwrap().to_string();
-
     let token = frank_jwt::encode(header, pem_path.to_string(), payload.clone());
 
     println!("TOKEN: {}", token);
@@ -116,10 +111,10 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
     ];
     let mut res = client.post(google_access_url)
         .form(&params)
-        .send().unwrap();
+        .send()?;
 
     if !res.status().is_success() {
-        return Err(result::quick_err(format!("RESPONSE: {:?} {}", res.status(), res.text().unwrap()).as_ref()));
+        return Err(result::quick_err(format!("RESPONSE: {:?} {}", res.status(), res.text()?).as_ref()));
     }
 
     #[derive(Debug, Deserialize)]

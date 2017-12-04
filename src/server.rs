@@ -252,7 +252,15 @@ fn google_login_redirect_handler(tt_context: &TTContext, rustful_context: rustfu
 }
 
 fn login_link(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {
-    return Ok("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2Flinode.mrjon.es%3A3838%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>".as_bytes().to_vec());
+    let host = rustful_context.headers.get::<rustful::header::Host>()
+        .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
+
+    let host_str = match host.port {
+        Some(port) => format!("{}%3A{}", host.hostname, port),
+        None => host.hostname.clone(),
+    };
+
+    return Ok(format!("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2F{}%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>", host_str).as_bytes().to_vec());
 }
 
 fn line_list_api(tt_context: &TTContext, rustful_context: rustful::Context, timer: RequestTimer) -> result::TTResult<Vec<u8>> {

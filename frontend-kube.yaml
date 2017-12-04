@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2017-10-09.0
+        image: gcr.io/mrjones-gke/traintrack:2017-12-04.2
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
@@ -43,9 +43,10 @@ spec:
           # TODO: Remove
           "--mta-api-key", "$(MTA_API_KEY)",
           "--proxy-url", "http://$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_HOST):$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_PORT)",
-#          "--google-api-id", "$(GOOGLE_API_ID)",
-#          "--google-api-secret", "$(GOOGLE_API_SECRET)",
-#          "--firebase-api-key", "$(FIREBASE_API_KEY)",
+          "--google-api-id", "$(GOOGLE_API_ID)",
+          "--google-api-secret", "$(GOOGLE_API_SECRET)",
+          "--firebase-api-key", "$(FIREBASE_API_KEY)",
+          "--google-service-account-pem-file", "/mnt/mrjones-traintrack-service-account-key/google-service-account-key.pem",
         ]
         livenessProbe:
           httpGet:
