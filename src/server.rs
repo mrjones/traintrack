@@ -10,6 +10,7 @@ extern crate std;
 use auth;
 use feedfetcher;
 use gtfs_realtime;
+use prefs;
 use protobuf;
 use protobuf_json;
 use result;
@@ -35,6 +36,7 @@ pub struct TTContext {
     firebase_api_key: Option<String>,
     // TODO(mrjones): Make this a std::path?
     google_service_account_pem_file: Option<String>,
+    pref_storage: Option<prefs::PrefStorage>,
 }
 
 impl TTContext {
@@ -53,8 +55,13 @@ impl TTContext {
                 timestamp: build_timestamp,
             },
             google_api_info: google_api_info,
-            firebase_api_key: firebase_api_key,
-            google_service_account_pem_file: google_service_account_pem_file,
+            firebase_api_key: firebase_api_key.clone(),
+            google_service_account_pem_file: google_service_account_pem_file.clone(),
+            pref_storage: firebase_api_key.and_then(|k| {
+                return google_service_account_pem_file.map(|p| {
+                    return prefs::PrefStorage::new(p, k);
+                });
+            }),
         }
     }
 
@@ -88,6 +95,54 @@ fn fetch_now(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> re
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
+fn create_user(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    match tt_context.pref_storage {
+        Some(ref storage) => {
+            let user = auth::GoogleIdToken{
+                email: "jonesmr@gmail.com".to_string(),
+                name: "Matt".to_string(),
+                sub: "98989898".to_string(),
+            };
+            storage.create_user(&user)?;
+            return Ok("Done".to_string().as_bytes().to_vec());
+
+        }, None => {
+            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
+        }
+    }
+
+}
+
+fn set_homepage(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    match tt_context.pref_storage {
+        Some(ref storage) => {
+            storage.set_default_station(12345, 67890)?;
+            return Ok("Done".to_string().as_bytes().to_vec());
+
+        }, None => {
+            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
+        }
+    }
+
+}
+
+fn get_homepage(tt_context: &TTContext, rustful_context: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
+    let user_id = rustful_context.query.get("user")
+        .map(|x| x.to_string())
+        .unwrap_or("12345".to_string());
+
+
+    match tt_context.pref_storage {
+        Some(ref storage) => {
+            let s = storage.get_default_station(&user_id)?;
+            return Ok(s.as_bytes().to_vec());
+
+        }, None => {
+            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
+        }
+    }
+
+}
 
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: RequestTimer) -> result::TTResult<Vec<u8>> {
     match tt_context.google_service_account_pem_file {
@@ -442,7 +497,14 @@ impl PageType {
 
 
 impl rustful::Handler for PageType {
-    fn handle(&self, rustful_context: rustful::Context, response: rustful::Response) {
+    fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
+        /*
+        TODO(mrjones): Get cookie info from dispatched function
+        response.headers_mut().set(
+            rustful::header::SetCookie(vec![
+                "foo=bar".to_string(),
+            ]));
+         */
         match self {
             &PageType::Dynamic(execute) => {
                 match rustful_context.global.get::<TTContext>() {
@@ -490,6 +552,9 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.path("freshness").then().on_get(PageType::Dynamic(feed_freshness));
             node.path("fetch_now").then().on_get(PageType::Dynamic(fetch_now));
             node.path("firestore").then().on_get(PageType::Dynamic(firestore));
+            node.path("mkuser").then().on_get(PageType::Dynamic(create_user));
+            node.path("set_homepage").then().on_get(PageType::Dynamic(set_homepage));
+            node.path("get_homepage").then().on_get(PageType::Dynamic(get_homepage));
         });
 
         node.path("stations").then().on_get(PageType::Dynamic(list_stations));

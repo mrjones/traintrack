@@ -19,6 +19,7 @@ mod auth;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
+mod prefs;
 mod result;
 mod server;
 mod stops;

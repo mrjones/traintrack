@@ -14,11 +14,11 @@ struct GoogleResponse {
     id_token: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GoogleIdToken {
-    email: String,
-    name: String,
-    sub: String,
+    pub email: String,
+    pub name: String,
+    pub sub: String,
 }
 
 pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id: &str, google_client_secret: &str, host: &str) -> result::TTResult<GoogleIdToken> {
