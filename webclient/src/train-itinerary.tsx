@@ -75,7 +75,10 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
           stationElt = <ReactRouter.Link to={`/app/station/${arrival.station.id}`}>
             {arrival.station.name}
           </ReactRouter.Link>;
+        } else if (arrival.station) {
+          stationElt = <span>Unknown station ${arrival.station.id}</span>;
         }
+
         return <tr key={"" + arrival.timestamp}>
           <td className="station">{stationElt}</td>
           <td className="arrivalTime">{time.format("LT")} ({time.fromNow()})</td>

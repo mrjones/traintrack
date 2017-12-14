@@ -217,6 +217,14 @@ impl Stops {
                 }
             }
 
+            // Fix missing w4st entry?
+            stops.insert("D20".to_string(), Stop{
+                id: "D20".to_string(),
+                parent_id: None,
+                name: "W 4 St".to_string(),
+                complex_id: "167".to_string(),
+            });
+
             return Ok(Stops{
                 stops: stops,
 //                trip_ids_by_route: std::collections::HashMap::new(),

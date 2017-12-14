@@ -519,9 +519,40 @@ impl PageType {
     }
 }
 
+fn extract_login_cookie(cookie_header: &rustful::header::Cookie) -> Option<String> {
+    let matches = cookie_header.iter().filter_map(|one_cookie| {
+        // TODO(mrjones): This split doesn't work:
+        // Splitting: foo2=bar2 -> ["foo2=bar2"]
+        let cookie_parts: std::vec::Vec<&str> = one_cookie.splitn(1, '=').collect();
+        println!("Splitting: {} -> {:?}", one_cookie, cookie_parts);
+        if cookie_parts.len() == 2 && cookie_parts[0] == "foo2" {
+            println!("Found LC {} -> {}", one_cookie, cookie_parts[1]);
+            return Some(cookie_parts[1]);
+        } else {
+            return None;
+        }
+    }).collect::<std::vec::Vec<&str>>();
+
+    println!("Matches: {:?} len={}", matches, matches.len());
+
+    if matches.len() == 0 {
+        println!("ret none");
+        return None;
+    } else {
+        println!("ret some");
+        return Some(matches[0].to_string());
+    }
+}
 
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
+
+
+        let login_cookie = rustful_context.headers.get::<rustful::header::Cookie>().and_then(
+            |cookie_header| { return extract_login_cookie(cookie_header); });
+
+        println!("Login Cookie: {:?}", login_cookie);
+
         let mut prc = PerRequestContext::new();
         match self {
             &PageType::Dynamic(execute) => {
