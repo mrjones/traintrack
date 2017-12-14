@@ -97,10 +97,6 @@ struct RouteCsvRecord {
 
 
 impl Stops {
-    pub fn stations_iter(&self) -> std::collections::hash_map::Values<String, Stop> {
-        return self.stops.values();
-    }
-
     pub fn complexes_iter(&self) -> std::collections::hash_map::Values<String, Stop> {
         return self.complexes.values();
     }

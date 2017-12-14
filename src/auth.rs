@@ -74,7 +74,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
     // pem_path should point to that file:
 
 pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> {
-    let mut now = chrono::Utc::now().timestamp();
+    let now = chrono::Utc::now().timestamp();
 
     let mut payload = frank_jwt::Payload::new();
     // https://developers.google.com/identity/protocols/OAuth2ServiceAccount

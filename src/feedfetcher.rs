@@ -108,7 +108,7 @@ impl Fetcher {
                         Err(err) => {
                             error!("Error fetching: {}", err);
                             self.latest_values.lock().unwrap().get_mut(&feed_id).as_mut().map(
-                                |mut r| r.last_any_fetch = Some(chrono::Utc::now()));
+                                |r| r.last_any_fetch = Some(chrono::Utc::now()));
                         }
                     }
                 }
@@ -175,7 +175,7 @@ impl Fetcher {
         let lastgood_fname = format!("lastgood_{}.txt", feed_id);
 
         let mut file = std::fs::File::create(&lastresponse_fname)?;
-        file.write_all(&body);
+        file.write_all(&body)?;
 
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
@@ -189,7 +189,7 @@ impl Fetcher {
                         trace!("About to write {}. {} bytes.",
                               &lastgood_fname, body.len());
                         let mut file = std::fs::File::create(&lastgood_fname)?;
-                        file.write_all(&body);
+                        file.write_all(&body)?;
                         trace!("Succeeded writing {}. {} bytes.",
                                &lastgood_fname, body.len());
                     }

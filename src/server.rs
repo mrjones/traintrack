@@ -181,7 +181,7 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rust
 
     match debug_getter {
         Some(f) => {
-            let mut debug_info = f(data);
+            let debug_info = f(data);
             let now = chrono::Utc::now();
             let start_ms = timer.start_time.timestamp() * 1000 + timer.start_time.timestamp_subsec_millis() as i64;
             let now_ms = now.timestamp() * 1000 + now.timestamp_subsec_millis() as i64;
@@ -330,7 +330,7 @@ fn google_login_redirect_handler(tt_context: &TTContext, rustful_context: rustfu
     return Ok(format!("Welcome {:?}", google_id).as_bytes().to_vec());
 }
 
-fn login_link(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
+fn login_link(_: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     let host = rustful_context.headers.get::<rustful::header::Host>()
         .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
 
@@ -382,7 +382,7 @@ fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, p
                         for candidate in utils::possible_stop_ids(stu.get_stop_id()) {
                             if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
                                 if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
-                                    let mut station = arr_proto.mut_station();
+                                    let station = arr_proto.mut_station();
                                     station.set_id(complex_id.to_string());
                                     station.set_name(info.name.clone());
                                 }
@@ -596,12 +596,12 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
     assert!(!global.get::<TTContext>().is_none());
 
     let mut router = rustful::DefaultRouter::<PageType>::new();
-    router.build().many(|mut node| {
+    router.build().many(|node| {
         node.then().on_get(PageType::new_static_page(
             format!("{}/singlepage.html", static_dir)));
-        node.path("debug").many(|mut node| {
+        node.path("debug").many(|node| {
             node.then().on_get(PageType::Dynamic(debug));
-            node.path("dump_proto").many(|mut node| {
+            node.path("dump_proto").many(|node| {
                 node.then().on_get(PageType::Dynamic(dump_feed_links));
                 node.path(":feed_id").then().on_get(PageType::Dynamic(dump_proto));
             });
@@ -614,8 +614,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
         });
 
         node.path("stations").then().on_get(PageType::Dynamic(list_stations));
-        node.path("station").many(|mut node| {
-            node.path(":station_id").many(|mut node| {
+        node.path("station").many(|node| {
+            node.path(":station_id").many(|node| {
                 node.then().on_get(PageType::Dynamic(station_detail));
                 node.path(":route_id").then().on_get(PageType::Dynamic(station_detail));
             });
@@ -627,7 +627,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
                     format!("{}/favicon.ico", static_dir)));
         node.path("hack559.js").then().on_get(PageType::new_static_page(
                     format!("{}/hack559.js", static_dir)));
-        node.path("app").many(|mut node| {
+        node.path("app").many(|node| {
             node.then().on_get(PageType::new_static_page(
                 format!("{}/singlepage.html", static_dir)));
             node.path("*").then().on_get(PageType::new_static_page(
@@ -636,17 +636,17 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
         node.path("webclient.js").then().on_get(PageType::new_static_page(webclient_js_file));
         node.path("login").then().on_get(PageType::Dynamic(login_link));
         node.path("google_login_redirect").then().on_get(PageType::Dynamic(google_login_redirect_handler));
-        node.path("api").many(|mut node| {
+        node.path("api").many(|node| {
             node.path("lines").then().on_get(PageType::Dynamic(line_list_api));
-            node.path("station").many(|mut node| {
+            node.path("station").many(|node| {
                 node.path(":station_id").then().on_get(PageType::Dynamic(station_detail_api));
             });
-            node.path("train").many(|mut node| {
+            node.path("train").many(|node| {
                 node.path(":train_id").then().on_get(PageType::Dynamic(train_detail_api));
             });
-            node.path("stations").many(|mut node| {
+            node.path("stations").many(|node| {
                 node.then().on_get(PageType::Dynamic(station_list_api));
-                node.path("byline").many(|mut node| {
+                node.path("byline").many(|node| {
                     node.path(":line_id").then().on_get(
                         PageType::Dynamic(stations_byline_api));
                 });

@@ -104,7 +104,7 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
                         if !upcoming.contains_key(trip.get_route_id()) {
                             upcoming.insert(trip.get_route_id().to_string(), btreemap![]);
                         }
-                        let mut route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
+                        let route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 
                         if route_trains.contains_key(&direction) {
                             route_trains.get_mut(&direction).unwrap().push(Arrival::new(timestamp, trip.get_trip_id()));

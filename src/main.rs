@@ -127,9 +127,6 @@ fn main() {
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
 
-    let maybe_google_id = matches.opt_str("google-api-id");
-    let maybe_google_secret = matches.opt_str("google-api-secret");
-
     let google_api_info = match matches.opt_str("google-api-id") {
         Some(id) => match matches.opt_str("google-api-secret") {
             Some(secret) => Some(server::GoogleApiInfo{id: id, secret: secret}),
