@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: feedproxy
-        image: gcr.io/mrjones-gke/traintrack-feedproxy:2017-08-27.0
+        image: gcr.io/mrjones-gke/traintrack-feedproxy:2017-12-13.1
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY

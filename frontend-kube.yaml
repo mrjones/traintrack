@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2017-12-13.0
+        image: gcr.io/mrjones-gke/traintrack:2017-12-13.1
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
