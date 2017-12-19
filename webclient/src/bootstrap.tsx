@@ -11,6 +11,7 @@ import { LineViewRouterWrapper } from './lineview';
 import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { TrainItineraryWrapper } from './train-itinerary';
+import { TransferPageWrapper } from './transfer-view';
 
 import { DataFetcher } from './datafetcher';
 import { TTContext, initialState, transition } from './state-machine';
@@ -40,6 +41,7 @@ ReactDOM.render(
               <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
               <ReactRouter.Route path='/app/station/:initialStationId' component={StationPageWrapper} />
               <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
+              <ReactRouter.Route path='/app/transfer' component={TransferPageWrapper}/>
               <ReactRouter.Route path='/app' component={StationPageWrapper}/>
               <ReactRouter.Route path='/' component={StationPageWrapper}/>
             </ReactRouter.Switch>

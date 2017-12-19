@@ -4,8 +4,8 @@ import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
-import * as proto from './webclient_api_pb';
 
+import * as proto from './webclient_api_pb';
 import * as utils from './utils';
 
 import { Loadable } from './async';
@@ -14,54 +14,8 @@ import { ApiDebugger } from './debug';
 import { ConnectedFilterControl, FilterControlQueryParams } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
-import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
-
-// TODO(mrjones): Move this somewhere better
-function installStationList(allStations: proto.StationList): InstallStationListAction {
-  return {
-    type: TTActionTypes.INSTALL_STATION_LIST,
-    payload: allStations,
-  };
-}
-
-function fetchStationList() {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    context.dataFetcher.fetchStationList()
-      .then((result: DebuggableResult<proto.StationList>) => {
-        dispatch(installStationList(result.data));
-      });
-  };
-}
-
-function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
-  return {
-    type: TTActionTypes.START_LOADING_STATION_DETAILS,
-    payload: stationId,
-  };
-}
-
-function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
-  return {
-    type: TTActionTypes.INSTALL_STATION_DETAILS,
-    payload: [newStationId, newStationInfo],
-  };
-}
-
-function loadStationDetails(stationId: string) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
-    let existing = getState().core.stationDetails.get(stationId);
-    if (existing !== undefined && existing.loading) {
-      // Someone is already loading this
-      // TODO(mrjone): check for errors which might wedge us in "loading"
-      return;
-    }
-    dispatch(startLoadingStationDetails(stationId));
-    context.dataFetcher.fetchStationStatus(stationId)
-      .then((result: DebuggableResult<proto.StationStatus>) => {
-        dispatch(installStationDetails(stationId, result));
-      });
-  };
-}
+import { TTState } from './state-machine';
+import { fetchStationList, loadStationDetails } from './state-actions';
 
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
