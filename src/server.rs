@@ -86,13 +86,15 @@ impl TTContext {
 struct RequestSpan {
     name: String,
     start_time: chrono::DateTime<chrono::Utc>,
+    trace: bool,
 }
 
 impl RequestSpan {
-    fn new(name: &str) -> RequestSpan {
+    fn new(name: &str, trace: bool) -> RequestSpan {
         return RequestSpan {
             name: name.to_string(),
             start_time: chrono::Utc::now(),
+            trace: trace,
         }
     }
 }
@@ -105,23 +107,27 @@ impl std::ops::Drop for RequestSpan {
             self.start_time.timestamp_subsec_millis() as i64;
         let end_ms = end.timestamp() * 1000 + end.timestamp_subsec_millis() as i64;
 
-        println!("'{}' duration ms: {}", self.name, end_ms - start_ms);
+        if self.trace {
+            println!("'{}' duration ms: {}", self.name, end_ms - start_ms);
+        }
     }
 }
 
 struct RequestTimer {
     start_time: chrono::DateTime<chrono::Utc>,
+    trace: bool,
 }
 
 impl RequestTimer {
-    fn new() -> RequestTimer {
+    fn new(trace: bool) -> RequestTimer {
         return RequestTimer {
             start_time: chrono::Utc::now(),
+            trace: trace,
         };
     }
 
     fn span(&self, name: &str) -> RequestSpan {
-        return RequestSpan::new(name);
+        return RequestSpan::new(name, self.trace);
     }
 }
 
@@ -133,7 +139,8 @@ struct PerRequestContext {
 impl PerRequestContext {
     fn new() -> PerRequestContext {
         return PerRequestContext {
-            timer: RequestTimer::new(),
+            // TODO(mrjones): conditionally enable tracing
+            timer: RequestTimer::new(false),
             response_modifiers: vec![],
         }
     }
@@ -591,7 +598,8 @@ fn extract_login_cookie(cookie_header: &rustful::header::Cookie) -> Option<Strin
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
         let mut prc = PerRequestContext::new();
-        let login_cookie = rustful_context.headers.get::<rustful::header::Cookie>().and_then(
+        // TODO(mrjones): Do something with this
+        let _login_cookie = rustful_context.headers.get::<rustful::header::Cookie>().and_then(
             |cookie_header| { return extract_login_cookie(cookie_header); });
 
         match self {
