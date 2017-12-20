@@ -59,11 +59,11 @@ impl Fetcher {
         return self.latest_values.read().unwrap().values().map(|v| v.clone()).collect();
     }
 
-    pub fn with_feeds<F>(&self, mut handler: F)
-        where F: FnMut(Vec<&FetchResult>) {
+    pub fn with_feeds<F, R>(&self, mut handler: F) -> R
+        where F: FnMut(Vec<&FetchResult>) -> R{
         let feeds = self.latest_values.read().unwrap();
         let feeds_ref: Vec<&FetchResult> = feeds.values().collect();
-        handler(feeds_ref);
+        return handler(feeds_ref);
     }
 
     fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {

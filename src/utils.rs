@@ -85,6 +85,11 @@ pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, sto
 }
 
 pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
+    let ref_vec: Vec<&gtfs_realtime::FeedMessage> = feeds.iter().map(|v| v).collect();
+    return all_upcoming_trains_vec_ref(stop_id, &ref_vec, stops);
+}
+
+pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>> = std::collections::BTreeMap::new();
 
     let mut min_relevant_ts = chrono::Utc::now().timestamp() as u64;

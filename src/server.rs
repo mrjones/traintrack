@@ -69,8 +69,8 @@ impl TTContext {
         return Ok(self.fetcher.all_feeds());
     }
 
-    fn with_feeds<F>(&self, mut handler: F)
-        where F: FnMut(Vec<&feedfetcher::FetchResult>) {
+    fn with_feeds<F, R>(&self, handler: F) -> R
+        where F: FnMut(Vec<&feedfetcher::FetchResult>) -> R {
         return self.fetcher.with_feeds(handler);
     }
 
@@ -261,26 +261,14 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
                 format!("No station with ID {}", station_id)))?;
     }
 
-    let mut just_messages: Vec<gtfs_realtime::FeedMessage> = vec![];
-    {
-        let _get_feed_span = per_request_context.timer.span("get_feed");
-        /*
-        let feed = tt_context.all_feeds()?;
-        just_messages = feed.iter().map(|res| res.feed.clone()).collect();
-         */
-        tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
-            //            just_messages = feeds.iter().map(|res| res.feed.clone()).collect();
-            for feed in feeds {
-                just_messages.push(feed.feed.clone());
-            }
-        });
-    }
-
     let upcoming;
     {
-        let _upcoming_cookie = per_request_context.timer.span("compute_upcoming");
-        upcoming =
-            utils::all_upcoming_trains_vec(&station_id, &just_messages, &tt_context.stops);
+        let _get_feed_span = per_request_context.timer.span("get_feed_and_compute");
+        upcoming = tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
+            let just_messages: Vec<&gtfs_realtime::FeedMessage> = feeds.iter().map(|f| &f.feed).collect();
+            let _compute_span = per_request_context.timer.span("compute");
+            return utils::all_upcoming_trains_vec_ref(&station_id, &just_messages, &tt_context.stops);
+        });
     }
 
     let mut response = webclient_api::StationStatus::new();
