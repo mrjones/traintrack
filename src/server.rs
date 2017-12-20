@@ -69,12 +69,43 @@ impl TTContext {
         return Ok(self.fetcher.all_feeds());
     }
 
+    fn with_feeds<F>(&self, mut handler: F)
+        where F: FnMut(Vec<&feedfetcher::FetchResult>) {
+        return self.fetcher.with_feeds(handler);
+    }
+
     fn feed(&self, feed_id: i32) -> result::TTResult<feedfetcher::FetchResult> {
         return match self.fetcher.latest_value(feed_id) {
             Some(result) => Ok(result),
             None => Err(result::TTError::Uncategorized(
                 "No feed data yet".to_string())),
         };
+    }
+}
+
+struct RequestSpan {
+    name: String,
+    start_time: chrono::DateTime<chrono::Utc>,
+}
+
+impl RequestSpan {
+    fn new(name: &str) -> RequestSpan {
+        return RequestSpan {
+            name: name.to_string(),
+            start_time: chrono::Utc::now(),
+        }
+    }
+}
+
+impl std::ops::Drop for RequestSpan {
+    fn drop(&mut self) {
+        let end = chrono::Utc::now();
+
+        let start_ms = self.start_time.timestamp() * 1000 +
+            self.start_time.timestamp_subsec_millis() as i64;
+        let end_ms = end.timestamp() * 1000 + end.timestamp_subsec_millis() as i64;
+
+        println!("'{}' duration ms: {}", self.name, end_ms - start_ms);
     }
 }
 
@@ -87,6 +118,10 @@ impl RequestTimer {
         return RequestTimer {
             start_time: chrono::Utc::now(),
         };
+    }
+
+    fn span(&self, name: &str) -> RequestSpan {
+        return RequestSpan::new(name);
     }
 }
 
@@ -212,58 +247,83 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rust
 }
 
 fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let station_id = rustful_context.variables.get("station_id").ok_or(
-        result::TTError::Uncategorized("Missing station_id".to_string()))?;
-    let station_id = station_id.into_owned();
-    let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
-        result::TTError::Uncategorized(
-            format!("No station with ID {}", station_id)))?;
+    let _all_span = per_request_context.timer.span("station_detail_api");
 
-    let feed = tt_context.all_feeds()?;
-    let just_messages: Vec<gtfs_realtime::FeedMessage> =
-        feed.iter().map(|res| res.feed.clone()).collect();
+    let station_id;
+    let station;
+    {
+        let _parse_query_span = per_request_context.timer.span("parse_query");
+        let station_id_str = rustful_context.variables.get("station_id").ok_or(
+            result::TTError::Uncategorized("Missing station_id".to_string()))?;
+        station_id = station_id_str.into_owned();
+        station = tt_context.stops.lookup_by_id(&station_id).ok_or(
+            result::TTError::Uncategorized(
+                format!("No station with ID {}", station_id)))?;
+    }
 
-    let upcoming =
-        utils::all_upcoming_trains_vec(&station_id, &just_messages, &tt_context.stops);
+    let mut just_messages: Vec<gtfs_realtime::FeedMessage> = vec![];
+    {
+        let _get_feed_span = per_request_context.timer.span("get_feed");
+        /*
+        let feed = tt_context.all_feeds()?;
+        just_messages = feed.iter().map(|res| res.feed.clone()).collect();
+         */
+        tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
+            //            just_messages = feeds.iter().map(|res| res.feed.clone()).collect();
+            for feed in feeds {
+                just_messages.push(feed.feed.clone());
+            }
+        });
+    }
+
+    let upcoming;
+    {
+        let _upcoming_cookie = per_request_context.timer.span("compute_upcoming");
+        upcoming =
+            utils::all_upcoming_trains_vec(&station_id, &just_messages, &tt_context.stops);
+    }
 
     let mut response = webclient_api::StationStatus::new();
-//    response.set_name("PROTO".to_string());
-//    let mut line = webclient_api::LineArrivals::new();
-//    line.set_line("LINE".to_string());
-//    response.mut_line().push(line);
-
-    let mut colors_by_route = std::collections::HashMap::new();
-    for ref route in tt_context.stops.lines() {
-        colors_by_route.insert(route.id.clone(), route.color.clone());
-    }
-
-    response.set_name(station.name.clone());
-    for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
-        for (direction, stop_times) in trains.iter() {
-            let mut line = webclient_api::LineArrivals::new();
-            line.set_line(route_id.clone());
-            line.set_direction(match direction {
-                &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
-                &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
-            });
-            line.set_arrivals(stop_times.iter().map(|a| {
-                let mut r = webclient_api::LineArrival::new();
-                r.set_timestamp(a.timestamp.timestamp());
-                r.set_trip_id(a.trip_id.clone());
-                return r;
-            }).collect());
-
-            if let Some(color) = colors_by_route.get(route_id) {
-                line.set_line_color_hex(color.to_string());
-            }
-
-            response.mut_line().push(line);
+    {
+        let _build_proto_span = per_request_context.timer.span("build_proto");
+        let mut colors_by_route = std::collections::HashMap::new();
+        for ref route in tt_context.stops.lines() {
+            colors_by_route.insert(route.id.clone(), route.color.clone());
         }
+
+        response.set_name(station.name.clone());
+        for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
+            for (direction, stop_times) in trains.iter() {
+                let mut line = webclient_api::LineArrivals::new();
+                line.set_line(route_id.clone());
+                line.set_direction(match direction {
+                    &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
+                    &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
+                });
+                line.set_arrivals(stop_times.iter().map(|a| {
+                    let mut r = webclient_api::LineArrival::new();
+                    r.set_timestamp(a.timestamp.timestamp());
+                    r.set_trip_id(a.trip_id.clone());
+                    return r;
+                }).collect());
+
+                if let Some(color) = colors_by_route.get(route_id) {
+                    line.set_line_color_hex(color.to_string());
+                }
+
+                response.mut_line().push(line);
+            }
+        }
+        response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
     }
 
-    response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
+    let result;
+    {
+        let _build_response_span = per_request_context.timer.span("build_response");
+        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationStatus::mut_debug_info));
+    }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationStatus::mut_debug_info));
+    return result;
 }
 
 fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -524,45 +584,40 @@ fn extract_login_cookie(cookie_header: &rustful::header::Cookie) -> Option<Strin
         // TODO(mrjones): This split doesn't work:
         // Splitting: foo2=bar2 -> ["foo2=bar2"]
         let cookie_parts: std::vec::Vec<&str> = one_cookie.splitn(1, '=').collect();
-        println!("Splitting: {} -> {:?}", one_cookie, cookie_parts);
         if cookie_parts.len() == 2 && cookie_parts[0] == "foo2" {
-            println!("Found LC {} -> {}", one_cookie, cookie_parts[1]);
             return Some(cookie_parts[1]);
         } else {
             return None;
         }
     }).collect::<std::vec::Vec<&str>>();
 
-    println!("Matches: {:?} len={}", matches, matches.len());
+//    println!("Matches: {:?} len={}", matches, matches.len());
 
     if matches.len() == 0 {
-        println!("ret none");
         return None;
     } else {
-        println!("ret some");
         return Some(matches[0].to_string());
     }
 }
 
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
-
-
+        let mut prc = PerRequestContext::new();
         let login_cookie = rustful_context.headers.get::<rustful::header::Cookie>().and_then(
             |cookie_header| { return extract_login_cookie(cookie_header); });
 
-        println!("Login Cookie: {:?}", login_cookie);
-
-        let mut prc = PerRequestContext::new();
         match self {
             &PageType::Dynamic(execute) => {
                 match rustful_context.global.get::<TTContext>() {
                     Some(ref tt_context) => {
-                        match execute(tt_context, rustful_context, &mut prc) {
+                        let result;
+                        {
+                            let _execute_span = prc.timer.span("execute");
+                            result = execute(tt_context, rustful_context, &mut prc);
+                        }
+                        match result {
                             Ok(body) => {
-                                println!("Running modifiers");
                                 prc.response_modifiers.iter().for_each(|mod_fn| {
-                                    println!("configured modifier");
                                     mod_fn(&mut response);
                                 });
                                 response.send(body);

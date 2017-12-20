@@ -24,7 +24,7 @@ pub struct FetchResult {
 
 pub struct Fetcher {
     mta_api_key: String,
-    latest_values: std::sync::Mutex<std::collections::HashMap<i32, FetchResult>>,
+    latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
     proxy_url: Option<String>,
 }
 
@@ -33,7 +33,7 @@ impl Fetcher {
         info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
-            latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
+            latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             proxy_url: None,
         }
     }
@@ -42,21 +42,28 @@ impl Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
             mta_api_key: "".to_string(),
-            latest_values: std::sync::Mutex::new(std::collections::HashMap::new()),
+            latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             proxy_url: Some(proxy_url.to_string()),
         }
     }
 
     pub fn known_feed_ids(&self) -> Vec<i32> {
-        return self.latest_values.lock().unwrap().keys().map(|i| *i).collect();
+        return self.latest_values.read().unwrap().keys().map(|i| *i).collect();
     }
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
-        return self.latest_values.lock().unwrap().get(&feed_id).map(|x| x.clone());
+        return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
     pub fn all_feeds(&self) -> Vec<FetchResult> {
-        return self.latest_values.lock().unwrap().values().map(|v| v.clone()).collect();
+        return self.latest_values.read().unwrap().values().map(|v| v.clone()).collect();
+    }
+
+    pub fn with_feeds<F>(&self, mut handler: F)
+        where F: FnMut(Vec<&FetchResult>) {
+        let feeds = self.latest_values.read().unwrap();
+        let feeds_ref: Vec<&FetchResult> = feeds.values().collect();
+        handler(feeds_ref);
     }
 
     fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
@@ -93,7 +100,7 @@ impl Fetcher {
                 None => {
                     match self.fetch_once_local(feed_id) {
                         Ok(new_feed) => {
-                            self.latest_values.lock().unwrap().insert(
+                            self.latest_values.write().unwrap().insert(
                                 feed_id,
                                 FetchResult{
                                     feed: new_feed.clone(),
@@ -107,14 +114,14 @@ impl Fetcher {
                         },
                         Err(err) => {
                             error!("Error fetching: {}", err);
-                            self.latest_values.lock().unwrap().get_mut(&feed_id).as_mut().map(
+                            self.latest_values.write().unwrap().get_mut(&feed_id).as_mut().map(
                                 |r| r.last_any_fetch = Some(chrono::Utc::now()));
                         }
                     }
                 }
                 Some(ref proxy_url) => {
                     match self.fetch_once_remote(proxy_url, feed_id) {
-                        Ok(new_result) => { self.latest_values.lock().unwrap().insert(
+                        Ok(new_result) => { self.latest_values.write().unwrap().insert(
                             feed_id, new_result); }
                         Err(err) => { error!("Error fetching from proxy: {}", err); },
                     }
@@ -153,7 +160,7 @@ impl Fetcher {
     }
 
     fn fetch_once_local(&self, feed_id: i32) -> result::TTResult<gtfs_realtime::FeedMessage> {
-        let last_successful_fetch = match self.latest_values.lock().unwrap().get(&feed_id) {
+        let last_successful_fetch = match self.latest_values.read().unwrap().get(&feed_id) {
             None => None,
             Some(ref result) => result.last_good_fetch,
         };
