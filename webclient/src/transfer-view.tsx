@@ -14,8 +14,42 @@ import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { loadMultipleStationDetails } from './state-actions';
 
+class TransferSpec {
+  public stationId: string;
+  public lines: Immutable.Set<string>;
+  public direction: proto.Direction;
+
+  // Format SSSS-LLL-D
+  public static parse(serialized: string): TransferSpec | undefined {
+    let parts = serialized.split("-");
+    if (parts.length !== 3) {
+      console.log("Invalid serialized TransferSpec: " + serialized);
+      return undefined;
+    }
+
+    if (parts[2] !== "U" && parts[2] !== "D") {
+      console.log("Invalid direction in TransferSpec: " + parts[2]);
+      return undefined;
+    }
+
+    return {
+      stationId: parts[0],
+      lines: Immutable.Set(parts[1].split('')),
+      direction: parts[2] === "U" ? proto.Direction.UPTOWN : proto.Direction.DOWNTOWN,
+    };
+  }
+}
+
+class ConnectionInfo {
+  public line: string;
+  public inboundTimestamp: number;
+  public outboundTimestamp: number;
+  public waitTimeSeconds: number;
+}
+
 class TransferPageExplicitProps {
-  public stationIds: string[];
+  public transferSpecs: string;
+  public rootSpec: string;
 }
 class TransferPageDataProps {
   public hasData: boolean;
@@ -26,12 +60,28 @@ class TransferPageDispatchProps {
   public fetchDataForStations: (stationIds: string[]) => any;
 };
 
+function rootSpecForProps(props: TransferPageExplicitProps): TransferSpec {
+  return TransferSpec.parse(props.rootSpec);
+}
+
+function transferSpecsForProps(props: TransferPageExplicitProps): TransferSpec[] {
+  return props.transferSpecs.split(":").map((s: string) => {
+    return TransferSpec.parse(s);
+  });
+}
+
+function stationIdsForProps(props: TransferPageExplicitProps): string[] {
+  let stationIds = transferSpecsForProps(props).map((spec: TransferSpec) => spec.stationId);
+  stationIds.push(rootSpecForProps(props).stationId);
+  return stationIds;
+}
+
 const mapStateToProps = (state: TTState, ownProps: TransferPageExplicitProps): TransferPageDataProps => {
   let stationIndex = new Map<string, number>();
   let i = 0;
 
   let maybeData: Loadable<DebuggableResult<proto.StationStatus>>[] =
-    ownProps.stationIds.map((stationId: string) => {
+    stationIdsForProps(ownProps).map((stationId: string) => {
       stationIndex.set(stationId, i++);
       return state.core.stationDetails.get(stationId);
     });
@@ -76,6 +126,9 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   public render() {
+    let root = rootSpecForProps(this.props);
+    let transfers = transferSpecsForProps(this.props);
+    /*
     let root: TransferSpec = {
       stationId: "028",
       lines: Immutable.Set.of("R"),
@@ -87,6 +140,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       { stationId: "026", lines: Immutable.Set.of("B"), direction: proto.Direction.UPTOWN },
       { stationId: "636", lines: Immutable.Set.of("A", "C"), direction: proto.Direction.UPTOWN },
     ];
+    */
 
     let component;
     if (!this.props.hasData) {
@@ -138,12 +192,12 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   private fetchData() {
-    this.props.fetchDataForStations(this.props.stationIds);
+    this.props.fetchDataForStations(stationIdsForProps(this.props));
   }
 
   private fetchMissingData(props: TransferPageProps) {
     if (!props.hasData) {
-      this.props.fetchDataForStations(props.stationIds);
+      this.props.fetchDataForStations(stationIdsForProps(props));
     }
   }
 
@@ -219,19 +273,6 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     }
 }
 
-class TransferSpec {
-  public stationId: string;
-  public lines: Immutable.Set<string>;
-  public direction: proto.Direction;
-}
-
-class ConnectionInfo {
-  public line: string;
-  public inboundTimestamp: number;
-  public outboundTimestamp: number;
-  public waitTimeSeconds: number;
-}
-
 export let ConnectedTransferPage = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(TransferPage);
 
 export class TransferPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
@@ -240,6 +281,9 @@ export class TransferPageWrapper extends React.Component<ReactRouter.RouteCompon
   }
 
   public render() {
-    return <ConnectedTransferPage stationIds={["026", "028", "617", "636"]} />;
+    console.log(JSON.stringify(this.props));
+    return <ConnectedTransferPage
+    rootSpec={this.props.match.params.rootSpec ? this.props.match.params.rootSpec : "028-R-U"}
+    transferSpecs={this.props.match.params.transferSpec ? this.props.match.params.transferSpec : "617-D-U:026-B-U:636-AC-U"}/>;
   }
 }

@@ -41,6 +41,7 @@ ReactDOM.render(
               <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
               <ReactRouter.Route path='/app/station/:initialStationId' component={StationPageWrapper} />
               <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
+              <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' component={TransferPageWrapper}/>
               <ReactRouter.Route path='/app/transfer' component={TransferPageWrapper}/>
               <ReactRouter.Route path='/app' component={StationPageWrapper}/>
               <ReactRouter.Route path='/' component={StationPageWrapper}/>
