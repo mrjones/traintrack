@@ -224,6 +224,20 @@ ul.lineView{
     background-color: #eee;
 }
 
+.transferTree ul.transferSubtree {
+    margin-top: 0;
+    margin-bottom: .5em;
+}
+
+.transferTree .transferSubtree li {
+    margin-left: 1em;
+}
+
+.transferView .startStation {
+    font-weight: bold;
+}
+
+.transferView ul,
 .intermingledArrivals ul {
     list-style-type: none;
     padding: 0;
@@ -234,6 +248,7 @@ ul.lineView{
     color: #CCCCCC;
 }
 
+.transferView .lineName,
 .intermingledArrivals .lineName {
     color: white;
     -webkit-text-stroke: .5px black;

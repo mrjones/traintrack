@@ -45,6 +45,7 @@ class ConnectionInfo {
   public inboundTimestamp: number;
   public outboundTimestamp: number;
   public waitTimeSeconds: number;
+  public lineColorHex: string;
 }
 
 class TransferPageExplicitProps {
@@ -165,30 +166,52 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                 let departureTime = moment.unix(connection[1].outboundTimestamp);
                 let waitDuration = moment.duration(connection[1].waitTimeSeconds, 'seconds');
                 let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
-                return <li>{connection[0].split(" ")[0]} {transferArrivalTime.format("LT")} --&gt; {connection[1].line} at {departureTime.format("LT")} (+ {waitDuration.locale("en").humanize()})</li>;
+                let lineStyle = {
+                  backgroundColor: "#" + connection[1].lineColorHex,
+                };
+                return <li>
+                  <span className="lineName" style={lineStyle}>{connection[1].line}</span>&nbsp;
+                  {this.shortName(connection[0])}&nbsp;
+                  {transferArrivalTime.format("LT")} --&gt; {departureTime.format("LT")}&nbsp;
+                  (+ {waitDuration.locale("en").humanize()})
+                </li>;
               } else {
                 return <li>No connectionion at {connection[0]}</li>;
               }
             });
 
-            return <li>{rootTime.format("LT")} ({rootTime.fromNow()})<ul>{transferLis}</ul></li>;
+            return <li>{rootTime.format("LT")} {line.line} ({rootTime.fromNow()})
+              <ul className="transferSubtree">{transferLis}</ul>
+              </li>;
           });
         }
       });
 
-      component = <div>{rootStation.name}<ul>{lis}</ul></div>;
+      let minPubTs = this.props.stationDatas.reduce(
+        (minSoFar: number, candidate: DebuggableResult<proto.StationStatus>) => {
+          return Math.min(minSoFar, candidate.data.dataTimestamp as number);
+        }, Number.MAX_SAFE_INTEGER);
+
+      component = <div className="transferView">
+        <h2>{rootStation.name}</h2>
+        <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.fetchData.bind(this)} />
+        <ul className="transferTree">{lis}</ul>
+      </div>;
     }
 
-    let minPubTs = this.props.stationDatas.reduce(
-      (minSoFar: number, candidate: DebuggableResult<proto.StationStatus>) => {
-        return Math.min(minSoFar, candidate.data.dataTimestamp as number);
-      }, Number.MAX_SAFE_INTEGER);
-
     return <div>
-      <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.fetchData.bind(this)} />
       {component}
       <ApiDebugger datasFetched={this.props.stationDatas} />
       </div>;
+  }
+
+  private shortName(fullName: string): string {
+    let parts = fullName.split(" ");
+    if (parts.length > 1 && parts[0].length < 3) {
+      return parts[0] + " " + parts[1];
+    }
+
+    return parts[0];
   }
 
   private fetchData() {
@@ -243,6 +266,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                 inboundTimestamp: inboundTs,
                 outboundTimestamp: candidate.timestamp as number,
                 waitTimeSeconds: candidate.timestamp as number - inboundTs,
+                lineColorHex: candidateLine.lineColorHex,
               };
             }
           }
