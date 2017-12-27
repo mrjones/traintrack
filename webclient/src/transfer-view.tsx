@@ -76,56 +76,48 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   public render() {
-    let root: [string, Immutable.Set<string>, proto.Direction] =
-      ["028", Immutable.Set.of("R"), proto.Direction.UPTOWN];
-    let leaves: [string, Immutable.Set<string>, proto.Direction][] = [
-      ["617", Immutable.Set.of("D"), proto.Direction.UPTOWN],
-      ["026", Immutable.Set.of("B"), proto.Direction.UPTOWN],
-      ["636", Immutable.Set.of("A", "C"), proto.Direction.UPTOWN],
+    let root: TransferSpec = {
+      stationId: "028",
+      lines: Immutable.Set.of("R"),
+      direction: proto.Direction.UPTOWN,
+    };
+
+    let transfers: TransferSpec[] = [
+      { stationId: "617", lines: Immutable.Set.of("D"), direction: proto.Direction.UPTOWN },
+      { stationId: "026", lines: Immutable.Set.of("B"), direction: proto.Direction.UPTOWN },
+      { stationId: "636", lines: Immutable.Set.of("A", "C"), direction: proto.Direction.UPTOWN },
     ];
 
     let component;
     if (!this.props.hasData) {
       component = <div>LOADING</div>;
     } else {
-      let rootI = this.props.stationIndex.get(root[0]);
+      let rootI = this.props.stationIndex.get(root.stationId);
 
       let rootStation: proto.StationStatus = this.props.stationDatas[rootI].data;
 
       let lis;
       rootStation.line.forEach((line: proto.LineArrivals) => {
-        if (root[1].has(line.line) && line.direction === root[2]) {
+        if (root.lines.has(line.line) && line.direction === root.direction) {
           lis = line.arrivals.map((lineArrival: proto.LineArrival) => {
             const rootTs = lineArrival.timestamp as number;
             const rootTrip = lineArrival.tripId;
             const rootTime = moment.unix(rootTs);
 
-            let connections = leaves.map((leafSpec) => {
-              let leafI = this.props.stationIndex.get(leafSpec[0]);
-              if (leafI === undefined) { return null; }
-              let leafStation = this.props.stationDatas[leafI].data;
+            let connections = this.connectionsForTrip(rootTrip, line.line, line.direction, transfers);
 
-              let leafArrivalTs: number | undefined = this.findTrainArrivalTimestamp(
-                leafStation.line, line.line, line.direction, rootTrip);
-
-              if (!leafArrivalTs) { return undefined; }
-
-              return [leafStation.name, this.findBestConnection(
-                  leafStation.line, leafArrivalTs, leafSpec[1], leafSpec[2])];
-            });
-
-            let leafLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
+            let transferLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
               if (connection[1]) {
                 let departureTime = moment.unix(connection[1].outboundTimestamp);
                 let waitDuration = moment.duration(connection[1].waitTimeSeconds, 'seconds');
-                let leafArrivalTime = moment.unix(connection[1].inboundTimestamp);
-                return <li>{connection[0].split(" ")[0]} {leafArrivalTime.format("LT")} --&gt; {connection[1].line} at {departureTime.format("LT")} (+ {waitDuration.locale("en").humanize()})</li>;
+                let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
+                return <li>{connection[0].split(" ")[0]} {transferArrivalTime.format("LT")} --&gt; {connection[1].line} at {departureTime.format("LT")} (+ {waitDuration.locale("en").humanize()})</li>;
               } else {
                 return <li>No connectionion at {connection[0]}</li>;
               }
             });
 
-            return <li>{rootTime.format("LT")} ({rootTime.fromNow()})<ul>{leafLis}</ul></li>;
+            return <li>{rootTime.format("LT")} ({rootTime.fromNow()})<ul>{transferLis}</ul></li>;
           });
         }
       });
@@ -153,6 +145,23 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     if (!props.hasData) {
       this.props.fetchDataForStations(props.stationIds);
     }
+  }
+
+  private connectionsForTrip(
+    tripId: string, line: string, direction: proto.Direction, specs: TransferSpec[]): [string, ConnectionInfo | undefined][] {
+      return specs.map((spec: TransferSpec): [string, ConnectionInfo | undefined] => {
+        let i = this.props.stationIndex.get(spec.stationId);
+        if (i === undefined) { return null; }
+        let station = this.props.stationDatas[i].data;
+
+        let arrivalTs: number | undefined = this.findTrainArrivalTimestamp(
+          station.line, line, direction, tripId);
+
+        if (!arrivalTs) { return undefined; }
+
+        return [station.name, this.findBestConnection(
+          station.line, arrivalTs, spec.lines, spec.direction)];
+      });
   }
 
   private findBestConnection(
@@ -208,6 +217,12 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
       return undefined;
     }
+}
+
+class TransferSpec {
+  public stationId: string;
+  public lines: Immutable.Set<string>;
+  public direction: proto.Direction;
 }
 
 class ConnectionInfo {
