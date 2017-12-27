@@ -105,23 +105,12 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
               if (leafI === undefined) { return null; }
               let leafStation = this.props.stationDatas[leafI].data;
 
-              let leafArrivalTs = 0;
-              let leafArrivalTime = moment.unix(0);
-
-              leafStation.line.map((leafLine: proto.LineArrivals) => {
-                if (root[1].has(line.line) && leafLine.direction === root[2]) {
-                  for (let i = 0; i < leafLine.arrivals.length; i++) {
-                    if (leafLine.arrivals[i].tripId === rootTrip) {
-                      leafArrivalTs = leafLine.arrivals[i].timestamp as number;
-                      leafArrivalTime = moment.unix(leafArrivalTs);
-                      break;
-                    }
-                  }
-                }
-              });
+              let leafArrivalTs: number | undefined = this.findTrainArrivalTimestamp(
+                leafStation.line, line.line, line.direction, rootTrip);
+              let leafArrivalTime = leafArrivalTs === undefined ? undefined : moment.unix(leafArrivalTs);
 
               let maybeConn = undefined;
-              if (leafArrivalTs > 0) {
+              if (leafArrivalTs !== undefined) {
                 maybeConn = this.findBestConnection(
                   leafStation.line, leafArrivalTs, leafSpec[1], leafSpec[2]);
               }
@@ -142,13 +131,13 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       component = <div>{rootStation.name}<ul>{lis}</ul></div>;
     }
 
-    let minTs = this.props.stationDatas.reduce(
+    let minPubTs = this.props.stationDatas.reduce(
       (minSoFar: number, candidate: DebuggableResult<proto.StationStatus>) => {
         return Math.min(minSoFar, candidate.data.dataTimestamp as number);
       }, Number.MAX_SAFE_INTEGER);
 
     return <div>
-      <PubInfo pubTimestamp={moment.unix(minTs)} reloadFn={this.fetchData.bind(this)} />
+      <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.fetchData.bind(this)} />
       {component}
       <ApiDebugger datasFetched={this.props.stationDatas} />
       </div>;
@@ -195,6 +184,26 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       });
 
       return connectionInfo;
+    }
+
+  private findTrainArrivalTimestamp(
+    allTrains: proto.ILineArrivals[],
+    line: string,
+    direction: proto.Direction,
+    tripId: string): number | undefined {
+      for (let t = 0; t < allTrains.length; t++) {
+        let candidateLine = allTrains[t];
+        if (candidateLine.line === line && candidateLine.direction === direction) {
+          for (let a = 0; a < candidateLine.arrivals.length; a++) {
+            let candidate = candidateLine.arrivals[a];
+            if (candidate.tripId === tripId) {
+              return candidate.timestamp as number;
+            }
+          }
+        }
+      }
+
+      return undefined;
     }
 }
 
