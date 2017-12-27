@@ -100,26 +100,28 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             const rootTrip = lineArrival.tripId;
             const rootTime = moment.unix(rootTs);
 
-            let leafLis = leaves.map((leafSpec) => {
+            let connections = leaves.map((leafSpec) => {
               let leafI = this.props.stationIndex.get(leafSpec[0]);
               if (leafI === undefined) { return null; }
               let leafStation = this.props.stationDatas[leafI].data;
 
               let leafArrivalTs: number | undefined = this.findTrainArrivalTimestamp(
                 leafStation.line, line.line, line.direction, rootTrip);
-              let leafArrivalTime = leafArrivalTs === undefined ? undefined : moment.unix(leafArrivalTs);
 
-              let maybeConn = undefined;
-              if (leafArrivalTs !== undefined) {
-                maybeConn = this.findBestConnection(
-                  leafStation.line, leafArrivalTs, leafSpec[1], leafSpec[2]);
-              }
-              if (maybeConn) {
-                let departureTime = moment.unix(maybeConn.timestamp);
-                let waitDuration = moment.duration(maybeConn.waitTimeSeconds, 'seconds');
-                return <li>{leafStation.name.split(" ")[0]} {leafArrivalTime.format("LT")} --&gt; {maybeConn.line} at {departureTime.format("LT")} (+ {waitDuration.locale("en").humanize()})</li>;
+              if (!leafArrivalTs) { return undefined; }
+
+              return [leafStation.name, this.findBestConnection(
+                  leafStation.line, leafArrivalTs, leafSpec[1], leafSpec[2])];
+            });
+
+            let leafLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
+              if (connection[1]) {
+                let departureTime = moment.unix(connection[1].outboundTimestamp);
+                let waitDuration = moment.duration(connection[1].waitTimeSeconds, 'seconds');
+                let leafArrivalTime = moment.unix(connection[1].inboundTimestamp);
+                return <li>{connection[0].split(" ")[0]} {leafArrivalTime.format("LT")} --&gt; {connection[1].line} at {departureTime.format("LT")} (+ {waitDuration.locale("en").humanize()})</li>;
               } else {
-                return <li>No matching train at {leafStation.name}</li>;
+                return <li>No connectionion at {connection[0]}</li>;
               }
             });
 
@@ -172,10 +174,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                 // And either we don't have any other connection...
                 (connectionInfo === undefined ||
                  // .. or this is better than our best connection so far.
-                 candidate.timestamp < connectionInfo.timestamp)) {
+                 candidate.timestamp < connectionInfo.outboundTimestamp)) {
               connectionInfo = {
                 line: candidateLine.line,
-                timestamp: candidate.timestamp as number,
+                inboundTimestamp: inboundTs,
+                outboundTimestamp: candidate.timestamp as number,
                 waitTimeSeconds: candidate.timestamp as number - inboundTs,
               };
             }
@@ -209,7 +212,8 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
 class ConnectionInfo {
   public line: string;
-  public timestamp: number;
+  public inboundTimestamp: number;
+  public outboundTimestamp: number;
   public waitTimeSeconds: number;
 }
 
