@@ -62,8 +62,10 @@ impl Fetcher {
         return self.archived_values.read().unwrap().get(&feed_id).and_then(|archives| archives.get(index).map(|a| a.clone()));
     }
 
-    pub fn count_archives(&self, feed_id: i32) -> usize {
-        return self.archived_values.read().unwrap().get(&feed_id).map(|v| v.len()).unwrap_or(0);
+    pub fn archive_keys(&self, feed_id: i32) -> Vec<i32> {
+        let count = self.archived_values.read().unwrap().get(&feed_id).map(|v| v.len()).unwrap_or(0);
+
+        return (0..count as i32).collect();
     }
 
     pub fn all_feeds(&self) -> Vec<FetchResult> {
