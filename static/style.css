@@ -251,12 +251,12 @@ ul.lineView{
 .transferView .lineName,
 .intermingledArrivals .lineName {
     color: white;
-    -webkit-text-stroke: .5px black;
-    padding: .1em;
+    padding: 0;
     width: 2em;
     height: 1em;
     display: inline-block;
     text-align: center;
+    text-shadow: 0 0 1px black;
 }
 
 .apiDebugger {

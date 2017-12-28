@@ -46,6 +46,7 @@ class ConnectionInfo {
   public outboundTimestamp: number;
   public waitTimeSeconds: number;
   public lineColorHex: string;
+  public tripId: string;
 }
 
 class TransferPageExplicitProps {
@@ -178,7 +179,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                   {' '}
                   {this.shortName(connection[0])}
                   {' '}
-                  {transferArrivalTime.format("h:mm")} - {departureTime.format("h:mm")}
+                  <ReactRouter.Link to={`/app/train/${rootTrip}`}>{transferArrivalTime.format("h:mm")}</ReactRouter.Link> - <ReactRouter.Link to={`/app/train/${connection[1].tripId}`}>{departureTime.format("h:mm")}</ReactRouter.Link>
                   {' '}
                   (+{durationString})
                 </li>;
@@ -187,7 +188,15 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
               }
             });
 
-            return <li>{rootTime.format("LT")} {line.line} ({rootTime.fromNow()})
+            let lineStyle = {
+              backgroundColor: "#" + line.lineColorHex,
+            };
+            return <li>
+              {rootTime.format("LT")}
+              {' '}
+              ({rootTime.fromNow()})
+              {' '}
+              <span className="lineName" style={lineStyle}>{line.line}</span>
               <ul className="transferSubtree">{transferLis}</ul>
               </li>;
           });
@@ -274,6 +283,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                 outboundTimestamp: candidate.timestamp as number,
                 waitTimeSeconds: candidate.timestamp as number - inboundTs,
                 lineColorHex: candidateLine.lineColorHex,
+                tripId: candidate.tripId,
               };
             }
           }
