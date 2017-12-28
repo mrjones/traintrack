@@ -164,16 +164,23 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             let transferLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
               if (connection[1]) {
                 let departureTime = moment.unix(connection[1].outboundTimestamp);
-                let waitDuration = moment.duration(connection[1].waitTimeSeconds, 'seconds');
                 let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
                 let lineStyle = {
                   backgroundColor: "#" + connection[1].lineColorHex,
                 };
+
+                let durationString = connection[1].waitTimeSeconds < 120 ?
+                  connection[1].waitTimeSeconds + " sec" :
+                  Math.round(connection[1].waitTimeSeconds / 60) + " min";
+
                 return <li>
-                  <span className="lineName" style={lineStyle}>{connection[1].line}</span>&nbsp;
-                  {this.shortName(connection[0])}&nbsp;
-                  {transferArrivalTime.format("LT")} --&gt; {departureTime.format("LT")}&nbsp;
-                  (+ {waitDuration.locale("en").humanize()})
+                  <span className="lineName" style={lineStyle}>{connection[1].line}</span>
+                  {' '}
+                  {this.shortName(connection[0])}
+                  {' '}
+                  {transferArrivalTime.format("h:mm")} - {departureTime.format("h:mm")}
+                  {' '}
+                  (+{durationString})
                 </li>;
               } else {
                 return <li>No connectionion at {connection[0]}</li>;
