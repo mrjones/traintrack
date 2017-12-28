@@ -556,11 +556,24 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut
     let desired_feed_str = rustful_context.variables.get("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
         .map(|x| x.to_string())?;
+    let desired_index_str = rustful_context.variables.get("archive_number")
+        .map(|x| x.to_string());
 
     let desired_feed = desired_feed_str.parse::<i32>()?;
 
+    let proto_data;
+    match desired_index_str {
+        Some(desired_index_str) => {
+            let desired_index = desired_index_str.parse::<usize>()?;
+            proto_data = tt_context.fetcher.archived_value(desired_feed, desired_index);
+        },
+        None => {
+            proto_data = tt_context.fetcher.latest_value(desired_feed);
+        }
+    };
+
     let tz = chrono_tz::America::New_York;
-    return match tt_context.fetcher.latest_value(desired_feed) {
+    return match proto_data {
         Some(feed) => Ok(format!(
             "Updated at: {} ({} Archives)\n<pre>{:#?}</pre>",
             feed.timestamp.with_timezone(&tz).format("%v %r"),
@@ -570,6 +583,7 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut
     }
 }
 
+/*
 fn dump_proto_archive(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     let desired_feed_str = rustful_context.variables.get("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
@@ -579,10 +593,9 @@ fn dump_proto_archive(tt_context: &TTContext, rustful_context: rustful::Context,
         .map(|x| x.to_string())?;
 
     let desired_feed = desired_feed_str.parse::<i32>()?;
-    let desired_index = desired_index_str.parse::<usize>()?;
 
     let tz = chrono_tz::America::New_York;
-    return match tt_context.fetcher.archived_value(desired_feed, desired_index) {
+    return match  {
         Some(feed) => Ok(format!(
             "Updated at: {} ({} Archives)\n<pre>{:#?}</pre>",
             feed.timestamp.with_timezone(&tz).format("%v %r"),
@@ -591,7 +604,7 @@ fn dump_proto_archive(tt_context: &TTContext, rustful_context: rustful::Context,
         None => Ok("No data yet".as_bytes().to_vec()),
     }
 }
-
+*/
 enum PageType {
     Dynamic(fn(&TTContext, rustful::Context, &mut PerRequestContext) -> result::TTResult<Vec<u8>>),
     Static(std::path::PathBuf),
@@ -685,7 +698,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
                 node.then().on_get(PageType::Dynamic(dump_feed_links));
                 node.path(":feed_id").many(|node| {
                     node.then().on_get(PageType::Dynamic(dump_proto));
-                    node.path(":archive_number").then().on_get(PageType::Dynamic(dump_proto_archive));
+                    node.path(":archive_number").then().on_get(PageType::Dynamic(dump_proto));
                 });
             });
             node.path("freshness").then().on_get(PageType::Dynamic(feed_freshness));
