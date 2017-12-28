@@ -254,10 +254,15 @@ ul.lineView{
 
 .transferView .lineName,
 .intermingledArrivals .lineName {
+    height: 1em;
+}
+
+.pageTitle .lineName,
+.transferView .lineName,
+.intermingledArrivals .lineName {
     color: white;
     padding: 0;
     width: 2em;
-    height: 1em;
     display: inline-block;
     text-align: center;
     text-shadow: 0 0 1px black;

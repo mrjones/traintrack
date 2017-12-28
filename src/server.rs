@@ -424,8 +424,14 @@ fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, p
                 let trip_update = entity.get_trip_update();
                 if trip_update.get_trip().get_trip_id() == desired_train {
                     response.set_data_timestamp(feed.timestamp.timestamp());
-                    response.set_line(trip_update.get_trip().get_route_id().to_string());
-                    // TODO(mrjones): direction & color
+                    let line = trip_update.get_trip().get_route_id().to_string();
+                    for ref route in tt_context.stops.lines() {
+                        if route.id == line {
+                            response.set_line_color_hex(route.color.clone());
+                        }
+                    }
+                    response.set_line(line);
+                    // TODO(mrjones): direction
                     response.set_arrival(trip_update.get_stop_time_update().iter().filter_map(|stu| {
                         if !stu.has_arrival() {
                             return None;
@@ -556,8 +562,31 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut
     let tz = chrono_tz::America::New_York;
     return match tt_context.fetcher.latest_value(desired_feed) {
         Some(feed) => Ok(format!(
-            "Updated at: {}\n<pre>{:#?}</pre>",
+            "Updated at: {} ({} Archives)\n<pre>{:#?}</pre>",
             feed.timestamp.with_timezone(&tz).format("%v %r"),
+            tt_context.fetcher.count_archives(desired_feed),
+            feed.feed).as_bytes().to_vec()),
+        None => Ok("No data yet".as_bytes().to_vec()),
+    }
+}
+
+fn dump_proto_archive(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let desired_feed_str = rustful_context.variables.get("feed_id")
+        .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
+        .map(|x| x.to_string())?;
+    let desired_index_str = rustful_context.variables.get("archive_number")
+        .ok_or(result::TTError::Uncategorized("Missing archive_number".to_string()))
+        .map(|x| x.to_string())?;
+
+    let desired_feed = desired_feed_str.parse::<i32>()?;
+    let desired_index = desired_index_str.parse::<usize>()?;
+
+    let tz = chrono_tz::America::New_York;
+    return match tt_context.fetcher.archived_value(desired_feed, desired_index) {
+        Some(feed) => Ok(format!(
+            "Updated at: {} ({} Archives)\n<pre>{:#?}</pre>",
+            feed.timestamp.with_timezone(&tz).format("%v %r"),
+            tt_context.fetcher.count_archives(desired_feed),
             feed.feed).as_bytes().to_vec()),
         None => Ok("No data yet".as_bytes().to_vec()),
     }
@@ -654,7 +683,10 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.then().on_get(PageType::Dynamic(debug));
             node.path("dump_proto").many(|node| {
                 node.then().on_get(PageType::Dynamic(dump_feed_links));
-                node.path(":feed_id").then().on_get(PageType::Dynamic(dump_proto));
+                node.path(":feed_id").many(|node| {
+                    node.then().on_get(PageType::Dynamic(dump_proto));
+                    node.path(":archive_number").then().on_get(PageType::Dynamic(dump_proto_archive));
+                });
             });
             node.path("freshness").then().on_get(PageType::Dynamic(feed_freshness));
             node.path("fetch_now").then().on_get(PageType::Dynamic(fetch_now));

@@ -83,6 +83,8 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
     let body = <div>Loading...</div>;
     let dataTs = moment.unix(0);
     if (this.props.hasData) {
+      console.log("COLOR: " + JSON.stringify(this.props.data));
+
       const rows = this.props.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
         let stationElt = <span>Unknown station</span>;
@@ -108,8 +110,12 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
       dataTs = moment.unix(this.props.data.data.dataTimestamp as number);
     }
 
+    let lineStyle = {
+      background: "#" + this.props.data.data.lineColorHex,
+    };
+
     return <div className="page">
-      <div className="pageTitle"><h2>Train {this.props.trainId}</h2></div>
+      <div className="pageTitle"><h2><span style={lineStyle} className="lineName">{this.props.data.data.line}</span> Train ({this.props.trainId})</h2></div>
       <PubInfo reloadFn={this.reloadData.bind(this)} pubTimestamp={dataTs} />
       {body}
       <ApiDebugger datasFetched={[this.props.data]} />

@@ -25,6 +25,7 @@ pub struct FetchResult {
 pub struct Fetcher {
     mta_api_key: String,
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+    archived_values: std::sync::RwLock<std::collections::HashMap<i32, Vec<FetchResult>>>,
     proxy_url: Option<String>,
 }
 
@@ -34,6 +35,7 @@ impl Fetcher {
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            archived_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             proxy_url: None,
         }
     }
@@ -43,6 +45,7 @@ impl Fetcher {
         return Fetcher{
             mta_api_key: "".to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            archived_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             proxy_url: Some(proxy_url.to_string()),
         }
     }
@@ -53,6 +56,14 @@ impl Fetcher {
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+    }
+
+    pub fn archived_value(&self, feed_id: i32, index: usize) -> Option<FetchResult> {
+        return self.archived_values.read().unwrap().get(&feed_id).and_then(|archives| archives.get(index).map(|a| a.clone()));
+    }
+
+    pub fn count_archives(&self, feed_id: i32) -> usize {
+        return self.archived_values.read().unwrap().get(&feed_id).map(|v| v.len()).unwrap_or(0);
     }
 
     pub fn all_feeds(&self) -> Vec<FetchResult> {
@@ -121,8 +132,28 @@ impl Fetcher {
                 }
                 Some(ref proxy_url) => {
                     match self.fetch_once_remote(proxy_url, feed_id) {
-                        Ok(new_result) => { self.latest_values.write().unwrap().insert(
-                            feed_id, new_result); }
+                        Ok(new_result) => {
+                            let mut latest_map = self.latest_values.write().unwrap();
+                            let mut archive_map = self.archived_values.write().unwrap();
+
+                            let archive_entry = archive_map.entry(feed_id).or_insert(vec![]);
+                            let latest_entry = latest_map.entry(feed_id);
+
+                            use std::collections::hash_map::Entry;
+                            match latest_entry {
+                                Entry::Occupied(mut old_result_slot) => {
+                                    if old_result_slot.get().timestamp != new_result.timestamp {
+                                        if archive_entry.len() > 10 {
+                                            archive_entry.pop();
+                                        }
+                                        archive_entry.push(old_result_slot.insert(new_result));
+                                    }
+                                },
+                                Entry::Vacant(empty_slot) => {
+                                    empty_slot.insert(new_result);
+                                }
+                            }
+                        }
                         Err(err) => { error!("Error fetching from proxy: {}", err); },
                     }
                 }

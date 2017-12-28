@@ -19,6 +19,7 @@ import { fetchStationList, loadStationDetails } from './state-actions';
 
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
+  public stationId: string;
 }
 
 class IntermingledArrivalInfo {
@@ -46,7 +47,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
           className = "expired";
         }
 
-        return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
+        return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}?highlight=${this.props.stationId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       });
       directionUls.push(<div className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
     }
@@ -85,6 +86,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
 
 class StationSingleLineProps {
   public data: proto.LineArrivals;
+  public stationId: string;
 };
 
 class StationSingleLine extends React.Component<StationSingleLineProps, undefined> {
@@ -102,12 +104,11 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
         if (time < moment()) {
           className = "expired";
         }
-        return <li key={ts} className={className}><ReactRouter.Link to={`/app/train/${arr.tripId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
+        return <li key={ts} className={className}><ReactRouter.Link to={`/app/train/${arr.tripId}?highlight=${this.props.stationId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       }
     );
 
     let lineStyle = {
-      //      borderBottom: "2px solid #" + this.props.data.lineColorHex,
       background: "#" + this.props.data.lineColorHex,
     };
 
@@ -205,11 +206,11 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       lineSet = visibleLines.map(
         (line: proto.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
-          return <StationSingleLine data={line} key={key} />;
+          return <StationSingleLine data={line} key={key} stationId={this.props.stationId}/>;
         });
     } else {
       lineSet = new Array<JSX.Element>();
-      lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed"/>);
+      lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed" stationId={this.props.stationId}/>);
     }
 
     const dataTs = moment.unix(this.props.data.data.dataTimestamp as number);

@@ -5,6 +5,8 @@ import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import thunk from "redux-thunk";
 
+
+import { BrowserRouter } from "react-g-analytics";
 import { Helmet } from "react-helmet";
 
 import { LineViewRouterWrapper } from './lineview';
@@ -28,7 +30,7 @@ ReactDOM.render(
       <Helmet>
         <meta name="viewport" content="initial-scale=1" />
       </Helmet>
-      <ReactRouter.BrowserRouter>
+      <BrowserRouter id="UA-102249880-1">
         <div className="app">
           <div className="app_title">
             <ReactRouter.Link to={`/app`}>
@@ -48,7 +50,7 @@ ReactDOM.render(
             </ReactRouter.Switch>
         </div>
       </div>
-      </ReactRouter.BrowserRouter>
+      </BrowserRouter>
     </div>
   </ReactRedux.Provider>,
   document.getElementById('tt_app'));
