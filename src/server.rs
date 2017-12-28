@@ -564,7 +564,7 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut
     let proto_data;
     match desired_index_str {
         Some(desired_index_str) => {
-            let desired_index = desired_index_str.parse::<usize>()?;
+            let desired_index = desired_index_str.parse::<i64>()?;
             proto_data = tt_context.fetcher.archived_value(desired_feed, desired_index);
         },
         None => {
