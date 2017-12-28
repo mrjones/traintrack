@@ -1,8 +1,10 @@
+import * as Immutable from "immutable";
 import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as moment from "moment";
+import * as querystring from "query-string";
 
 import * as proto from './webclient_api_pb';
 
@@ -11,6 +13,18 @@ import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { PubInfo } from './pub-info';
 import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
+
+export class TrainItineraryQueryParams {
+  public static parseFrom(query: History.Search): TrainItineraryQueryParams {
+    let parsed = querystring.parse(query);
+    return {
+      highlightedStations: parsed["highlight"] ?
+        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set(),
+    };
+  }
+
+  public highlightedStations: Immutable.Set<string>;
+}
 
 function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResult<proto.ITrainItinerary>): InstallTrainItineraryAction {
   return {
@@ -42,6 +56,7 @@ class TrainItineraryDispatchProps {
 }
 class TrainItineraryExplicitProps {
   public trainId: string;
+  public queryParams: TrainItineraryQueryParams;
 }
 type TrainItineraryProps = TrainItineraryDataProps & TrainItineraryDispatchProps & TrainItineraryExplicitProps;
 
@@ -79,7 +94,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
           stationElt = <span>Unknown station ${arrival.station.id}</span>;
         }
 
-        return <tr key={"" + arrival.timestamp}>
+        return <tr key={"" + arrival.timestamp} className={(arrival.station && arrival.station.id && this.props.queryParams.highlightedStations.has(arrival.station.id)) ? "highlighted" : ""}>
           <td className="station">{stationElt}</td>
           <td className="arrivalTime">{time.format("LT")} ({time.fromNow()})</td>
         </tr>;
@@ -136,6 +151,6 @@ export class TrainItineraryWrapper extends React.Component<ReactRouter.RouteComp
   }
 
   public render(): JSX.Element {
-    return <ConnectedTrainItinerary trainId={this.props.match.params.trainId} />;
+    return <ConnectedTrainItinerary trainId={this.props.match.params.trainId} queryParams={TrainItineraryQueryParams.parseFrom(this.props.location.search)}/>;
   }
 }

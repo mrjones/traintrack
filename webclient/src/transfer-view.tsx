@@ -47,6 +47,7 @@ class ConnectionInfo {
   public waitTimeSeconds: number;
   public lineColorHex: string;
   public tripId: string;
+  public stationId: string;
 }
 
 class TransferPageExplicitProps {
@@ -179,7 +180,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                   {' '}
                   {this.shortName(connection[0])}
                   {' '}
-                  <ReactRouter.Link to={`/app/train/${rootTrip}`}>{transferArrivalTime.format("h:mm")}</ReactRouter.Link> - <ReactRouter.Link to={`/app/train/${connection[1].tripId}`}>{departureTime.format("h:mm")}</ReactRouter.Link>
+                  <ReactRouter.Link to={`/app/train/${rootTrip}?highlight=${root.stationId},${connection[1].stationId}`}>{transferArrivalTime.format("h:mm")}</ReactRouter.Link> - <ReactRouter.Link to={`/app/train/${connection[1].tripId}?highlight=${connection[1].stationId}`}>{departureTime.format("h:mm")}</ReactRouter.Link>
                   {' '}
                   (+{durationString})
                 </li>;
@@ -253,7 +254,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
         if (!arrivalTs) { return undefined; }
 
         return [station.name, this.findBestConnection(
-          station.line, arrivalTs, spec.lines, spec.direction)];
+          station.line, arrivalTs, spec.lines, spec.direction, spec.stationId)];
       });
   }
 
@@ -261,7 +262,8 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     allTrains: proto.ILineArrivals[],
     inboundTs: number,
     outboundLines: Immutable.Set<string>,
-    outboundDirection: proto.Direction): ConnectionInfo | undefined {
+    outboundDirection: proto.Direction,
+    stationId: string): ConnectionInfo | undefined {
 
       let connectionInfo: ConnectionInfo | undefined = undefined;
 
@@ -284,6 +286,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                 waitTimeSeconds: candidate.timestamp as number - inboundTs,
                 lineColorHex: candidateLine.lineColorHex,
                 tripId: candidate.tripId,
+                stationId: stationId,
               };
             }
           }

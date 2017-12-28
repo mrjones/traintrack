@@ -224,6 +224,10 @@ ul.lineView{
     background-color: #eee;
 }
 
+.trainItinerary tr.highlighted {
+    background-color: #FEDE90;
+}
+
 .transferTree ul.transferSubtree {
     margin-top: 0;
     margin-bottom: .5em;
