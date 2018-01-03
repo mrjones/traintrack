@@ -40,6 +40,17 @@ class TransferSpec {
   }
 }
 
+class TripWithConnections {
+  public rootTs: number;
+  public rootTripId: string;
+  public rootStationId: string;
+  public rootLine: string;
+  public rootLineColorHex: string;
+  // (station_id, ConnectionInfo) pair
+  // ConnectionInfo can be undefined if no valid connection can be found
+  public connections: [string, ConnectionInfo | undefined][];
+}
+
 class ConnectionInfo {
   public line: string;
   public inboundTimestamp: number;
@@ -129,84 +140,56 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   public render() {
-    let root = rootSpecForProps(this.props);
-    let transfers = transferSpecsForProps(this.props);
-    /*
-    let root: TransferSpec = {
-      stationId: "028",
-      lines: Immutable.Set.of("R"),
-      direction: proto.Direction.UPTOWN,
-    };
-
-    let transfers: TransferSpec[] = [
-      { stationId: "617", lines: Immutable.Set.of("D"), direction: proto.Direction.UPTOWN },
-      { stationId: "026", lines: Immutable.Set.of("B"), direction: proto.Direction.UPTOWN },
-      { stationId: "636", lines: Immutable.Set.of("A", "C"), direction: proto.Direction.UPTOWN },
-    ];
-    */
-
     let component;
     if (!this.props.hasData) {
       component = <div>LOADING</div>;
     } else {
-      let rootI = this.props.stationIndex.get(root.stationId);
+      let tripsWithConnections = this.buildTripsWithConnections();
+      let lis = tripsWithConnections.map((tripWithConnections: TripWithConnections) => {
+        let transferLis = tripWithConnections.connections.map((connection: [string, ConnectionInfo | undefined]) => {
+          if (!connection || !connection[0]) {
+            console.log("Bad connections object: " + JSON.stringify(tripWithConnections.connections));
+            return <li>No connection</li>;
+          }
 
-      let rootStation: proto.StationStatus = this.props.stationDatas[rootI].data;
+          if (!connection[1]) {
+            return <li>No connection at {connection[0]}</li>;
+          }
 
-      let lis;
-      rootStation.line.forEach((line: proto.LineArrivals) => {
-        console.log("Considering line: " + line.line);
-        if (root.lines.has(line.line) && line.direction === root.direction) {
-          console.log("Line " + line.line + " is good!");
-          lis = line.arrivals.map((lineArrival: proto.LineArrival) => {
-            const rootTs = lineArrival.timestamp as number;
-            const rootTrip = lineArrival.tripId;
-            const rootTime = moment.unix(rootTs);
+          let departureTime = moment.unix(connection[1].outboundTimestamp);
+          let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
+          let lineStyle = {
+            backgroundColor: "#" + connection[1].lineColorHex,
+          };
 
-            let connections = this.connectionsForTrip(rootTrip, line.line, line.direction, transfers);
+          let durationString = connection[1].waitTimeSeconds < 120 ?
+            connection[1].waitTimeSeconds + " sec" :
+            Math.round(connection[1].waitTimeSeconds / 60) + " min";
 
-            let transferLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
-              if (connection && connection[1]) {
-                let departureTime = moment.unix(connection[1].outboundTimestamp);
-                let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
-                let lineStyle = {
-                  backgroundColor: "#" + connection[1].lineColorHex,
-                };
+          return <li>
+            <span className="lineName" style={lineStyle}>{connection[1].line}</span>
+            {' '}
+            {this.shortName(connection[0])}
+            {' '}
+            <ReactRouter.Link to={`/app/train/${tripWithConnections.rootTripId}?highlight=${tripWithConnections.rootStationId},${connection[1].stationId}`}>{transferArrivalTime.format("h:mm")}</ReactRouter.Link> - <ReactRouter.Link to={`/app/train/${connection[1].tripId}?highlight=${connection[1].stationId}`}>{departureTime.format("h:mm")}</ReactRouter.Link>
+            {' '}
+            (+{durationString})
+            </li>;
+        });
 
-                let durationString = connection[1].waitTimeSeconds < 120 ?
-                  connection[1].waitTimeSeconds + " sec" :
-                  Math.round(connection[1].waitTimeSeconds / 60) + " min";
+        let lineStyle = {
+          backgroundColor: "#" + tripWithConnections.rootLineColorHex,
+        };
 
-                return <li>
-                  <span className="lineName" style={lineStyle}>{connection[1].line}</span>
-                  {' '}
-                  {this.shortName(connection[0])}
-                  {' '}
-                  <ReactRouter.Link to={`/app/train/${rootTrip}?highlight=${root.stationId},${connection[1].stationId}`}>{transferArrivalTime.format("h:mm")}</ReactRouter.Link> - <ReactRouter.Link to={`/app/train/${connection[1].tripId}?highlight=${connection[1].stationId}`}>{departureTime.format("h:mm")}</ReactRouter.Link>
-                  {' '}
-                  (+{durationString})
-                </li>;
-              } else if (connection && connection[0]) {
-                return <li>No connection at {connection[0]}</li>;
-              } else {
-                console.log("Bad connections object: " + JSON.stringify(connections));
-                return <li>No connection</li>;
-              }
-            });
-
-            let lineStyle = {
-              backgroundColor: "#" + line.lineColorHex,
-            };
-            return <li>
-              {rootTime.format("LT")}
-              {' '}
-              ({rootTime.fromNow()})
-              {' '}
-              <span className="lineName" style={lineStyle}>{line.line}</span>
-              <ul className="transferSubtree">{transferLis}</ul>
-              </li>;
-          });
-        }
+        let rootTime = moment.unix(tripWithConnections.rootTs);
+        return <li>
+          {rootTime.format("LT")}
+          {' '}
+          ({rootTime.fromNow()})
+          {' '}
+          <span className="lineName" style={lineStyle}>{tripWithConnections.rootLine}</span>
+          <ul className="transferSubtree">{transferLis}</ul>
+          </li>;
       });
 
       let minPubTs = this.props.stationDatas.reduce(
@@ -214,8 +197,9 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
           return Math.min(minSoFar, candidate.data.dataTimestamp as number);
         }, Number.MAX_SAFE_INTEGER);
 
+      // TODO(mrjones): Bring this back
+      // <h2>{rootStation.name}</h2>
       component = <div className="transferView">
-        <h2>{rootStation.name}</h2>
         <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.fetchData.bind(this)} />
         <ul className="transferTree">{lis}</ul>
       </div>;
@@ -244,6 +228,44 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     if (!props.hasData) {
       this.props.fetchDataForStations(stationIdsForProps(props));
     }
+  }
+
+  private buildTripsWithConnections(): TripWithConnections[] {
+    let root = rootSpecForProps(this.props);
+    let transfers = transferSpecsForProps(this.props);
+
+    let rootI = this.props.stationIndex.get(root.stationId);
+    let rootStation: proto.StationStatus = this.props.stationDatas[rootI].data;
+
+    let tripsWithConnections: TripWithConnections[] = [];
+
+    rootStation.line.forEach((line: proto.LineArrivals) => {
+      if (root.lines.has(line.line) && line.direction === root.direction) {
+        line.arrivals.forEach((lineArrival: proto.LineArrival) => {
+          tripsWithConnections.push({
+            rootStationId: root.stationId,
+            rootTs: lineArrival.timestamp as number,
+            rootTripId: lineArrival.tripId,
+            rootLine: line.line,
+            rootLineColorHex: line.lineColorHex,
+            connections: this.connectionsForTrip(
+              lineArrival.tripId, line.line, line.direction, transfers),
+          });
+        });
+      }
+    });
+
+    tripsWithConnections.sort((a: TripWithConnections, b: TripWithConnections) => {
+      if (a.rootTs < b.rootTs) {
+        return -1;
+      } else if (a.rootTs > b.rootTs) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    return tripsWithConnections;
   }
 
   private connectionsForTrip(
