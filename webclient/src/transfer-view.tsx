@@ -155,7 +155,9 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
       let lis;
       rootStation.line.forEach((line: proto.LineArrivals) => {
+        console.log("Considering line: " + line.line);
         if (root.lines.has(line.line) && line.direction === root.direction) {
+          console.log("Line " + line.line + " is good!");
           lis = line.arrivals.map((lineArrival: proto.LineArrival) => {
             const rootTs = lineArrival.timestamp as number;
             const rootTrip = lineArrival.tripId;
@@ -164,7 +166,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             let connections = this.connectionsForTrip(rootTrip, line.line, line.direction, transfers);
 
             let transferLis = connections.map((connection: [string, ConnectionInfo | undefined]) => {
-              if (connection[1]) {
+              if (connection && connection[1]) {
                 let departureTime = moment.unix(connection[1].outboundTimestamp);
                 let transferArrivalTime = moment.unix(connection[1].inboundTimestamp);
                 let lineStyle = {
@@ -184,8 +186,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
                   {' '}
                   (+{durationString})
                 </li>;
+              } else if (connection && connection[0]) {
+                return <li>No connection at {connection[0]}</li>;
               } else {
-                return <li>No connectionion at {connection[0]}</li>;
+                console.log("Bad connections object: " + JSON.stringify(connections));
+                return <li>No connection</li>;
               }
             });
 
@@ -245,13 +250,18 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     tripId: string, line: string, direction: proto.Direction, specs: TransferSpec[]): [string, ConnectionInfo | undefined][] {
       return specs.map((spec: TransferSpec): [string, ConnectionInfo | undefined] => {
         let i = this.props.stationIndex.get(spec.stationId);
-        if (i === undefined) { return null; }
+        if (i === undefined) {
+          console.log("No station info for: " + spec.stationId);
+          return null;
+        }
         let station = this.props.stationDatas[i].data;
 
         let arrivalTs: number | undefined = this.findTrainArrivalTimestamp(
           station.line, line, direction, tripId);
 
-        if (!arrivalTs) { return undefined; }
+        if (!arrivalTs) {
+          return [station.name, null];
+        }
 
         return [station.name, this.findBestConnection(
           station.line, arrivalTs, spec.lines, spec.direction, spec.stationId)];
