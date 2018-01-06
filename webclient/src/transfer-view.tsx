@@ -66,7 +66,8 @@ class TransferPageExplicitProps {
   public rootSpec: string;
 }
 class TransferPageDataProps {
-  public hasData: boolean;
+  public hasAllData: boolean;
+  public stationsMissingData: string[];
   public stationDatas: DebuggableResult<proto.StationStatus>[];
   public stationIndex: Map<string, number>; // index into stationDatas
 }
@@ -94,25 +95,33 @@ const mapStateToProps = (state: TTState, ownProps: TransferPageExplicitProps): T
   let stationIndex = new Map<string, number>();
   let i = 0;
 
+  let allStationIds = stationIdsForProps(ownProps);
+
   let maybeData: Loadable<DebuggableResult<proto.StationStatus>>[] =
-    stationIdsForProps(ownProps).map((stationId: string) => {
+    allStationIds.map((stationId: string) => {
       stationIndex.set(stationId, i++);
       return state.core.stationDetails.get(stationId);
     });
 
-  const hasData = maybeData.reduce((allLoaded: boolean, nextCandidate): boolean => {
+  let stationsMissingData = allStationIds.filter((stationId: string) => {
+    return state.core.stationDetails.get(stationId) === undefined;
+  });
+
+  const hasAllData = maybeData.reduce((allLoaded: boolean, nextCandidate): boolean => {
     return (allLoaded && nextCandidate !== undefined && nextCandidate.valid);
   }, true);
 
-  if (hasData) {
+  if (hasAllData) {
     return ({
-      hasData: true,
+      hasAllData: true,
+      stationsMissingData: stationsMissingData,
       stationDatas: maybeData.map((loadable) => loadable.data),
       stationIndex: stationIndex,
     });
   } else {
     return ({
-      hasData: false,
+      hasAllData: false,
+      stationsMissingData: stationsMissingData,
       stationDatas: [],
       stationIndex: new Map(),
     });
@@ -124,11 +133,14 @@ const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): TransferPageDisp
 });
 
 type TransferPageProps = TransferPageExplicitProps & TransferPageDataProps & TransferPageDispatchProps;
-class TransferPageLocalState { }
+class TransferPageLocalState {
+  public lastStationIdsFetched: string[];
+}
 
 class TransferPage extends React.Component<TransferPageProps, TransferPageLocalState> {
   constructor(props: TransferPageProps) {
     super(props);
+    this.state = { lastStationIdsFetched: [] };
   }
 
   public componentWillMount() {
@@ -141,7 +153,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
   public render() {
     let component;
-    if (!this.props.hasData) {
+    if (!this.props.hasAllData) {
       component = <div>LOADING</div>;
     } else {
       let tripsWithConnections = this.buildTripsWithConnections();
@@ -153,7 +165,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
           }
 
           if (!connection[1]) {
-            return <li>No connection at {connection[0]}</li>;
+            return <li key={connection[0]}>No connection at {connection[0]}</li>;
           }
 
           let departureTime = moment.unix(connection[1].outboundTimestamp);
@@ -166,7 +178,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             connection[1].waitTimeSeconds + " sec" :
             Math.round(connection[1].waitTimeSeconds / 60) + " min";
 
-          return <li>
+          return <li key={connection[0]}>
             <span className="lineName" style={lineStyle}>{connection[1].line}</span>
             {' '}
             {this.shortName(connection[0])}
@@ -182,7 +194,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
         };
 
         let rootTime = moment.unix(tripWithConnections.rootTs);
-        return <li>
+        return <li key={tripWithConnections.rootTripId}>
           {rootTime.format("LT")}
           {' '}
           ({rootTime.fromNow()})
@@ -200,7 +212,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       // TODO(mrjones): Bring this back
       // <h2>{rootStation.name}</h2>
       component = <div className="transferView">
-        <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.fetchData.bind(this)} />
+        <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.forceFetchData.bind(this)} />
         <ul className="transferTree">{lis}</ul>
       </div>;
     }
@@ -220,13 +232,31 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     return parts[0];
   }
 
-  private fetchData() {
-    this.props.fetchDataForStations(stationIdsForProps(this.props));
+  private executeFetch(stationIds: string[]) {
+    this.setState({lastStationIdsFetched: stationIds});
+    this.props.fetchDataForStations(stationIds);
+  }
+
+  private forceFetchData() {
+    this.executeFetch(stationIdsForProps(this.props));
+  }
+
+  private arraysEqual(a: string[], b: string[]) {
+    if (a.length !== b.length) { return false; }
+
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) { return false; }
+    }
+
+    return true;
   }
 
   private fetchMissingData(props: TransferPageProps) {
-    if (!props.hasData) {
-      this.props.fetchDataForStations(stationIdsForProps(props));
+    let newStationIds = stationIdsForProps(props);
+
+    // If the station set has changed, fetch the new data:
+    if (!this.arraysEqual(newStationIds, this.state.lastStationIdsFetched)) {
+      this.executeFetch(newStationIds);
     }
   }
 
