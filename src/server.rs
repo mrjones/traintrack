@@ -327,6 +327,9 @@ fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, p
         let mut station = webclient_api::Station::new();
         station.set_name(stop.name.clone());
         station.set_id(stop.complex_id.clone());
+        for x in &stop.lines {
+            station.mut_lines().push(x.to_string());
+        }
         response.mut_station().push(station);
     }
 

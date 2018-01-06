@@ -53,6 +53,7 @@ message StationStatus {
 message Station {
   optional string id = 1;
   optional string name = 2;
+  repeated string lines = 3;
 }
 
 message StationList {

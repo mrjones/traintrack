@@ -140,7 +140,7 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
             // TODO(mrjones): Inject the link URL for flexibility
-            return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name}</ReactRouter.Link></li>;
+            return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name} ({station.lines.join(" ")})</ReactRouter.Link></li>;
           } else if (!done) {
             done = true;
             return <li className="more">And more...</li>;

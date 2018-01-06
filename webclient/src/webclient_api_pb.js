@@ -1701,6 +1701,7 @@ $root.Station = (function() {
      * @interface IStation
      * @property {string} [id] Station id
      * @property {string} [name] Station name
+     * @property {Array.<string>} [lines] Station lines
      */
 
     /**
@@ -1711,6 +1712,7 @@ $root.Station = (function() {
      * @param {IStation=} [properties] Properties to set
      */
     function Station(properties) {
+        this.lines = [];
         if (properties)
             for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
@@ -1732,6 +1734,14 @@ $root.Station = (function() {
      * @instance
      */
     Station.prototype.name = "";
+
+    /**
+     * Station lines.
+     * @member {Array.<string>}lines
+     * @memberof Station
+     * @instance
+     */
+    Station.prototype.lines = $util.emptyArray;
 
     /**
      * Creates a new Station instance using the specified properties.
@@ -1761,6 +1771,9 @@ $root.Station = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
         if (message.name != null && message.hasOwnProperty("name"))
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
+        if (message.lines != null && message.lines.length)
+            for (var i = 0; i < message.lines.length; ++i)
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.lines[i]);
         return writer;
     };
 
@@ -1800,6 +1813,11 @@ $root.Station = (function() {
                 break;
             case 2:
                 message.name = reader.string();
+                break;
+            case 3:
+                if (!(message.lines && message.lines.length))
+                    message.lines = [];
+                message.lines.push(reader.string());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -1842,6 +1860,13 @@ $root.Station = (function() {
         if (message.name != null && message.hasOwnProperty("name"))
             if (!$util.isString(message.name))
                 return "name: string expected";
+        if (message.lines != null && message.hasOwnProperty("lines")) {
+            if (!Array.isArray(message.lines))
+                return "lines: array expected";
+            for (var i = 0; i < message.lines.length; ++i)
+                if (!$util.isString(message.lines[i]))
+                    return "lines: string[] expected";
+        }
         return null;
     };
 
@@ -1861,6 +1886,13 @@ $root.Station = (function() {
             message.id = String(object.id);
         if (object.name != null)
             message.name = String(object.name);
+        if (object.lines) {
+            if (!Array.isArray(object.lines))
+                throw TypeError(".Station.lines: array expected");
+            message.lines = [];
+            for (var i = 0; i < object.lines.length; ++i)
+                message.lines[i] = String(object.lines[i]);
+        }
         return message;
     };
 
@@ -1877,6 +1909,8 @@ $root.Station = (function() {
         if (!options)
             options = {};
         var object = {};
+        if (options.arrays || options.defaults)
+            object.lines = [];
         if (options.defaults) {
             object.id = "";
             object.name = "";
@@ -1885,6 +1919,11 @@ $root.Station = (function() {
             object.id = message.id;
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
+        if (message.lines && message.lines.length) {
+            object.lines = [];
+            for (var j = 0; j < message.lines.length; ++j)
+                object.lines[j] = message.lines[j];
+        }
         return object;
     };
 

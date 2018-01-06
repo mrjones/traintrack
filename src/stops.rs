@@ -9,6 +9,7 @@ pub struct Stop {
     pub parent_id: Option<String>,
     pub name: String,
     pub complex_id: String,
+    pub lines: std::collections::BTreeSet<String>,
 }
 
 #[derive(Clone)]
@@ -192,12 +193,16 @@ impl Stops {
                         parent_id: None,
                         name: record.name,
                         complex_id: record.complex_id.clone(),
+                        lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
                     };
 
                     stops.insert(record.gtfs_stop_id.clone(), stop.clone());
 
                     if !complexes.contains_key(&record.complex_id) {
                         complexes.insert(record.complex_id, stop.clone());
+                    } else {
+                        let existing = complexes.get_mut(&record.complex_id).unwrap();
+                        existing.lines = existing.lines.union(&stop.lines).cloned().collect();
                     }
 
                     for route in record.daytime_routes.split(" ") {
@@ -219,6 +224,7 @@ impl Stops {
                 parent_id: None,
                 name: "W 4 St".to_string(),
                 complex_id: "167".to_string(),
+                lines: std::collections::BTreeSet::new(), // TODO
             });
 
             return Ok(Stops{
@@ -243,6 +249,7 @@ impl Stops {
                         parent_id: record.parent_station.clone(),
                         name: record.stop_name.clone(),
                         complex_id: record.stop_id.clone(), // TODO
+                        lines: std::collections::BTreeSet::new(), // TODO()
                     });
                 }
             }

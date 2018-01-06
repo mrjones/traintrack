@@ -644,6 +644,9 @@ export interface IStation {
 
     /** Station name */
     name?: string;
+
+    /** Station lines */
+    lines?: string[];
 }
 
 /** Represents a Station. */
@@ -660,6 +663,9 @@ export class Station {
 
     /** Station name. */
     public name: string;
+
+    /** Station lines. */
+    public lines: string[];
 
     /**
      * Creates a new Station instance using the specified properties.

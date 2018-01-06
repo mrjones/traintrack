@@ -9,6 +9,7 @@ metadata:
   name: traintrack
 spec:
   replicas: 2
+  revisionHistoryLimit: 5
   template:
     metadata:
       labels:
@@ -16,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2017-12-28.1
+        image: gcr.io/mrjones-gke/traintrack:2018-01-06.0
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
