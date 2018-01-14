@@ -158,14 +158,15 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     } else {
       let tripsWithConnections = this.buildTripsWithConnections();
       let lis = tripsWithConnections.map((tripWithConnections: TripWithConnections) => {
+        let i = 0;
         let transferLis = tripWithConnections.connections.map((connection: [string, ConnectionInfo | undefined]) => {
           if (!connection || !connection[0]) {
             console.log("Bad connections object: " + JSON.stringify(tripWithConnections.connections));
-            return <li>No connection</li>;
+            return <li key={i++}>No connection</li>;
           }
 
           if (!connection[1]) {
-            return <li key={connection[0]}>No connection at {connection[0]}</li>;
+            return <li key={i++}>No connection at {connection[0]}</li>;
           }
 
           let departureTime = moment.unix(connection[1].outboundTimestamp);
@@ -178,7 +179,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             connection[1].waitTimeSeconds + " sec" :
             Math.round(connection[1].waitTimeSeconds / 60) + " min";
 
-          return <li key={connection[0]}>
+          return <li key={i++}>
             <span className="lineName" style={lineStyle}>{connection[1].line}</span>
             {' '}
             {this.shortName(connection[0])}
