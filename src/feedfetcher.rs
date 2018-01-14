@@ -8,6 +8,7 @@ extern crate time;
 use std::io::Read;
 use std::io::Write;
 
+use archive;
 use feedproxy_api;
 use gtfs_realtime;
 use result;
@@ -25,7 +26,7 @@ pub struct FetchResult {
 pub struct Fetcher {
     mta_api_key: String,
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
-    archived_values: std::sync::RwLock<std::collections::HashMap<i32, std::collections::BTreeMap<i64, FetchResult>>>,
+    archive: archive::FeedArchive,
     proxy_url: Option<String>,
 }
 
@@ -35,7 +36,7 @@ impl Fetcher {
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            archived_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            archive: archive::FeedArchive::new(),
             proxy_url: None,
         }
     }
@@ -45,7 +46,7 @@ impl Fetcher {
         return Fetcher{
             mta_api_key: "".to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            archived_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            archive: archive::FeedArchive::new(),
             proxy_url: Some(proxy_url.to_string()),
         }
     }
@@ -58,17 +59,12 @@ impl Fetcher {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
-    pub fn archived_value(&self, feed_id: i32, key: i64) -> Option<FetchResult> {
-        return self.archived_values.read().unwrap().get(&feed_id).and_then(|archives| archives.get(&key).map(|a| a.clone()));
+    pub fn archived_value(&self, feed_id: i32, key: u64) -> Option<gtfs_realtime::FeedMessage> {
+        return self.archive.local_get(feed_id, key);
     }
 
-    pub fn archive_keys(&self, feed_id: i32) -> Vec<i64> {
-        return self.archived_values.read().unwrap().get(&feed_id)
-            .map(|feed_archive| feed_archive.keys().cloned().collect())
-            .unwrap_or(vec![]);
-//        let count = self.archived_values.read().unwrap().get(&feed_id).map(|v| v.len()).unwrap_or(0);
-
-//        return (0..count as i32).collect();
+    pub fn archive_keys(&self, feed_id: i32) -> Vec<u64> {
+        return self.archive.local_keys(feed_id);
     }
 
     pub fn all_feeds(&self) -> Vec<FetchResult> {
@@ -138,22 +134,9 @@ impl Fetcher {
                 Some(ref proxy_url) => {
                     match self.fetch_once_remote(proxy_url, feed_id) {
                         Ok(new_result) => {
-                            let mut latest_map = self.latest_values.write().unwrap();
-                            latest_map.insert(feed_id, new_result.clone());
-
-                            let mut archive_map = self.archived_values.write().unwrap();
-                            let archive_for_feed = archive_map.entry(feed_id).or_insert(
-                                std::collections::BTreeMap::new());
-                            archive_for_feed.insert(new_result.timestamp.timestamp(), new_result);
-                            if archive_for_feed.len() > 10 {
-                                let first_key;
-                                {
-                                    // TODO(mrjones): There's probably a more Rust-y way to do this?
-                                    let (first_key_ref, _) = archive_for_feed.iter().next().unwrap().clone();
-                                    first_key = *first_key_ref;
-                                }
-                                archive_for_feed.remove(&first_key);
-                            }
+                            self.latest_values.write().unwrap().insert(
+                                feed_id, new_result.clone());
+                            self.archive.save(feed_id, &new_result.feed).unwrap();
                         }
                         Err(err) => { error!("Error fetching from proxy: {}", err); },
                     }

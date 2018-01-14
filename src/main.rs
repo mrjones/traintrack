@@ -15,6 +15,7 @@ extern crate rustful;
 #[macro_use]
 extern crate serde_derive;
 
+mod archive;
 mod auth;
 mod feedfetcher;
 mod feedproxy_api;
