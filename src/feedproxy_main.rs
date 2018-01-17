@@ -5,7 +5,11 @@ extern crate log;
 extern crate log4rs;
 extern crate protobuf;
 extern crate tiny_http;
+#[macro_use]
+extern crate serde_derive;
 
+mod auth;
+mod archive;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
@@ -70,6 +74,8 @@ fn main() {
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
+    opts.optopt("", "google-service-account-pem-file", ".pem file containing the Google service account's private key", "PATH");
+    opts.optopt("", "gcs-archive-bucket", "GCS bucket to hold archived feeds", "BUCKET");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -90,9 +96,19 @@ fn main() {
     let port = matches.opt_str("port")
         .map_or(3839, |s| s.parse::<u16>().expect("Could not parse --port"));
 
+    let gcs_config = matches.opt_str("google-service-account-pem-file").and_then(
+        |pem_file| {
+            return matches.opt_str("gcs-archive-bucket").map(|gcs_bucket| {
+                return archive::GcsArchiveOptions{
+                    bucket_name: gcs_bucket,
+                    service_account_key_path: pem_file,
+                };
+            });
+        });
 
     let fetcher = std::sync::Arc::new(
-        feedfetcher::Fetcher::new_local_fetcher(&key));
+        feedfetcher::Fetcher::new_local_fetcher(
+            &key, archive::FeedArchive::new(gcs_config)));
     let mut fetcher_thread = feedfetcher::FetcherThread::new();
     fetcher_thread.fetch_periodically(
         fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));

@@ -91,6 +91,8 @@ fn main() {
     opts.optopt("", "google-api-secret", "The Google OAuth client secret.", "SECRET");
     opts.optopt("", "firebase-api-key", "The firebase API key", "KEY");
     opts.optopt("", "google-service-account-pem-file", ".pem file containing the Google service account's private key", "PATH");
+    opts.optopt("", "gcs-archive-bucket", "GCS bucket to hold archived feeds", "BUCKET");
+
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()); }
@@ -115,9 +117,21 @@ fn main() {
 
     let disable_background_fetch = matches.opt_present("disable-background-fetch");
 
+    let gcs_config = matches.opt_str("google-service-account-pem-file").and_then(
+        |pem_file| {
+            return matches.opt_str("gcs-archive-bucket").map(|gcs_bucket| {
+                return archive::GcsArchiveOptions{
+                    bucket_name: gcs_bucket,
+                    service_account_key_path: pem_file,
+                };
+            });
+        });
+
     let fetcher = match maybe_proxy_url {
-        None => std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(&key)),
-        Some(ref url) => std::sync::Arc::new(feedfetcher::Fetcher::new_remote_fetcher(url)),
+        None => std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(
+            &key, archive::FeedArchive::new(gcs_config))),
+        Some(ref url) => std::sync::Arc::new(feedfetcher::Fetcher::new_remote_fetcher(
+            url, archive::FeedArchive::new(gcs_config))),
     };
     let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {

@@ -31,22 +31,22 @@ pub struct Fetcher {
 }
 
 impl Fetcher {
-    pub fn new_local_fetcher(mta_api_key: &str) -> Fetcher {
+    pub fn new_local_fetcher(mta_api_key: &str, archive: archive::FeedArchive) -> Fetcher {
         info!("Using local feedfetcher");
         return Fetcher{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            archive: archive::FeedArchive::new(),
+            archive: archive,
             proxy_url: None,
         }
     }
 
-    pub fn new_remote_fetcher(proxy_url: &str) -> Fetcher {
+    pub fn new_remote_fetcher(proxy_url: &str, archive: archive::FeedArchive) -> Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
             mta_api_key: "".to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            archive: archive::FeedArchive::new(),
+            archive: archive,
             proxy_url: Some(proxy_url.to_string()),
         }
     }

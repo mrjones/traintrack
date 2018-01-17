@@ -73,7 +73,8 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
     // 4. Copy the value from the "private_key" field into a file, and replace '\n's with actual newlines
     // pem_path should point to that file:
 
-pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> {
+pub fn generate_google_bearer_token(
+    pem_path: &str, scopes: Vec<String>) -> result::TTResult<String> {
     let now = chrono::Utc::now().timestamp();
 
     let mut payload = frank_jwt::Payload::new();
@@ -83,7 +84,10 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
     payload.insert("iss".to_string(), "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com".to_string());
 
     // A space-delimited list of the permissions that the application requests.
-    payload.insert("scope".to_string(), "https://www.googleapis.com/auth/datastore".to_string());
+    payload.insert("scope".to_string(), scopes.join(" "));
+//    payload.insert("scope".to_string(), "https://www.googleapis.com/auth/datastore".to_string());
+
+
     // A descriptor of the intended target of the assertion.
     // When making an access token request this value is always
     // https://www.googleapis.com/oauth2/v4/token.
@@ -94,6 +98,7 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
     // This value has a maximum of 1 hour after the issued time.
     payload.insert("exp".to_string(), format!("{}", now + 60 * 60));
 
+
     // The time the assertion was issued, specified as seconds since
     // 00:00:00 UTC, January 1, 1970.
     payload.insert("iat".to_string(), format!("{}", now));
@@ -101,7 +106,7 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
 
     let token = frank_jwt::encode(header, pem_path.to_string(), payload.clone());
 
-    println!("TOKEN: {}", token);
+    // println!("TOKEN: {}", token);
     let client = reqwest::Client::new();
 
     let google_access_url = "https://www.googleapis.com/oauth2/v4/token";
@@ -125,7 +130,7 @@ pub fn generate_google_bearer_token(pem_path: &str) -> result::TTResult<String> 
     };
     let response_json: GoogleAccessResponse = res.json().unwrap();
 
-    println!("RESPONSE: {:?}", response_json);
+//    println!("RESPONSE: {:?}", response_json);
 
     return Ok(response_json.access_token)
 }

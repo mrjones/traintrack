@@ -203,7 +203,9 @@ fn get_homepage(tt_context: &TTContext, rustful_context: rustful::Context, _: &m
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     match tt_context.google_service_account_pem_file {
         Some(ref pem_path) => {
-            let token = auth::generate_google_bearer_token(pem_path)?;
+            let token = auth::generate_google_bearer_token(
+                pem_path,
+                vec!["https://www.googleapis.com/auth/datastore".to_string()])?;
 
             match tt_context.firebase_api_key {
                 Some(ref key) => return auth::do_firestore_request(key, &token).map(|t| t.as_bytes().to_vec()),
