@@ -77,7 +77,9 @@ pub fn generate_google_bearer_token(
     pem_path: &str, scopes: Vec<String>) -> result::TTResult<String> {
     let now = chrono::Utc::now().timestamp();
 
-    let mut payload = json!({
+    // https://developers.google.com/identity/protocols/OAuth2ServiceAccount
+    // https://console.cloud.google.com/iam-admin/serviceaccounts/project?project=mrjones-traintrack
+    let  payload = json!({
         "iss": "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com",
         "scope": scopes.join(" "),
         "aud": "https://www.googleapis.com/oauth2/v4/token",
@@ -85,43 +87,11 @@ pub fn generate_google_bearer_token(
         "iat": format!("{}", now),
     });
 
-    let mut header = json!({});
+    let header = json!({});
 
     let path = std::path::Path::new(pem_path);
-    let token = frank_jwt::encode(header, &path.to_path_buf(), &payload, frank_jwt::Algorithm::RS256).unwrap();
+    let token = frank_jwt::encode(header, &path.to_path_buf(), &payload, frank_jwt::Algorithm::RS256)?;
     // TODO(mrjones): add error converter
-
-        /*
-    let mut payload = frank_jwt::Payload::new();
-    // https://developers.google.com/identity/protocols/OAuth2ServiceAccount
-    // https://console.cloud.google.com/iam-admin/serviceaccounts/project?project=mrjones-traintrack
-    // The email address of the service account.
-    payload.insert("iss".to_string(), "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com".to_string());
-
-    // A space-delimited list of the permissions that the application requests.
-    payload.insert("scope".to_string(), scopes.join(" "));
-//    payload.insert("scope".to_string(), "https://www.googleapis.com/auth/datastore".to_string());
-
-
-    // A descriptor of the intended target of the assertion.
-    // When making an access token request this value is always
-    // https://www.googleapis.com/oauth2/v4/token.
-    payload.insert("aud".to_string(), "https://www.googleapis.com/oauth2/v4/token".to_string());
-
-    // The expiration time of the assertion, specified as seconds since
-    // 00:00:00 UTC, January 1, 1970.
-    // This value has a maximum of 1 hour after the issued time.
-    payload.insert("exp".to_string(), format!("{}", now + 60 * 60));
-
-
-    // The time the assertion was issued, specified as seconds since
-    // 00:00:00 UTC, January 1, 1970.
-    payload.insert("iat".to_string(), format!("{}", now));
-
-    let header = frank_jwt::Header::new(frank_jwt::Algorithm::RS256);
-
-    let token = frank_jwt::encode(header, pem_path.to_string(), payload.clone());
-        */
 
     // println!("TOKEN: {}", token);
     let client = reqwest::Client::new();

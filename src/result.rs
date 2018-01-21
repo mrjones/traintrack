@@ -1,4 +1,5 @@
 extern crate csv;
+extern crate frank_jwt;
 extern crate protobuf;
 extern crate reqwest;
 extern crate serde_json;
@@ -9,10 +10,9 @@ pub type TTResult<T> = std::result::Result<T, TTError>;
 #[derive(Debug)]
 pub enum TTError {
     CSVError(csv::Error),
-//    HTTPError(hyper::Error),
     IOError(std::io::Error),
+    JWTError(frank_jwt::Error),
     ProtobufError(protobuf::ProtobufError),
-//    RenderError(liquid::Error),
     SerializationError(serde_json::Error),
     ParseIntError(std::num::ParseIntError),
     HttpClientError(reqwest::Error),
@@ -29,18 +29,15 @@ impl std::fmt::Display for TTError {
             TTError::CSVError(ref err) => {
                 return write!(f, "CSV Error: {}", err);
             },
-//            TTError::HTTPError(ref err) => {
-//                return write!(f, "HTTP Error: {}", err);
-//            },
             TTError::IOError(ref err) => {
                 return write!(f, "IO Error: {}", err);
+            },
+            TTError::JWTError(ref err) => {
+                return write!(f, "JWT Error: {:?}", err);
             },
             TTError::ProtobufError(ref err) => {
                 return write!(f, "Protobuf Error: {}", err);
             },
-//            TTError::RenderError(ref err) => {
-//                return write!(f, "Render Error: {}", err);
-//            },
             TTError::SerializationError(ref err) => {
                 return write!(f, "Serialization Error: {}", err);
             },
@@ -59,10 +56,9 @@ impl std::error::Error for TTError {
     fn description(&self) -> &str {
         match *self {
             TTError::CSVError(_) => "CSVError",
-//            TTError::HTTPError(_) => "HTTPError",
             TTError::IOError(_) => "IOError",
+            TTError::JWTError(_) => "JWTError",
             TTError::ProtobufError(_) => "ProtobufError",
-//            TTError::RenderError(_) => "RenderError",
             TTError::SerializationError(_) => "SerializationError",
             TTError::ParseIntError(_) => "ParseIntError",
             TTError::HttpClientError(_) => "HttpClientError",
@@ -87,23 +83,11 @@ impl From<csv::Error> for TTError {
     }
 }
 
-//impl From<hyper::Error> for TTError {
-//    fn from(err: hyper::Error) -> TTError {
-//        return TTError::HTTPError(err);
-//    }
-//}
-
 impl From<protobuf::ProtobufError> for TTError {
     fn from(err: protobuf::ProtobufError) -> TTError {
         return TTError::ProtobufError(err);
     }
 }
-
-//impl From<liquid::Error> for TTError {
-//    fn from(err: liquid::Error) -> TTError {
-//        return TTError::RenderError(err);
-//    }
-//}
 
 impl From<serde_json::Error> for TTError {
     fn from(err: serde_json::Error) -> TTError {
@@ -120,5 +104,12 @@ impl From<std::num::ParseIntError> for TTError {
 impl From<reqwest::Error> for TTError {
     fn from(err: reqwest::Error) -> TTError {
         return TTError::HttpClientError(err);
+    }
+}
+
+
+impl From<frank_jwt::Error> for TTError {
+    fn from(err: frank_jwt::Error) -> TTError {
+        return TTError::JWTError(err);
     }
 }
