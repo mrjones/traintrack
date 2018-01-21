@@ -14,6 +14,8 @@ extern crate rustc_serialize;
 extern crate rustful;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 
 mod archive;
 mod auth;
@@ -70,7 +72,7 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
         .build(Root::builder()
                .appender("stdout")
                .appender("file_log")
-               .build(log::LogLevelFilter::Info))
+               .build(log::LevelFilter::Info))
         .unwrap();
 }
 

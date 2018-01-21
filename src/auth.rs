@@ -77,6 +77,21 @@ pub fn generate_google_bearer_token(
     pem_path: &str, scopes: Vec<String>) -> result::TTResult<String> {
     let now = chrono::Utc::now().timestamp();
 
+    let mut payload = json!({
+        "iss": "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com",
+        "scope": scopes.join(" "),
+        "aud": "https://www.googleapis.com/oauth2/v4/token",
+        "exp": format!("{}", now + 60 * 60),
+        "iat": format!("{}", now),
+    });
+
+    let mut header = json!({});
+
+    let path = std::path::Path::new(pem_path);
+    let token = frank_jwt::encode(header, &path.to_path_buf(), &payload, frank_jwt::Algorithm::RS256).unwrap();
+    // TODO(mrjones): add error converter
+
+        /*
     let mut payload = frank_jwt::Payload::new();
     // https://developers.google.com/identity/protocols/OAuth2ServiceAccount
     // https://console.cloud.google.com/iam-admin/serviceaccounts/project?project=mrjones-traintrack
@@ -102,9 +117,11 @@ pub fn generate_google_bearer_token(
     // The time the assertion was issued, specified as seconds since
     // 00:00:00 UTC, January 1, 1970.
     payload.insert("iat".to_string(), format!("{}", now));
+
     let header = frank_jwt::Header::new(frank_jwt::Algorithm::RS256);
 
     let token = frank_jwt::encode(header, pem_path.to_string(), payload.clone());
+        */
 
     // println!("TOKEN: {}", token);
     let client = reqwest::Client::new();

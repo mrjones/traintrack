@@ -1,4 +1,5 @@
 extern crate chrono;
+extern crate frank_jwt;
 extern crate getopts;
 #[macro_use]
 extern crate log;
@@ -7,6 +8,8 @@ extern crate protobuf;
 extern crate tiny_http;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 
 mod auth;
 mod archive;
@@ -38,7 +41,7 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
         .build(Root::builder()
                .appender("stdout")
                .appender("file_log")
-               .build(log::LogLevelFilter::Info))
+               .build(log::LevelFilter::Info))
         .unwrap();
 }
 
