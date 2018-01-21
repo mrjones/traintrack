@@ -17,6 +17,10 @@ pub struct FeedArchive {
 
 impl FeedArchive {
     pub fn new(gcs_options: Option<GcsArchiveOptions>) -> FeedArchive {
+        match gcs_options {
+            Some(ref gcs_options) => info!("New FeedArchive. GCS Bucket: '{}'", gcs_options.bucket_name),
+            None => info!("New FeedArchive, no GCS archiving."),
+        }
         return FeedArchive{
             gcs_options: gcs_options,
             local_archive: std::sync::RwLock::new(std::collections::HashMap::new()),
@@ -42,6 +46,7 @@ impl FeedArchive {
         return self.local_archive.read().unwrap().get(&feed_id).and_then(|archives| archives.get(&key).map(|a| a.clone()));
     }
 
+    // TODO(mrjones): Do asynchronously on background thread
     fn gcs_save(&self, feed_id: i32, message: &gtfs_realtime::FeedMessage, gcs_options: &GcsArchiveOptions) -> result::TTResult<()> {
         // TODO(mrjones): Cache and reuse
         let token = auth::generate_google_bearer_token(
@@ -50,8 +55,7 @@ impl FeedArchive {
 
         let url = format!(
             "https://www.googleapis.com/upload/storage/v1/b/{}/o?uploadType=media&name=feed-{}-{}",
-            gcs_options.bucket_name, feed_id, message.get_header().get_timestamp());
-        print!("URL: {}", url);
+            gcs_options.bucket_name, message.get_header().get_timestamp(), feed_id);
 
         use protobuf::Message;
         let mut buf = vec![];
