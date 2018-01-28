@@ -9,7 +9,7 @@ import * as querystring from "query-string";
 
 import * as utils from './utils';
 
-import { TTActionTypes, TTState } from './state-machine';
+import { TTState } from './state-machine';
 
 enum IncludeExclude { INCLUDE, EXCLUDE };
 
@@ -169,17 +169,9 @@ export class FilterControlQueryParams {
 
 class FilterControlDataProps {
   public allTrains: proto.StationStatus;
-  public mixMultipleLines: boolean;
-  public lineStates: Immutable.Map<string, boolean>;
-  public directionStates: Immutable.Map<proto.Direction, boolean>;
 };
-class FilterControlDispatchProps {
-  public onMixingChange: (newMixing: boolean) => any;
-  public onLineVisibilityChange: (line: string, visible: boolean) => any;
-  public onDirectionVisibilityChange: (line: proto.Direction, visible: boolean) => any;
-};
+class FilterControlDispatchProps { };
 class FilterControlExplicitProps {
-  // TODO(mrjones): This is awkward, since it's only used in mapStateToProps, so it seems like it belongs elsewhere
   public stationId: string;
   public queryParams: FilterControlQueryParams;
   public visibilityState: VisibilityState;
@@ -191,78 +183,24 @@ class FilterControlLocalState {
 
 type FilterControlProps = FilterControlDataProps & FilterControlDispatchProps & FilterControlExplicitProps;
 
-function changeLineVisibility(line: string, visible: boolean) {
-  return {
-    type: TTActionTypes.CHANGE_LINE_VISIBILITY,
-    payload: [line, visible],
-  };
-}
-
-function changeDirectionVisibility(direction: proto.Direction, visible: boolean) {
-  return {
-    type: TTActionTypes.CHANGE_DIRECTION_VISIBILITY,
-    payload: [direction, visible],
-  };
-}
-
-function changeMixing(newMixing: boolean) {
-  return {
-    type: TTActionTypes.CHANGE_LINE_MIXING,
-    payload: newMixing,
-  };
-}
-
 const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): FilterControlDataProps => {
   let maybeStation = state.core.stationDetails.get(ownProps.stationId);
   if (maybeStation !== undefined && maybeStation.valid) {
     return {
       allTrains: maybeStation.data.data,
-      mixMultipleLines: state.core.mixMultipleLines,
-      lineStates: state.core.lineVisibility,
-      directionStates: state.core.directionVisibility,
     };
   } else {
     return {
       allTrains: new proto.StationStatus(),
-      mixMultipleLines: state.core.mixMultipleLines,
-      lineStates: state.core.lineVisibility,
-      directionStates: state.core.directionVisibility,
     };
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDispatchProps => ({
-  onMixingChange: (newMixing: boolean) => dispatch(changeMixing(newMixing)),
-  onLineVisibilityChange: (line: string, visible: boolean) => dispatch(changeLineVisibility(line, visible)),
-  onDirectionVisibilityChange: (direction: proto.Direction, visible: boolean) => dispatch(changeDirectionVisibility(direction, visible)),
-});
+const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDispatchProps => ({ });
 
 export class FilterControl extends React.Component<FilterControlProps, FilterControlLocalState> {
   public constructor(props: any) {
     super(props);
-
-    if (this.props.queryParams.combined !== this.props.mixMultipleLines) {
-      this.props.onMixingChange(this.props.queryParams.combined);
-    }
-
-    if (this.props.queryParams.hiddenLines) {
-      for (const line of this.props.queryParams.hiddenLines) {
-        // TODO(mrjones): re-show visible lines
-        this.props.onLineVisibilityChange(line, false);
-      }
-    }
-
-    if (this.props.queryParams.hiddenDirections) {
-      for (const dirChar of this.props.queryParams.hiddenDirections) {
-        if (dirChar === 'U') {
-          this.props.onDirectionVisibilityChange(proto.Direction.UPTOWN, false);
-        } else if (dirChar === 'D') {
-          this.props.onDirectionVisibilityChange(proto.Direction.DOWNTOWN, false);
-        } else {
-          console.log("Malformed hiddenDirection string: " + this.props.queryParams.hiddenDirections);
-        }
-      }
-    }
 
     this.state = {
       lineColors: new Map<string, string>(),
@@ -334,45 +272,6 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
 
   private toggleExpanded() {
     this.setState({expanded: !this.state.expanded});
-  }
-
-  private directionVisible(direction: proto.Direction): boolean {
-    const dState = this.props.directionStates.get(direction);
-    if (dState === undefined) {
-      return true;
-    } else {
-      return dState;
-    }
-  }
-
-  private lineVisible(line: string): boolean {
-    const dState = this.props.lineStates.get(line);
-    if (dState === undefined) {
-      return true;
-    } else {
-      return dState;
-    }
-  }
-
-  private toggleDirection(direction: proto.Direction) {
-    let oldVisibility = this.props.directionStates.get(direction);
-    if (oldVisibility === undefined) {
-      oldVisibility = true;
-    }
-    this.props.onDirectionVisibilityChange(direction, !oldVisibility);
-  };
-
-  private toggleLine(line: string) {
-    let oldVisibility = this.props.lineStates.get(line);
-    if (oldVisibility === undefined) {
-      oldVisibility = true;
-    }
-
-    this.props.onLineVisibilityChange(line, !oldVisibility);
-  };
-
-  private toggleMixing() {
-    this.props.onMixingChange(!this.props.mixMultipleLines);
   }
 };
 

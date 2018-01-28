@@ -16,10 +16,6 @@ export class TTContext {
 export type TTCoreState = {
   stationDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationStatus>>>;
 
-  mixMultipleLines: boolean;
-  lineVisibility: Immutable.Map<string, boolean>;
-  directionVisibility: Immutable.Map<proto.Direction, boolean>;
-
   allStations: proto.StationList,
 
   allLines: Loadable<DebuggableResult<proto.LineList>>,
@@ -41,10 +37,6 @@ export enum TTActionTypes {
   START_LOADING_STATION_DETAILS = "START_LOADING_STATION_DETAILS",
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
 
-  CHANGE_LINE_MIXING = "CHANGE_LINE_MIXING",
-  CHANGE_LINE_VISIBILITY = "CHANGE_LINE_VISIBILITY",
-  CHANGE_DIRECTION_VISIBILITY = "CHANGE_DIRECTION_VISIBILITY",
-
   INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
 
   INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
@@ -56,10 +48,6 @@ export enum TTActionTypes {
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
-export type ChangeLineMixingAction = TTAction<TTActionTypes.CHANGE_LINE_MIXING, boolean>;
-export type ChangeLineVisibilityAction = TTAction<TTActionTypes.CHANGE_LINE_VISIBILITY, [string, boolean]>;
-export type ChangeDirectionVisibilityAction = TTAction<TTActionTypes.CHANGE_DIRECTION_VISIBILITY, [proto.Direction, boolean]>;
-
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
 
 export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
@@ -69,17 +57,12 @@ export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_I
 
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
-  ChangeLineMixingAction | ChangeLineVisibilityAction | ChangeDirectionVisibilityAction |
   InstallStationListAction |
   InstallLineListAction | InstallLineDetailsAction |
   InstallTrainItineraryAction;
 
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
-
-  mixMultipleLines: false,
-  lineVisibility: Immutable.Map<string, boolean>(),
-  directionVisibility: Immutable.Map<proto.Direction, boolean>(),
 
   allStations: new proto.StationList(),
   allLines: {loading: false, valid: false},
@@ -117,27 +100,6 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     console.log("INSTALL_STATION_DETAILS -> " + id);
     partialState = {
       stationDetails: state.stationDetails.set(id, obj),
-    };
-    break;
-  }
-  case TTActionTypes.CHANGE_LINE_MIXING: {
-    console.log("CHANGE_LINE_MIXING -> " + action.payload);
-    partialState = {
-      mixMultipleLines: action.payload,
-    };
-    break;
-  }
-  case TTActionTypes.CHANGE_LINE_VISIBILITY: {
-    console.log("CHANGE_LINE_VISIBILITY -> " + action.payload[0] + "::" + action.payload[1]);
-    partialState = {
-      lineVisibility: state.lineVisibility.set(action.payload[0], action.payload[1]),
-    };
-    break;
-  }
-  case TTActionTypes.CHANGE_DIRECTION_VISIBILITY: {
-    console.log("CHANGE_DIRECTION_VISIBILITY -> " + action.payload[0] + "::" + action.payload[1]);
-    partialState = {
-      directionVisibility: state.directionVisibility.set(action.payload[0], action.payload[1]),
     };
     break;
   }
