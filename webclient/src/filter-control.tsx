@@ -4,8 +4,6 @@ import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
-import * as History from "history";
-import * as querystring from "query-string";
 
 import * as utils from './utils';
 
@@ -152,28 +150,12 @@ export class VisibilityState {
   }
 }
 
-export class FilterControlQueryParams {
-  public static parseFrom(query: History.Search): FilterControlQueryParams {
-    let parsed = querystring.parse(query);
-    return {
-      hiddenLines: parsed["hiddenLines"],
-      hiddenDirections: parsed["hiddenDirections"],
-      combined: parsed["combined"] === "true",
-    };
-  }
-
-  public hiddenLines: String;
-  public hiddenDirections: String;
-  public combined: boolean;
-}
-
 class FilterControlDataProps {
   public allTrains: proto.StationStatus;
 };
 class FilterControlDispatchProps { };
 class FilterControlExplicitProps {
   public stationId: string;
-  public queryParams: FilterControlQueryParams;
   public visibilityState: VisibilityState;
 }
 class FilterControlLocalState {

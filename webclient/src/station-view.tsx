@@ -11,7 +11,7 @@ import * as utils from './utils';
 import { Loadable } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
-import { ConnectedFilterControl, FilterControlQueryParams, VisibilityState } from './filter-control';
+import { ConnectedFilterControl, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
@@ -122,7 +122,6 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
 class StationMultiLineExplicitProps {
   public stationId: string;
-  public filterParams: FilterControlQueryParams;
   public visibilityState: VisibilityState;
 }
 class StationMultiLineDataProps {
@@ -212,7 +211,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
-            <ConnectedFilterControl stationId={this.props.stationId} queryParams={this.props.filterParams} visibilityState={this.props.visibilityState}/>
+            <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);
@@ -223,7 +222,6 @@ export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDi
 
 class StationPageProps {
   public initialStationId: string;
-  public filterParams: FilterControlQueryParams;
   public visibilityState: VisibilityState;
 }
 
@@ -260,7 +258,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine stationId={this.props.initialStationId} filterParams={this.props.filterParams} visibilityState={this.props.visibilityState}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState}/>
     </div>);
   }
 }
@@ -280,7 +278,7 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
 
   public render() {
     return <div>
-      <StationPage initialStationId={this.stationId()} filterParams={FilterControlQueryParams.parseFrom(this.props.location.search)} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())}/>
+      <StationPage initialStationId={this.stationId()} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())}/>
     </div>;
   }
 }
