@@ -11,7 +11,7 @@ import * as utils from './utils';
 import { Loadable } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
-import { ConnectedFilterControl, FilterControlQueryParams } from './filter-control';
+import { ConnectedFilterControl, FilterControlQueryParams, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
@@ -120,18 +120,14 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
   }
 };
 
-enum MultipleLineMixing { SEPARATE, INTERMINGLED };
-
 class StationMultiLineExplicitProps {
   public stationId: string;
   public filterParams: FilterControlQueryParams;
+  public visibilityState: VisibilityState;
 }
 class StationMultiLineDataProps {
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
-  public mixing: MultipleLineMixing;
-  public lineVisibility: Immutable.Map<string, boolean>;
-  public directionVisibility: Immutable.Map<proto.Direction, boolean>;
   public hasData: boolean;
 }
 class StationMultiLineDispatchProps {
@@ -150,18 +146,12 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
     return {
       stationName: maybeData.data.data.name,
       data: maybeData.data,
-      mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      lineVisibility: state.core.lineVisibility,
-      directionVisibility: state.core.directionVisibility,
       hasData: true,
     };
   } else {
     return {
       stationName: "Loading...",
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
-      mixing: state.core.mixMultipleLines ? MultipleLineMixing.INTERMINGLED : MultipleLineMixing.SEPARATE,
-      lineVisibility: state.core.lineVisibility,
-      directionVisibility: state.core.directionVisibility,
       hasData: false,
     };
   }
@@ -200,9 +190,13 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
 
   public render() {
     let lineSet: JSX.Element[];
-    let visibleLines = this.props.data.data.line.filter((line: proto.LineArrivals) => utils.lineVisible(line, this.props.lineVisibility, this.props.directionVisibility));
+    let visibleLines = this.props.data.data.line.filter(
+      (line: proto.LineArrivals) => {
+        return this.props.visibilityState.includesLine(line.line) &&
+          this.props.visibilityState.includesDirection(line.direction);
+      });
 
-    if (this.props.mixing === MultipleLineMixing.SEPARATE) {
+    if (!this.props.visibilityState.isCombined()) {
       lineSet = visibleLines.map(
         (line: proto.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
@@ -218,7 +212,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
-            <ConnectedFilterControl stationId={this.props.stationId} queryParams={this.props.filterParams}/>
+            <ConnectedFilterControl stationId={this.props.stationId} queryParams={this.props.filterParams} visibilityState={this.props.visibilityState}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);
@@ -230,6 +224,7 @@ export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDi
 class StationPageProps {
   public initialStationId: string;
   public filterParams: FilterControlQueryParams;
+  public visibilityState: VisibilityState;
 }
 
 class StationPageState {
@@ -265,7 +260,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine stationId={this.props.initialStationId} filterParams={this.props.filterParams}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId} filterParams={this.props.filterParams} visibilityState={this.props.visibilityState}/>
     </div>);
   }
 }
@@ -279,9 +274,13 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
     return this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028";
   }
 
+  private visibilitySpec(): string {
+    return this.props.match.params.visibilitySpec ? this.props.match.params.visibilitySpec : "";
+  }
+
   public render() {
     return <div>
-      <StationPage initialStationId={this.stationId()} filterParams={FilterControlQueryParams.parseFrom(this.props.location.search)}/>
+      <StationPage initialStationId={this.stationId()} filterParams={FilterControlQueryParams.parseFrom(this.props.location.search)} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())}/>
     </div>;
   }
 }

@@ -40,7 +40,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
     let client = reqwest::Client::new();
     let mut res = client.post(url)
         .form(&params)
-        .send()?; // TODO(mrjones): convert error
+        .send()?;
 
     assert!(res.status().is_success());
 
@@ -91,7 +91,6 @@ pub fn generate_google_bearer_token(
 
     let path = std::path::Path::new(pem_path);
     let token = frank_jwt::encode(header, &path.to_path_buf(), &payload, frank_jwt::Algorithm::RS256)?;
-    // TODO(mrjones): add error converter
 
     // println!("TOKEN: {}", token);
     let client = reqwest::Client::new();
