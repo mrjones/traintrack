@@ -1,5 +1,6 @@
 import * as Immutable from 'immutable';
 import * as moment from "moment";
+import * as querystring from "query-string";
 import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
@@ -17,9 +18,22 @@ import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { fetchStationList, loadStationDetails } from './state-actions';
 
+export class StationPageQueryParams {
+  public static parseFrom(query: History.Search): StationPageQueryParams {
+    let parsed = querystring.parse(query);
+    return {
+      highlightedTrains: parsed["highlight"] ?
+        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set(),
+    };
+  }
+
+  public highlightedTrains: Immutable.Set<string>;
+}
+
 class StationIntermingledLineProps {
   public data: proto.ILineArrivals[];
   public stationId: string;
+  public highlightedTrains: Immutable.Set<string>;
 }
 
 class IntermingledArrivalInfo {
@@ -34,6 +48,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
   public render(): JSX.Element {
     let directionUls = new Array<JSX.Element>();
     let directionDatas = this.sortArrivals(this.props.data);
+    console.log("HIGHLIGHTS: " + JSON.stringify(this.props.highlightedTrains));
     for (let directionData of directionDatas) {
       let lis = directionData[1].map((info: IntermingledArrivalInfo) => {
         let key = info.line + "-" + info.timestamp + "-" + info.direction;
@@ -45,6 +60,10 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
         let className = "upcoming";
         if (time < moment()) {
           className = "expired";
+        }
+
+        if (this.props.highlightedTrains.has(info.tripId)) {
+          className = className + " highlighted";
         }
 
         return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}?highlight=${this.props.stationId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
@@ -87,6 +106,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
 class StationSingleLineProps {
   public data: proto.LineArrivals;
   public stationId: string;
+  public highlightedTrains: Immutable.Set<string>;
 };
 
 class StationSingleLine extends React.Component<StationSingleLineProps, undefined> {
@@ -123,6 +143,7 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 class StationMultiLineExplicitProps {
   public stationId: string;
   public visibilityState: VisibilityState;
+  public highlightedTrains: Immutable.Set<string>;
 }
 class StationMultiLineDataProps {
   public stationName: string;
@@ -199,11 +220,11 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
       lineSet = visibleLines.map(
         (line: proto.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
-          return <StationSingleLine data={line} key={key} stationId={this.props.stationId}/>;
+          return <StationSingleLine data={line} key={key} stationId={this.props.stationId} highlightedTrains={this.props.highlightedTrains}/>;
         });
     } else {
       lineSet = new Array<JSX.Element>();
-      lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed" stationId={this.props.stationId}/>);
+      lineSet.push(<StationIntermingledLines data={visibleLines} key="mixed" stationId={this.props.stationId} highlightedTrains={this.props.highlightedTrains}/>);
     }
 
     const dataTs = moment.unix(this.props.data.data.dataTimestamp as number);
@@ -223,6 +244,7 @@ export let ConnectedStationMultiLine = ReactRedux.connect(mapStateToProps, mapDi
 class StationPageProps {
   public initialStationId: string;
   public visibilityState: VisibilityState;
+  public queryParams: StationPageQueryParams;
 }
 
 class StationPageState {
@@ -258,7 +280,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState} highlightedTrains={this.props.queryParams.highlightedTrains}/>
     </div>);
   }
 }
@@ -278,7 +300,7 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
 
   public render() {
     return <div>
-      <StationPage initialStationId={this.stationId()} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())}/>
+      <StationPage initialStationId={this.stationId()} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())} queryParams={StationPageQueryParams.parseFrom(this.props.location.search)}/>
     </div>;
   }
 }

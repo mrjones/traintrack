@@ -89,7 +89,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
         const time = moment.unix(arrival.timestamp as number);
         let stationElt = <span>Unknown station</span>;
         if (arrival.station && arrival.station.name && arrival.station.id) {
-          stationElt = <ReactRouter.Link to={`/app/station/${arrival.station.id}`}>
+          stationElt = <ReactRouter.Link to={`/app/station/${arrival.station.id}/::C?highlight=${this.props.trainId}`}>
             {arrival.station.name}
           </ReactRouter.Link>;
         } else if (arrival.station) {

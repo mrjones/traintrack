@@ -248,13 +248,22 @@ ul.lineView{
     margin-top: .5em;
 }
 
+.intermingledArrivals li {
+    margin: 2px;
+    padding: 0;
+}
+
 .intermingledArrivals .expired {
     color: #CCCCCC;
 }
 
+.intermingledArrivals .highlighted {
+    background-color: #FEDE90;
+}
+
 .transferView .lineName,
 .intermingledArrivals .lineName {
-    height: 1em;
+#    height: 1em;
 }
 
 .pageTitle .lineName,

@@ -13,7 +13,7 @@ use feedproxy_api;
 use gtfs_realtime;
 use result;
 
-static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 36];
+static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36, 51];
 
 #[derive(Clone)]
 pub struct FetchResult {
