@@ -14,8 +14,14 @@ export class PubInfo extends React.Component<PubInfoProps, PubInfoState> {
   }
 
   public render(): JSX.Element {
+    if (!this.props.pubTimestamp || this.props.pubTimestamp.unix() === 0) {
       return <div className="pubTime">
-        Published at {this.props.pubTimestamp.format("LTS")} ({this.props.pubTimestamp.fromNow()}) <a href="#" onClick={this.props.reloadFn}>Reload</a>
+        Waiting for data... <a href="#" onClick={this.props.reloadFn}>Force reload</a>
+      </div>;
+    }
+
+    return <div className="pubTime">
+      Published at {this.props.pubTimestamp.format("LTS")} ({this.props.pubTimestamp.fromNow()}) <a href="#" onClick={this.props.reloadFn}>Reload</a>
       </div>;
   }
 }

@@ -18,7 +18,7 @@ import { TransferPageWrapper } from './transfer-view';
 import { DataFetcher } from './datafetcher';
 import { TTContext, initialState, transition } from './state-machine';
 
-let context = new TTContext(new DataFetcher());
+let context = new TTContext(new DataFetcher(0));
 let store = Redux.createStore(
   Redux.combineReducers({core: transition}),
   {core: initialState},

@@ -44,6 +44,10 @@ class SingleDataRequestDebuggerState { }
 
 class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebuggerProps, SingleDataRequestDebuggerState> {
   public render(): JSX.Element {
+    if (!this.props.request.apiUrl) {
+      return <div className="apiRequest">Loading...</div>;
+    }
+
     let jsonLink: string = this.props.request.apiUrl + "?format=textproto";
 
     let components = [];
