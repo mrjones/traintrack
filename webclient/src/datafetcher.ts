@@ -23,8 +23,11 @@ export class DebuggableResult<T> {
 }
 
 export class DataFetcher {
-  public constructor() {
+  private artificialDelayMs?: number;
+
+  public constructor(artificialDelayMs?: number) {
     console.log("new DataFetcher");
+    this.artificialDelayMs = artificialDelayMs;
   }
 
   public fetchLineList(): Promise<DebuggableResult<proto.LineList>> {
@@ -36,7 +39,9 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const lineList = proto.LineList.decode(bodyBytes);
-        resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(startMoment, moment())));
+
+        let result = new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(startMoment, moment()));
+        this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
@@ -50,7 +55,8 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationStatus = proto.StationStatus.decode(bodyBytes);
-        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(startMoment, moment())));
+        let result = new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(startMoment, moment()));
+        this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
@@ -66,7 +72,8 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationList = proto.StationList.decode(bodyBytes);
-        resolve(new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(startMoment, moment())));
+        let result = new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(startMoment, moment()));
+        this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
@@ -80,7 +87,8 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationList = proto.StationList.decode(bodyBytes);
-        resolve(new DebuggableResult(stationList, url, stationList.debugInfo));
+        let result = new DebuggableResult(stationList, url, stationList.debugInfo);
+        this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
@@ -95,8 +103,23 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const itinerary = proto.TrainItinerary.decode(bodyBytes);
-        resolve(new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(startMoment, moment())));
+        let result = new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(startMoment, moment()));
+
+        this.maybeDelayAndResolve(resolve, result);
       });
     });
+  }
+
+  private maybeDelayAndResolve<R>(
+    resolve: (r: DebuggableResult<R>) => void,
+    result: DebuggableResult<R>) {
+
+    if (this.artificialDelayMs) {
+      setTimeout(() => {
+        resolve(result);
+      }, this.artificialDelayMs);
+    } else {
+      resolve(result);
+    }
   }
 }
