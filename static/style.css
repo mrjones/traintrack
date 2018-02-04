@@ -203,14 +203,16 @@ ul.lineView{
     font-weight: bold;
     margin: 0;
     padding: .25em;
-    padding-left: 0;
-    padding-right: 0;
-    border-top: 1px solid black;
-    width: 100%;
+    border-top: 1px solid white;
     height: 2em;
-    text-align: center;
     line-height: 2em;
 }
+
+.lineView li:nth-child(odd) {
+    background-color: #EEEEEE;
+}
+
+.lineView li:nth-child(even) { }
 
 .trainItinerary .station {
     text-align: right;

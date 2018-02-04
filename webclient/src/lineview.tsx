@@ -77,7 +77,7 @@ export default class LineView extends React.Component<LineViewProps, LineViewLoc
     });
 
     return (<div>
-              <h1>LineView: {this.props.lineId}</h1>
+              <h1>{this.props.lineId} Line</h1>
             <ul className="lineView">{stationLis}</ul>
             <ApiDebugger datasFetched={[this.props.stationList]}/>
             </div>);
