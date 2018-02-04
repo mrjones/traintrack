@@ -1,3 +1,4 @@
+import * as moment from "moment";
 import * as React from "react";
 
 import * as proto from './webclient_api_pb';
@@ -5,12 +6,17 @@ import * as proto from './webclient_api_pb';
 import { DebuggableResult } from './datafetcher';
 
 export class ClientDebugInfo {
-  public cached: boolean;
-  public clientWaitTimeMs: number;
+  public fetchStarted: moment.Moment;
+  public fetchCompleted: moment.Moment;
 
-  public constructor(cached: boolean, clientWaitTimeMs: number) {
-    this.cached = cached;
-    this.clientWaitTimeMs = clientWaitTimeMs;
+  public constructor(
+    fetchStarted: moment.Moment, fetchCompleted: moment.Moment) {
+    this.fetchStarted = fetchStarted;
+    this.fetchCompleted = fetchCompleted;
+  }
+
+  public waitTimeMs(): number {
+    return this.fetchCompleted.valueOf() - this.fetchStarted.valueOf();
   }
 }
 
@@ -40,18 +46,30 @@ class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebugge
   public render(): JSX.Element {
     let jsonLink: string = this.props.request.apiUrl + "?format=textproto";
 
-    let processingTimeMessage = "";
+    let components = [];
+
+    let clientInfo = null;
+    let serverInfo = null;
+
     if (this.props.request.serverDebugInfo) {
-      processingTimeMessage = "server_only=" + this.props.request.serverDebugInfo.processingTimeMs + "ms";
+      serverInfo = this.props.request.serverDebugInfo;
+    }
+    if (this.props.request.clientDebugInfo) {
+      clientInfo = this.props.request.clientDebugInfo;
     }
 
-    let waitTimeMessage = "";
-    if (this.props.request.clientDebugInfo) {
-      waitTimeMessage = "client_total=" + this.props.request.clientDebugInfo.clientWaitTimeMs + "ms cached=" + this.props.request.clientDebugInfo.cached + " server_build=" + this.props.request.serverDebugInfo.buildVersion;
+    if (clientInfo) {
+      components.push("fetched=" + clientInfo.fetchStarted.format("h:mm:ss"));
+      components.push("client_total=" + clientInfo.waitTimeMs() + "ms");
+    }
+
+    if (serverInfo) {
+      components.push("server=" + serverInfo.processingTimeMs + "ms");
+      components.push("server_build=" + serverInfo.buildVersion);
     }
 
     return <div className="apiRequest">
-      API: <a href={jsonLink}>{jsonLink}</a> ({processingTimeMessage} {waitTimeMessage})
+      API: <a href={jsonLink}>{jsonLink}</a> <span className="debugDetails">({components.join(" ")})</span>
     </div>;
   }
 }

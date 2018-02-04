@@ -1,5 +1,7 @@
 import 'babel-polyfill';
 
+import * as moment from "moment";
+
 import * as proto from './webclient_api_pb';
 
 import { ClientDebugInfo } from './debug';
@@ -27,35 +29,35 @@ export class DataFetcher {
 
   public fetchLineList(): Promise<DebuggableResult<proto.LineList>> {
     return new Promise<DebuggableResult<proto.LineList>>((resolve: (l: DebuggableResult<proto.LineList>) => void) => {
-      let startTime = Date.now();
+      let startMoment = moment();
       let apiUrl = "/api/lines";
       fetch(apiUrl).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const lineList = proto.LineList.decode(bodyBytes);
-        resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
+        resolve(new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(startMoment, moment())));
       });
     });
   }
 
   public fetchStationStatus(stationId: string): Promise<DebuggableResult<proto.StationStatus>> {
     return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
-      let startTime = Date.now();
+      let startMoment = moment();
       const url = "/api/station/" + stationId;
       fetch(url).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationStatus = proto.StationStatus.decode(bodyBytes);
-        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
+        resolve(new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(startMoment, moment())));
       });
     });
   }
 
   public fetchStationList(): Promise<DebuggableResult<proto.StationList>> {
     return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
-      let startTime = Date.now();
+      let startMoment = moment();
       let url = "/api/stations";
 
       console.log("Requesting station list");
@@ -64,7 +66,7 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const stationList = proto.StationList.decode(bodyBytes);
-        resolve(new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
+        resolve(new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(startMoment, moment())));
       });
     });
   }
@@ -85,7 +87,7 @@ export class DataFetcher {
 
   public fetchTrainItinerary(trainId: string): Promise<DebuggableResult<proto.TrainItinerary>> {
     return new Promise<DebuggableResult<proto.TrainItinerary>>((resolve: (ti: DebuggableResult<proto.TrainItinerary>) => void) => {
-      let startTime = Date.now();
+      let startMoment = moment();
       let url = "/api/train/" + trainId;
 
       fetch(url).then((response: Response) => {
@@ -93,7 +95,7 @@ export class DataFetcher {
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
         const itinerary = proto.TrainItinerary.decode(bodyBytes);
-        resolve(new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(false, Date.now() - startTime)));
+        resolve(new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(startMoment, moment())));
       });
     });
   }

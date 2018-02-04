@@ -278,10 +278,13 @@ ul.lineView{
 }
 
 .apiDebugger {
-    font-size: 90%;
+    font-size: 70%;
     border-top: 1px solid #999;
     color: #999;
     padding-top: .5em;
+}
+
+.apiRequest .debugDetails {
 }
 
 .filterControl .toggleButton {
