@@ -321,23 +321,72 @@ impl ::protobuf::reflect::ProtobufValue for FeedProxyResponse {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x13feedproxy_api.proto\x1a\x13gtfs-realtime.proto\"\xc6\x01\n\x11Feed\
-    ProxyResponse\x121\n\x04feed\x18\x01\x20\x01(\x0b2\x1d.transit_realtime.\
-    FeedMessageR\x04feed\x129\n\x19last_good_fetch_timestamp\x18\x02\x20\x01\
-    (\x03R\x16lastGoodFetchTimestamp\x12C\n\x1elast_attempted_fetch_timestam\
-    p\x18\x03\x20\x01(\x03R\x1blastAttemptedFetchTimestampJ\x84\x02\n\x06\
-    \x12\x04\0\0\x08\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\t\n\x02\x03\0\x12\
-    \x03\x02\x07\x1c\n\n\n\x02\x04\0\x12\x04\x04\0\x08\x01\n\n\n\x03\x04\0\
-    \x01\x12\x03\x04\x08\x19\n\x0b\n\x04\x04\0\x02\0\x12\x03\x05\x021\n\x0c\
-    \n\x05\x04\0\x02\0\x04\x12\x03\x05\x02\n\n\x0c\n\x05\x04\0\x02\0\x06\x12\
-    \x03\x05\x0b'\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x05(,\n\x0c\n\x05\x04\
-    \0\x02\0\x03\x12\x03\x05/0\n\x0b\n\x04\x04\0\x02\x01\x12\x03\x06\x02/\n\
-    \x0c\n\x05\x04\0\x02\x01\x04\x12\x03\x06\x02\n\n\x0c\n\x05\x04\0\x02\x01\
-    \x05\x12\x03\x06\x0b\x10\n\x0c\n\x05\x04\0\x02\x01\x01\x12\x03\x06\x11*\
-    \n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x06-.\n\x0b\n\x04\x04\0\x02\x02\
-    \x12\x03\x07\x024\n\x0c\n\x05\x04\0\x02\x02\x04\x12\x03\x07\x02\n\n\x0c\
-    \n\x05\x04\0\x02\x02\x05\x12\x03\x07\x0b\x10\n\x0c\n\x05\x04\0\x02\x02\
-    \x01\x12\x03\x07\x11/\n\x0c\n\x05\x04\0\x02\x02\x03\x12\x03\x0723\
+    
+feedproxy_api.protogtfs-realtime.proto\"Æ
+Feed\
+    ProxyResponse1
+feed (2.transit_realtime.\
+    FeedMessageRfeed9
+last_good_fetch_timestamp \
+    (RlastGoodFetchTimestampC
+last_attempted_fetch_timestam\
+    p (RlastAttemptedFetchTimestampJ„
+\
+      
+
+  
+	
+ \
+    
+
+
+  
+
+
+ \
+    
+
+  1
+\
+    
+  
+
+
+  \
+    '
+
+  (,
+
+\
+      /0
+
+ /
+\
+    
+ 
+
+
+ \
+    
+
+ *\
+    
+
+ -.
+
+ \
+    4
+
+ 
+
+\
+    
+ 
+
+ \
+    /
+
+ 23\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

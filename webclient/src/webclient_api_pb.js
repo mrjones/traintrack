@@ -1,3 +1,17 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
@@ -29,15 +43,16 @@ $root.DebugInfo = (function() {
      * Properties of a DebugInfo.
      * @exports IDebugInfo
      * @interface IDebugInfo
-     * @property {number|Long} [processingTimeMs] DebugInfo processingTimeMs
-     * @property {string} [buildVersion] DebugInfo buildVersion
-     * @property {number|Long} [buildTimestamp] DebugInfo buildTimestamp
+     * @property {number|Long|null} [processingTimeMs] DebugInfo processingTimeMs
+     * @property {string|null} [buildVersion] DebugInfo buildVersion
+     * @property {number|Long|null} [buildTimestamp] DebugInfo buildTimestamp
      */
 
     /**
      * Constructs a new DebugInfo.
      * @exports DebugInfo
      * @classdesc Represents a DebugInfo.
+     * @implements IDebugInfo
      * @constructor
      * @param {IDebugInfo=} [properties] Properties to set
      */
@@ -50,7 +65,7 @@ $root.DebugInfo = (function() {
 
     /**
      * DebugInfo processingTimeMs.
-     * @member {number|Long}processingTimeMs
+     * @member {number|Long} processingTimeMs
      * @memberof DebugInfo
      * @instance
      */
@@ -58,7 +73,7 @@ $root.DebugInfo = (function() {
 
     /**
      * DebugInfo buildVersion.
-     * @member {string}buildVersion
+     * @member {string} buildVersion
      * @memberof DebugInfo
      * @instance
      */
@@ -66,7 +81,7 @@ $root.DebugInfo = (function() {
 
     /**
      * DebugInfo buildTimestamp.
-     * @member {number|Long}buildTimestamp
+     * @member {number|Long} buildTimestamp
      * @memberof DebugInfo
      * @instance
      */
@@ -288,14 +303,15 @@ $root.LineArrival = (function() {
      * Properties of a LineArrival.
      * @exports ILineArrival
      * @interface ILineArrival
-     * @property {number|Long} [timestamp] LineArrival timestamp
-     * @property {string} [tripId] LineArrival tripId
+     * @property {number|Long|null} [timestamp] LineArrival timestamp
+     * @property {string|null} [tripId] LineArrival tripId
      */
 
     /**
      * Constructs a new LineArrival.
      * @exports LineArrival
      * @classdesc Represents a LineArrival.
+     * @implements ILineArrival
      * @constructor
      * @param {ILineArrival=} [properties] Properties to set
      */
@@ -308,7 +324,7 @@ $root.LineArrival = (function() {
 
     /**
      * LineArrival timestamp.
-     * @member {number|Long}timestamp
+     * @member {number|Long} timestamp
      * @memberof LineArrival
      * @instance
      */
@@ -316,7 +332,7 @@ $root.LineArrival = (function() {
 
     /**
      * LineArrival tripId.
-     * @member {string}tripId
+     * @member {string} tripId
      * @memberof LineArrival
      * @instance
      */
@@ -511,17 +527,18 @@ $root.LineArrivals = (function() {
      * Properties of a LineArrivals.
      * @exports ILineArrivals
      * @interface ILineArrivals
-     * @property {string} [line] LineArrivals line
-     * @property {Direction} [direction] LineArrivals direction
-     * @property {string} [lineColorHex] LineArrivals lineColorHex
-     * @property {Array.<ILineArrival>} [arrivals] LineArrivals arrivals
-     * @property {IDebugInfo} [debugInfo] LineArrivals debugInfo
+     * @property {string|null} [line] LineArrivals line
+     * @property {Direction|null} [direction] LineArrivals direction
+     * @property {string|null} [lineColorHex] LineArrivals lineColorHex
+     * @property {Array.<ILineArrival>|null} [arrivals] LineArrivals arrivals
+     * @property {IDebugInfo|null} [debugInfo] LineArrivals debugInfo
      */
 
     /**
      * Constructs a new LineArrivals.
      * @exports LineArrivals
      * @classdesc Represents a LineArrivals.
+     * @implements ILineArrivals
      * @constructor
      * @param {ILineArrivals=} [properties] Properties to set
      */
@@ -535,7 +552,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals line.
-     * @member {string}line
+     * @member {string} line
      * @memberof LineArrivals
      * @instance
      */
@@ -543,7 +560,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals direction.
-     * @member {Direction}direction
+     * @member {Direction} direction
      * @memberof LineArrivals
      * @instance
      */
@@ -551,7 +568,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals lineColorHex.
-     * @member {string}lineColorHex
+     * @member {string} lineColorHex
      * @memberof LineArrivals
      * @instance
      */
@@ -559,7 +576,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals arrivals.
-     * @member {Array.<ILineArrival>}arrivals
+     * @member {Array.<ILineArrival>} arrivals
      * @memberof LineArrivals
      * @instance
      */
@@ -567,7 +584,7 @@ $root.LineArrivals = (function() {
 
     /**
      * LineArrivals debugInfo.
-     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @member {IDebugInfo|null|undefined} debugInfo
      * @memberof LineArrivals
      * @instance
      */
@@ -718,7 +735,7 @@ $root.LineArrivals = (function() {
             }
         }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            error = $root.DebugInfo.verify(message.debugInfo);
+            var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }
@@ -826,14 +843,15 @@ $root.TrainItineraryArrival = (function() {
      * Properties of a TrainItineraryArrival.
      * @exports ITrainItineraryArrival
      * @interface ITrainItineraryArrival
-     * @property {number|Long} [timestamp] TrainItineraryArrival timestamp
-     * @property {IStation} [station] TrainItineraryArrival station
+     * @property {number|Long|null} [timestamp] TrainItineraryArrival timestamp
+     * @property {IStation|null} [station] TrainItineraryArrival station
      */
 
     /**
      * Constructs a new TrainItineraryArrival.
      * @exports TrainItineraryArrival
      * @classdesc Represents a TrainItineraryArrival.
+     * @implements ITrainItineraryArrival
      * @constructor
      * @param {ITrainItineraryArrival=} [properties] Properties to set
      */
@@ -846,7 +864,7 @@ $root.TrainItineraryArrival = (function() {
 
     /**
      * TrainItineraryArrival timestamp.
-     * @member {number|Long}timestamp
+     * @member {number|Long} timestamp
      * @memberof TrainItineraryArrival
      * @instance
      */
@@ -854,7 +872,7 @@ $root.TrainItineraryArrival = (function() {
 
     /**
      * TrainItineraryArrival station.
-     * @member {(IStation|null|undefined)}station
+     * @member {IStation|null|undefined} station
      * @memberof TrainItineraryArrival
      * @instance
      */
@@ -1054,18 +1072,19 @@ $root.TrainItinerary = (function() {
      * Properties of a TrainItinerary.
      * @exports ITrainItinerary
      * @interface ITrainItinerary
-     * @property {string} [line] TrainItinerary line
-     * @property {Direction} [direction] TrainItinerary direction
-     * @property {string} [lineColorHex] TrainItinerary lineColorHex
-     * @property {Array.<ITrainItineraryArrival>} [arrival] TrainItinerary arrival
-     * @property {number|Long} [dataTimestamp] TrainItinerary dataTimestamp
-     * @property {IDebugInfo} [debugInfo] TrainItinerary debugInfo
+     * @property {string|null} [line] TrainItinerary line
+     * @property {Direction|null} [direction] TrainItinerary direction
+     * @property {string|null} [lineColorHex] TrainItinerary lineColorHex
+     * @property {Array.<ITrainItineraryArrival>|null} [arrival] TrainItinerary arrival
+     * @property {number|Long|null} [dataTimestamp] TrainItinerary dataTimestamp
+     * @property {IDebugInfo|null} [debugInfo] TrainItinerary debugInfo
      */
 
     /**
      * Constructs a new TrainItinerary.
      * @exports TrainItinerary
      * @classdesc Represents a TrainItinerary.
+     * @implements ITrainItinerary
      * @constructor
      * @param {ITrainItinerary=} [properties] Properties to set
      */
@@ -1079,7 +1098,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary line.
-     * @member {string}line
+     * @member {string} line
      * @memberof TrainItinerary
      * @instance
      */
@@ -1087,7 +1106,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary direction.
-     * @member {Direction}direction
+     * @member {Direction} direction
      * @memberof TrainItinerary
      * @instance
      */
@@ -1095,7 +1114,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary lineColorHex.
-     * @member {string}lineColorHex
+     * @member {string} lineColorHex
      * @memberof TrainItinerary
      * @instance
      */
@@ -1103,7 +1122,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary arrival.
-     * @member {Array.<ITrainItineraryArrival>}arrival
+     * @member {Array.<ITrainItineraryArrival>} arrival
      * @memberof TrainItinerary
      * @instance
      */
@@ -1111,7 +1130,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary dataTimestamp.
-     * @member {number|Long}dataTimestamp
+     * @member {number|Long} dataTimestamp
      * @memberof TrainItinerary
      * @instance
      */
@@ -1119,7 +1138,7 @@ $root.TrainItinerary = (function() {
 
     /**
      * TrainItinerary debugInfo.
-     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @member {IDebugInfo|null|undefined} debugInfo
      * @memberof TrainItinerary
      * @instance
      */
@@ -1278,7 +1297,7 @@ $root.TrainItinerary = (function() {
             if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
                 return "dataTimestamp: integer|Long expected";
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            error = $root.DebugInfo.verify(message.debugInfo);
+            var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }
@@ -1405,16 +1424,17 @@ $root.StationStatus = (function() {
      * Properties of a StationStatus.
      * @exports IStationStatus
      * @interface IStationStatus
-     * @property {string} [name] StationStatus name
-     * @property {Array.<ILineArrivals>} [line] StationStatus line
-     * @property {number|Long} [dataTimestamp] StationStatus dataTimestamp
-     * @property {IDebugInfo} [debugInfo] StationStatus debugInfo
+     * @property {string|null} [name] StationStatus name
+     * @property {Array.<ILineArrivals>|null} [line] StationStatus line
+     * @property {number|Long|null} [dataTimestamp] StationStatus dataTimestamp
+     * @property {IDebugInfo|null} [debugInfo] StationStatus debugInfo
      */
 
     /**
      * Constructs a new StationStatus.
      * @exports StationStatus
      * @classdesc Represents a StationStatus.
+     * @implements IStationStatus
      * @constructor
      * @param {IStationStatus=} [properties] Properties to set
      */
@@ -1428,7 +1448,7 @@ $root.StationStatus = (function() {
 
     /**
      * StationStatus name.
-     * @member {string}name
+     * @member {string} name
      * @memberof StationStatus
      * @instance
      */
@@ -1436,7 +1456,7 @@ $root.StationStatus = (function() {
 
     /**
      * StationStatus line.
-     * @member {Array.<ILineArrivals>}line
+     * @member {Array.<ILineArrivals>} line
      * @memberof StationStatus
      * @instance
      */
@@ -1444,7 +1464,7 @@ $root.StationStatus = (function() {
 
     /**
      * StationStatus dataTimestamp.
-     * @member {number|Long}dataTimestamp
+     * @member {number|Long} dataTimestamp
      * @memberof StationStatus
      * @instance
      */
@@ -1452,7 +1472,7 @@ $root.StationStatus = (function() {
 
     /**
      * StationStatus debugInfo.
-     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @member {IDebugInfo|null|undefined} debugInfo
      * @memberof StationStatus
      * @instance
      */
@@ -1590,7 +1610,7 @@ $root.StationStatus = (function() {
             if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
                 return "dataTimestamp: integer|Long expected";
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            error = $root.DebugInfo.verify(message.debugInfo);
+            var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }
@@ -1699,15 +1719,16 @@ $root.Station = (function() {
      * Properties of a Station.
      * @exports IStation
      * @interface IStation
-     * @property {string} [id] Station id
-     * @property {string} [name] Station name
-     * @property {Array.<string>} [lines] Station lines
+     * @property {string|null} [id] Station id
+     * @property {string|null} [name] Station name
+     * @property {Array.<string>|null} [lines] Station lines
      */
 
     /**
      * Constructs a new Station.
      * @exports Station
      * @classdesc Represents a Station.
+     * @implements IStation
      * @constructor
      * @param {IStation=} [properties] Properties to set
      */
@@ -1721,7 +1742,7 @@ $root.Station = (function() {
 
     /**
      * Station id.
-     * @member {string}id
+     * @member {string} id
      * @memberof Station
      * @instance
      */
@@ -1729,7 +1750,7 @@ $root.Station = (function() {
 
     /**
      * Station name.
-     * @member {string}name
+     * @member {string} name
      * @memberof Station
      * @instance
      */
@@ -1737,7 +1758,7 @@ $root.Station = (function() {
 
     /**
      * Station lines.
-     * @member {Array.<string>}lines
+     * @member {Array.<string>} lines
      * @memberof Station
      * @instance
      */
@@ -1947,14 +1968,15 @@ $root.StationList = (function() {
      * Properties of a StationList.
      * @exports IStationList
      * @interface IStationList
-     * @property {Array.<IStation>} [station] StationList station
-     * @property {IDebugInfo} [debugInfo] StationList debugInfo
+     * @property {Array.<IStation>|null} [station] StationList station
+     * @property {IDebugInfo|null} [debugInfo] StationList debugInfo
      */
 
     /**
      * Constructs a new StationList.
      * @exports StationList
      * @classdesc Represents a StationList.
+     * @implements IStationList
      * @constructor
      * @param {IStationList=} [properties] Properties to set
      */
@@ -1968,7 +1990,7 @@ $root.StationList = (function() {
 
     /**
      * StationList station.
-     * @member {Array.<IStation>}station
+     * @member {Array.<IStation>} station
      * @memberof StationList
      * @instance
      */
@@ -1976,7 +1998,7 @@ $root.StationList = (function() {
 
     /**
      * StationList debugInfo.
-     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @member {IDebugInfo|null|undefined} debugInfo
      * @memberof StationList
      * @instance
      */
@@ -2098,7 +2120,7 @@ $root.StationList = (function() {
             }
         }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            error = $root.DebugInfo.verify(message.debugInfo);
+            var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }
@@ -2182,15 +2204,16 @@ $root.Line = (function() {
      * Properties of a Line.
      * @exports ILine
      * @interface ILine
-     * @property {string} [name] Line name
-     * @property {string} [colorHex] Line colorHex
-     * @property {boolean} [active] Line active
+     * @property {string|null} [name] Line name
+     * @property {string|null} [colorHex] Line colorHex
+     * @property {boolean|null} [active] Line active
      */
 
     /**
      * Constructs a new Line.
      * @exports Line
      * @classdesc Represents a Line.
+     * @implements ILine
      * @constructor
      * @param {ILine=} [properties] Properties to set
      */
@@ -2203,7 +2226,7 @@ $root.Line = (function() {
 
     /**
      * Line name.
-     * @member {string}name
+     * @member {string} name
      * @memberof Line
      * @instance
      */
@@ -2211,7 +2234,7 @@ $root.Line = (function() {
 
     /**
      * Line colorHex.
-     * @member {string}colorHex
+     * @member {string} colorHex
      * @memberof Line
      * @instance
      */
@@ -2219,7 +2242,7 @@ $root.Line = (function() {
 
     /**
      * Line active.
-     * @member {boolean}active
+     * @member {boolean} active
      * @memberof Line
      * @instance
      */
@@ -2413,14 +2436,15 @@ $root.LineList = (function() {
      * Properties of a LineList.
      * @exports ILineList
      * @interface ILineList
-     * @property {Array.<ILine>} [line] LineList line
-     * @property {IDebugInfo} [debugInfo] LineList debugInfo
+     * @property {Array.<ILine>|null} [line] LineList line
+     * @property {IDebugInfo|null} [debugInfo] LineList debugInfo
      */
 
     /**
      * Constructs a new LineList.
      * @exports LineList
      * @classdesc Represents a LineList.
+     * @implements ILineList
      * @constructor
      * @param {ILineList=} [properties] Properties to set
      */
@@ -2434,7 +2458,7 @@ $root.LineList = (function() {
 
     /**
      * LineList line.
-     * @member {Array.<ILine>}line
+     * @member {Array.<ILine>} line
      * @memberof LineList
      * @instance
      */
@@ -2442,7 +2466,7 @@ $root.LineList = (function() {
 
     /**
      * LineList debugInfo.
-     * @member {(IDebugInfo|null|undefined)}debugInfo
+     * @member {IDebugInfo|null|undefined} debugInfo
      * @memberof LineList
      * @instance
      */
@@ -2564,7 +2588,7 @@ $root.LineList = (function() {
             }
         }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
-            error = $root.DebugInfo.verify(message.debugInfo);
+            var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
                 return "debugInfo." + error;
         }

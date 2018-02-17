@@ -24,20 +24,44 @@
 # - npm install (already defined in project.json)
 ~/downloads/proto/bin/protoc --proto_path ./proto/ --plugin ~/.cargo/bin/protoc-gen-rust --rust_out ./src/ proto/*.proto
 
-# ~/downloads/proto/bin/protoc --proto_path ./proto/ --js_out import_style=commonjs,binary:./webclient/src/ proto/webclient_api.proto
-
 PBJS=./webclient/node_modules/protobufjs/bin/pbjs
 PBTS=./webclient/node_modules/protobufjs/bin/pbts
 
-$PBJS -t static-module -w commonjs -o webclient/src/webclient_api_pb.js proto/webclient_api.proto
+PROTO_FILE=proto/webclient_api.proto
+WEBCLIENT_API_D_TS=webclient/src/webclient_api_pb.d.ts
+WEBCLIENT_API_JS=webclient/src/webclient_api_pb.js
+WEBCLIENT_API_RS=src/webclient_api.rs
+FEEDPROXY_API_RS=src/feedproxy_api.rs
 
-$PBJS -t static-module proto/webclient_api.proto | $PBTS -o webclient/src/webclient_api_pb.d.ts -
+$PBJS -t static-module -w commonjs -o $WEBCLIENT_API_JS $PROTO_FILE
+$PBJS -t static-module $PROTO_FILE | $PBTS -o $WEBCLIENT_API_D_TS -
 
-D_TS_FILE=webclient/src/webclient_api_pb.d.ts
+echo "// NOTE: THIS WAS ADDED MANUALLY" >> $WEBCLIENT_API_D_TS
+echo "// https://github.com/dcodeIO/protobuf.js/issues/780" >> $WEBCLIENT_API_D_TS
+echo "export enum Direction {" >> $WEBCLIENT_API_D_TS
+echo "    UPTOWN," >> $WEBCLIENT_API_D_TS
+echo "    DOWNTOWN," >> $WEBCLIENT_API_D_TS
+echo "}" >> $WEBCLIENT_API_D_TS
 
-echo "// NOTE: THIS WAS ADDED MANUALLY" >> $D_TS_FILE
-echo "// https://github.com/dcodeIO/protobuf.js/issues/780" >> $D_TS_FILE
-echo "export enum Direction {" >> $D_TS_FILE
-echo "    UPTOWN," >> $D_TS_FILE
-echo "    DOWNTOWN," >> $D_TS_FILE
-echo "}" >> $D_TS_FILE
+LICENSE_TXT=$(cat <<-END
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+END
+)
+
+echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_D_TS)" > $WEBCLIENT_API_D_TS
+echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_JS)" > $WEBCLIENT_API_JS
+echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_RS)" > $WEBCLIENT_API_RS
+echo -e "${LICENSE_TXT}\n\n$(cat $FEEDPROXY_API_RS)" > $FEEDPROXY_API_RS
+
