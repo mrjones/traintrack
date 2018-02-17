@@ -20,8 +20,8 @@ protobuf-json = "*"
 regex = "*"
 reqwest = "*"
 rustc-serialize = "*"
-#rustful = "*"
-rustful = { path = "../rustful" }
+rustful = "*"
+#rustful = { path = "../rustful" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
