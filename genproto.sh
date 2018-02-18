@@ -32,6 +32,7 @@ WEBCLIENT_API_D_TS=webclient/src/webclient_api_pb.d.ts
 WEBCLIENT_API_JS=webclient/src/webclient_api_pb.js
 WEBCLIENT_API_RS=src/webclient_api.rs
 FEEDPROXY_API_RS=src/feedproxy_api.rs
+GTFS_REALTIME_RS=src/gtfs_realtime.rs
 
 $PBJS -t static-module -w commonjs -o $WEBCLIENT_API_JS $PROTO_FILE
 $PBJS -t static-module $PROTO_FILE | $PBTS -o $WEBCLIENT_API_D_TS -
@@ -60,8 +61,26 @@ LICENSE_TXT=$(cat <<-END
 END
 )
 
-echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_D_TS)" > $WEBCLIENT_API_D_TS
-echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_JS)" > $WEBCLIENT_API_JS
-echo -e "${LICENSE_TXT}\n\n$(cat $WEBCLIENT_API_RS)" > $WEBCLIENT_API_RS
-echo -e "${LICENSE_TXT}\n\n$(cat $FEEDPROXY_API_RS)" > $FEEDPROXY_API_RS
+GTFS_LICENSE_TXT=$(cat <<-END
+// Copyright 2015 The GTFS Specifications Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+END
+)
+
+echo "${LICENSE_TXT}"$'\n\n'"$(cat $WEBCLIENT_API_D_TS)" > $WEBCLIENT_API_D_TS
+echo "${LICENSE_TXT}"$'\n\n'"$(cat $WEBCLIENT_API_JS)" > $WEBCLIENT_API_JS
+echo "${LICENSE_TXT}"$'\n\n'"$(cat $WEBCLIENT_API_RS)" > $WEBCLIENT_API_RS
+echo "${LICENSE_TXT}"$'\n\n'"$(cat $FEEDPROXY_API_RS)" > $FEEDPROXY_API_RS
+echo "${GTFS_LICENSE_TXT}"$'\n\n'"$(cat $GTFS_REALTIME_RS)" > $GTFS_REALTIME_RS
 
