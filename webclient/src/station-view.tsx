@@ -19,6 +19,7 @@ import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
+import * as history from "history";
 
 import * as proto from './webclient_api_pb';
 import * as utils from './utils';
@@ -33,7 +34,7 @@ import { TTState } from './state-machine';
 import { fetchStationList, loadStationDetails } from './state-actions';
 
 export class StationPageQueryParams {
-  public static parseFrom(query: History.Search): StationPageQueryParams {
+  public static parseFrom(query: history.Search): StationPageQueryParams {
     let parsed = querystring.parse(query);
     return {
       highlightedTrains: parsed["highlight"] ?

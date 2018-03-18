@@ -19,6 +19,7 @@ import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as moment from "moment";
 import * as querystring from "query-string";
+import * as history from "history";
 
 import * as proto from './webclient_api_pb';
 
@@ -29,7 +30,7 @@ import { PubInfo } from './pub-info';
 import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
 
 export class TrainItineraryQueryParams {
-  public static parseFrom(query: History.Search): TrainItineraryQueryParams {
+  public static parseFrom(query: history.Search): TrainItineraryQueryParams {
     let parsed = querystring.parse(query);
     return {
       highlightedStations: parsed["highlight"] ?
