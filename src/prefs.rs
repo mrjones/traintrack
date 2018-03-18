@@ -70,7 +70,7 @@ struct FirestoreDocument {
     #[serde(rename = "createTime")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     create_time: std::option::Option<String>,
-    #[serde(rename = "createTime")]
+    #[serde(rename = "updateTime")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     update_time: std::option::Option<String>,
 }
