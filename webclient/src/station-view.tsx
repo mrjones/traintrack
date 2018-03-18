@@ -306,7 +306,7 @@ export class StationPageWrapper extends React.Component<ReactRouter.RouteCompone
   }
 
   private stationId(): string {
-    return this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "028";
+    return this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "default";
   }
 
   private visibilitySpec(): string {

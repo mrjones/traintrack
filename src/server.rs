@@ -278,7 +278,11 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
         let _parse_query_span = per_request_context.timer.span("parse_query");
         let station_id_str = rustful_context.variables.get("station_id").ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
-        station_id = station_id_str.into_owned();
+        if station_id_str == "default" {
+            station_id = "028".to_string();
+        } else {
+            station_id = station_id_str.into_owned();
+        }
         station = tt_context.stops.lookup_by_id(&station_id).ok_or(
             result::TTError::Uncategorized(
                 format!("No station with ID {}", station_id)))?;
