@@ -269,6 +269,26 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rust
     }
 }
 
+// TODO(mrjones): Refactor shared cookie handling code.
+fn extract_default_station_from_cookie(context: &rustful::Context) -> Option<String> {
+    return context.headers.get::<rustful::header::Cookie>().and_then(
+        |cookies: &rustful::header::Cookie| {
+            let matches: Vec<&str> = cookies.iter().filter_map(|cookie| {
+                let parts: std::vec::Vec<&str> = cookie.splitn(2, '=').collect();
+                if parts.len() == 2 && parts[0] == "defaultStation" {
+                    return Some(parts[1]);
+                } else {
+                    return None;
+                }
+            }).collect::<std::vec::Vec<&str>>();
+
+            if matches.len() == 0 {
+                return None;
+            }
+            return Some(matches[0].to_string());
+        });
+}
+
 fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     let _all_span = per_request_context.timer.span("station_detail_api");
 
@@ -279,7 +299,8 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
         let station_id_str = rustful_context.variables.get("station_id").ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
         if station_id_str == "default" {
-            station_id = "028".to_string();
+            station_id = extract_default_station_from_cookie(&rustful_context)
+                .unwrap_or("028".to_string());
         } else {
             station_id = station_id_str.into_owned();
         }

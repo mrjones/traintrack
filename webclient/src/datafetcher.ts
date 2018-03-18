@@ -64,7 +64,7 @@ export class DataFetcher {
     return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
       let startMoment = moment();
       const url = "/api/station/" + stationId;
-      fetch(url).then((response: Response) => {
+      fetch(url, {credentials: 'include'}).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
