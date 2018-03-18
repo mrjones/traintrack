@@ -26,21 +26,19 @@ pub struct PrefStorage {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreQueryResponseRecord {
     document: FirestoreDocument,
-    #[serde(rename = "readTime")]
     read_time: String,
-    #[serde(rename = "skippedResults")]
     skipped_results: std::option::Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreValue {
-    #[serde(rename = "stringValue")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     string_value: std::option::Option<String>,
 
-    #[serde(rename = "booleanValue")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     boolean_value: std::option::Option<bool>,
 }
@@ -64,20 +62,19 @@ impl Default for FirestoreValue {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreDocument {
     name: String,
     fields: std::collections::HashMap<String, FirestoreValue>,
-    #[serde(rename = "createTime")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     create_time: std::option::Option<String>,
-    #[serde(rename = "updateTime")]
     #[serde(skip_serializing_if="std::option::Option::is_none")]
     update_time: std::option::Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreFieldReference {
-    #[serde(rename = "fieldPath")]
     field_path: String,
 }
 
@@ -87,8 +84,8 @@ struct FirestoreProjection {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreCollectionSelector {
-    #[serde(rename = "collectionId")]
     collection_id: String,
 }
 
@@ -105,9 +102,9 @@ struct FirestoreFieldFilter {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FirestoreFilter {
     // https://firebase.google.com/docs/firestore/reference/rest/v1beta1/StructuredQuery#Filter
-    #[serde(rename = "fieldFilter")]
     field_filter: FirestoreFieldFilter,
 }
 
