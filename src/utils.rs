@@ -13,12 +13,14 @@
 // limitations under the License.
 
 extern crate chrono;
+extern crate protobuf;
 extern crate std;
 
 use chrono::TimeZone;
 
 use feedfetcher;
 use gtfs_realtime;
+use nyct_subway;
 use stops;
 
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -41,7 +43,19 @@ pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::
     return active_lines;
 }
 
-pub fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
+fn infer_direction_from_nyct_descriptor(nyct: &nyct_subway::NyctTripDescriptor) -> Direction {
+    match nyct.get_direction() {
+        nyct_subway::NyctTripDescriptor_Direction::NORTH => return Direction::UPTOWN,
+        nyct_subway::NyctTripDescriptor_Direction::SOUTH => return Direction::DOWNTOWN,
+        _ => {
+            error!("Unsupported NYCT direction: {:?}", nyct.get_direction());
+            return Direction::DOWNTOWN;
+        }
+    }
+
+}
+
+fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     // TODO(mrjones): Read the NYCT extension and determine this properly
     let trip_id: String = trip_id.to_string();
 
@@ -103,6 +117,38 @@ pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMes
     return all_upcoming_trains_vec_ref(stop_id, &ref_vec, stops);
 }
 
+fn extract_field_with_id(unknown_fields: &std::collections::HashMap<u32, protobuf::UnknownValues>, id: u32) -> Option<Vec<Vec<u8>>> {
+    return unknown_fields.get(&id).map(|unknown_values| {
+        return unknown_values.length_delimited.clone();
+    });
+}
+
+// Extracts the NyctTripDescriptor extension. This is ugly, but it works!
+// We should probably try to add native proto extension support to the protobuf library.
+pub fn get_nyct_extension(generic_trip: &gtfs_realtime::TripDescriptor) -> Option<nyct_subway::NyctTripDescriptor> {
+    use protobuf::Message;
+    let nyct_bytes_vec: Vec<Vec<u8>> =
+        match generic_trip.get_unknown_fields().fields {
+            Some(ref fields) => extract_field_with_id(fields.as_ref(), 1001).unwrap_or(vec![]),
+            None => vec![],
+        };
+
+    if nyct_bytes_vec.len() == 0 {
+        return None;
+    }
+
+    assert_eq!(1, nyct_bytes_vec.len());  // TODO: Support multiple?
+
+    let mut nyct_descriptor = nyct_subway::NyctTripDescriptor::new();
+
+    let mut input_stream = protobuf::CodedInputStream::from_bytes(
+        nyct_bytes_vec[0].as_slice());
+    match nyct_descriptor.merge_from(&mut input_stream) {
+        Ok(_) => return Some(nyct_descriptor),
+        Err(_) => return None,  // TODO: Log err
+    }
+}
+
 pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>> = std::collections::BTreeMap::new();
 
@@ -113,10 +159,24 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
             if entity.has_trip_update() {
                 let trip_update = entity.get_trip_update();
                 let trip = trip_update.get_trip();
+
+                let maybe_nyct_extension = get_nyct_extension(trip);
                 for stop_time_update in trip_update.get_stop_time_update() {
                     if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
                         min_relevant_ts = std::cmp::min(min_relevant_ts, feed.get_header().get_timestamp());
-                        let direction = infer_direction_for_trip_id(trip.get_trip_id());
+                        let mut direction = match maybe_nyct_extension {
+                            Some(ref nyct) => infer_direction_from_nyct_descriptor(nyct),
+                            None => infer_direction_for_trip_id(trip.get_trip_id()),
+                        };
+
+                        // TODO(mrjones): Figure out why this is necessary
+                        if trip.get_route_id() == "E" {
+                            direction = match direction {
+                                Direction::UPTOWN => Direction::DOWNTOWN,
+                                Direction::DOWNTOWN => Direction::UPTOWN,
+                            };
+                        }
+
                         let timestamp = chrono::Utc.timestamp(
                             stop_time_update.get_arrival().get_time(), 0);
 

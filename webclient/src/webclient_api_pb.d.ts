@@ -14,27 +14,21 @@
 
 import * as $protobuf from "protobufjs";
 
-/** Direction enum. */
-export enum Direction {
-    UPTOWN = 0,
-    DOWNTOWN = 1
-}
-
 /** Properties of a DebugInfo. */
 export interface IDebugInfo {
 
     /** DebugInfo processingTimeMs */
-    processingTimeMs?: (number|Long|null);
+    processingTimeMs?: (number|Long);
 
     /** DebugInfo buildVersion */
-    buildVersion?: (string|null);
+    buildVersion?: string;
 
     /** DebugInfo buildTimestamp */
-    buildTimestamp?: (number|Long|null);
+    buildTimestamp?: (number|Long);
 }
 
 /** Represents a DebugInfo. */
-export class DebugInfo implements IDebugInfo {
+export class DebugInfo {
 
     /**
      * Constructs a new DebugInfo.
@@ -126,14 +120,14 @@ export class DebugInfo implements IDebugInfo {
 export interface ILineArrival {
 
     /** LineArrival timestamp */
-    timestamp?: (number|Long|null);
+    timestamp?: (number|Long);
 
     /** LineArrival tripId */
-    tripId?: (string|null);
+    tripId?: string;
 }
 
 /** Represents a LineArrival. */
-export class LineArrival implements ILineArrival {
+export class LineArrival {
 
     /**
      * Constructs a new LineArrival.
@@ -222,23 +216,23 @@ export class LineArrival implements ILineArrival {
 export interface ILineArrivals {
 
     /** LineArrivals line */
-    line?: (string|null);
+    line?: string;
 
     /** LineArrivals direction */
-    direction?: (Direction|null);
+    direction?: Direction;
 
     /** LineArrivals lineColorHex */
-    lineColorHex?: (string|null);
+    lineColorHex?: string;
 
     /** LineArrivals arrivals */
-    arrivals?: (ILineArrival[]|null);
+    arrivals?: ILineArrival[];
 
     /** LineArrivals debugInfo */
-    debugInfo?: (IDebugInfo|null);
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a LineArrivals. */
-export class LineArrivals implements ILineArrivals {
+export class LineArrivals {
 
     /**
      * Constructs a new LineArrivals.
@@ -336,14 +330,14 @@ export class LineArrivals implements ILineArrivals {
 export interface ITrainItineraryArrival {
 
     /** TrainItineraryArrival timestamp */
-    timestamp?: (number|Long|null);
+    timestamp?: (number|Long);
 
     /** TrainItineraryArrival station */
-    station?: (IStation|null);
+    station?: IStation;
 }
 
 /** Represents a TrainItineraryArrival. */
-export class TrainItineraryArrival implements ITrainItineraryArrival {
+export class TrainItineraryArrival {
 
     /**
      * Constructs a new TrainItineraryArrival.
@@ -432,26 +426,26 @@ export class TrainItineraryArrival implements ITrainItineraryArrival {
 export interface ITrainItinerary {
 
     /** TrainItinerary line */
-    line?: (string|null);
+    line?: string;
 
     /** TrainItinerary direction */
-    direction?: (Direction|null);
+    direction?: Direction;
 
     /** TrainItinerary lineColorHex */
-    lineColorHex?: (string|null);
+    lineColorHex?: string;
 
     /** TrainItinerary arrival */
-    arrival?: (ITrainItineraryArrival[]|null);
+    arrival?: ITrainItineraryArrival[];
 
     /** TrainItinerary dataTimestamp */
-    dataTimestamp?: (number|Long|null);
+    dataTimestamp?: (number|Long);
 
     /** TrainItinerary debugInfo */
-    debugInfo?: (IDebugInfo|null);
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a TrainItinerary. */
-export class TrainItinerary implements ITrainItinerary {
+export class TrainItinerary {
 
     /**
      * Constructs a new TrainItinerary.
@@ -552,20 +546,20 @@ export class TrainItinerary implements ITrainItinerary {
 export interface IStationStatus {
 
     /** StationStatus name */
-    name?: (string|null);
+    name?: string;
 
     /** StationStatus line */
-    line?: (ILineArrivals[]|null);
+    line?: ILineArrivals[];
 
     /** StationStatus dataTimestamp */
-    dataTimestamp?: (number|Long|null);
+    dataTimestamp?: (number|Long);
 
     /** StationStatus debugInfo */
-    debugInfo?: (IDebugInfo|null);
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a StationStatus. */
-export class StationStatus implements IStationStatus {
+export class StationStatus {
 
     /**
      * Constructs a new StationStatus.
@@ -660,17 +654,17 @@ export class StationStatus implements IStationStatus {
 export interface IStation {
 
     /** Station id */
-    id?: (string|null);
+    id?: string;
 
     /** Station name */
-    name?: (string|null);
+    name?: string;
 
     /** Station lines */
-    lines?: (string[]|null);
+    lines?: string[];
 }
 
 /** Represents a Station. */
-export class Station implements IStation {
+export class Station {
 
     /**
      * Constructs a new Station.
@@ -762,14 +756,14 @@ export class Station implements IStation {
 export interface IStationList {
 
     /** StationList station */
-    station?: (IStation[]|null);
+    station?: IStation[];
 
     /** StationList debugInfo */
-    debugInfo?: (IDebugInfo|null);
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a StationList. */
-export class StationList implements IStationList {
+export class StationList {
 
     /**
      * Constructs a new StationList.
@@ -858,17 +852,17 @@ export class StationList implements IStationList {
 export interface ILine {
 
     /** Line name */
-    name?: (string|null);
+    name?: string;
 
     /** Line colorHex */
-    colorHex?: (string|null);
+    colorHex?: string;
 
     /** Line active */
-    active?: (boolean|null);
+    active?: boolean;
 }
 
 /** Represents a Line. */
-export class Line implements ILine {
+export class Line {
 
     /**
      * Constructs a new Line.
@@ -960,14 +954,14 @@ export class Line implements ILine {
 export interface ILineList {
 
     /** LineList line */
-    line?: (ILine[]|null);
+    line?: ILine[];
 
     /** LineList debugInfo */
-    debugInfo?: (IDebugInfo|null);
+    debugInfo?: IDebugInfo;
 }
 
 /** Represents a LineList. */
-export class LineList implements ILineList {
+export class LineList {
 
     /**
      * Constructs a new LineList.

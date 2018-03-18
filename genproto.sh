@@ -27,15 +27,16 @@
 PBJS=./webclient/node_modules/protobufjs/bin/pbjs
 PBTS=./webclient/node_modules/protobufjs/bin/pbts
 
-PROTO_FILE=proto/webclient_api.proto
+API_PROTO=proto/webclient_api.proto
+
 WEBCLIENT_API_D_TS=webclient/src/webclient_api_pb.d.ts
 WEBCLIENT_API_JS=webclient/src/webclient_api_pb.js
 WEBCLIENT_API_RS=src/webclient_api.rs
 FEEDPROXY_API_RS=src/feedproxy_api.rs
 GTFS_REALTIME_RS=src/gtfs_realtime.rs
 
-$PBJS -t static-module -w commonjs -o $WEBCLIENT_API_JS $PROTO_FILE
-$PBJS -t static-module $PROTO_FILE | $PBTS -o $WEBCLIENT_API_D_TS -
+$PBJS -t static-module -w commonjs -o $WEBCLIENT_API_JS $API_PROTO
+$PBJS -t static-module $API_PROTO | $PBTS -o $WEBCLIENT_API_D_TS -
 
 echo "// NOTE: THIS WAS ADDED MANUALLY" >> $WEBCLIENT_API_D_TS
 echo "// https://github.com/dcodeIO/protobuf.js/issues/780" >> $WEBCLIENT_API_D_TS
@@ -83,4 +84,3 @@ echo "${LICENSE_TXT}"$'\n\n'"$(cat $WEBCLIENT_API_JS)" > $WEBCLIENT_API_JS
 echo "${LICENSE_TXT}"$'\n\n'"$(cat $WEBCLIENT_API_RS)" > $WEBCLIENT_API_RS
 echo "${LICENSE_TXT}"$'\n\n'"$(cat $FEEDPROXY_API_RS)" > $FEEDPROXY_API_RS
 echo "${GTFS_LICENSE_TXT}"$'\n\n'"$(cat $GTFS_REALTIME_RS)" > $GTFS_REALTIME_RS
-

@@ -36,6 +36,7 @@ mod auth;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
+mod nyct_subway;
 mod prefs;
 mod result;
 mod server;
