@@ -1420,6 +1420,7 @@ $root.StationStatus = (function() {
      * @exports IStationStatus
      * @interface IStationStatus
      * @property {string} [name] StationStatus name
+     * @property {string} [id] StationStatus id
      * @property {Array.<ILineArrivals>} [line] StationStatus line
      * @property {number|Long} [dataTimestamp] StationStatus dataTimestamp
      * @property {IDebugInfo} [debugInfo] StationStatus debugInfo
@@ -1447,6 +1448,14 @@ $root.StationStatus = (function() {
      * @instance
      */
     StationStatus.prototype.name = "";
+
+    /**
+     * StationStatus id.
+     * @member {string}id
+     * @memberof StationStatus
+     * @instance
+     */
+    StationStatus.prototype.id = "";
 
     /**
      * StationStatus line.
@@ -1505,6 +1514,8 @@ $root.StationStatus = (function() {
             writer.uint32(/* id 3, wireType 0 =*/24).int64(message.dataTimestamp);
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+        if (message.id != null && message.hasOwnProperty("id"))
+            writer.uint32(/* id 5, wireType 2 =*/42).string(message.id);
         return writer;
     };
 
@@ -1541,6 +1552,9 @@ $root.StationStatus = (function() {
             switch (tag >>> 3) {
             case 1:
                 message.name = reader.string();
+                break;
+            case 5:
+                message.id = reader.string();
                 break;
             case 2:
                 if (!(message.line && message.line.length))
@@ -1591,6 +1605,9 @@ $root.StationStatus = (function() {
         if (message.name != null && message.hasOwnProperty("name"))
             if (!$util.isString(message.name))
                 return "name: string expected";
+        if (message.id != null && message.hasOwnProperty("id"))
+            if (!$util.isString(message.id))
+                return "id: string expected";
         if (message.line != null && message.hasOwnProperty("line")) {
             if (!Array.isArray(message.line))
                 return "line: array expected";
@@ -1625,6 +1642,8 @@ $root.StationStatus = (function() {
         var message = new $root.StationStatus();
         if (object.name != null)
             message.name = String(object.name);
+        if (object.id != null)
+            message.id = String(object.id);
         if (object.line) {
             if (!Array.isArray(object.line))
                 throw TypeError(".StationStatus.line: array expected");
@@ -1675,6 +1694,7 @@ $root.StationStatus = (function() {
             } else
                 object.dataTimestamp = options.longs === String ? "0" : 0;
             object.debugInfo = null;
+            object.id = "";
         }
         if (message.name != null && message.hasOwnProperty("name"))
             object.name = message.name;
@@ -1690,6 +1710,8 @@ $root.StationStatus = (function() {
                 object.dataTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.dataTimestamp) : options.longs === Number ? new $util.LongBits(message.dataTimestamp.low >>> 0, message.dataTimestamp.high >>> 0).toNumber() : message.dataTimestamp;
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo"))
             object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
+        if (message.id != null && message.hasOwnProperty("id"))
+            object.id = message.id;
         return object;
     };
 

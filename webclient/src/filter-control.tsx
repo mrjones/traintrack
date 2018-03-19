@@ -92,17 +92,22 @@ export class VisibilityState {
   private lines: DimensionState<string>;
   private combined: boolean;
 
+  // TODO(mrjones): Come up with a real experiment framework
+  private showAlphaFeatures: boolean;
+
   constructor(directions: DimensionState<proto.Direction>,
               lines: DimensionState<string>,
-              combined: boolean) {
+              combined: boolean,
+              showAlphaFeatures: boolean) {
     this.directions = directions;
     this.lines = lines;
     this.combined = combined;
+    this.showAlphaFeatures = showAlphaFeatures;
   }
 
   public clone() {
     return new VisibilityState(
-      this.directions.clone(), this.lines.clone(), this.combined);
+      this.directions.clone(), this.lines.clone(), this.combined, this.showAlphaFeatures);
   }
 
   public toggleCombined() {
@@ -129,10 +134,15 @@ export class VisibilityState {
     return this.lines.includes(line);
   }
 
+  public shouldShowAlphaFeatures(): boolean {
+    return this.showAlphaFeatures;
+  }
+
   public toSpec(): string {
     return this.directions.toSpec()
       + ":" + this.lines.toSpec()
-      + (this.combined ? ":C" : "");
+      + (this.combined ? ":C" : ":")
+      + (this.showAlphaFeatures ? ":ALPHA" : ":");
   }
 
   public static parseFromSpec(spec: string): VisibilityState {
@@ -160,7 +170,8 @@ export class VisibilityState {
         specParts.length > 1 ? specParts[1] : "",
         (lineSpec: string) => { return lineSpec; },
         (line: string) => { return line; }),
-      (specParts.length > 2 && specParts[2] === "C"));
+      (specParts.length > 2 && specParts[2] === "C"),
+      (specParts.length > 3 && specParts[3] === "ALPHA"));
   }
 }
 
@@ -248,11 +259,22 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec();
     togglers.push(<div key="mixing" className={className}><ReactRouter.Link to={link}>Combined</ReactRouter.Link></div>);
 
+    if (this.props.visibilityState.shouldShowAlphaFeatures()) {
+      togglers.push(<div key="sep3" className="toggleSeparator" />);
+      togglers.push(<div key="makeDefault" className="togglebutton autowidth"><a href="#" onClick={this.setDefaultStationCookie.bind(this, this.props.allTrains.id)}>Make Default</a></div>);
+    }
+
     return <div className="filterControl">
       <div key="filter" className="toggleButton autowidth"><a href="#" onClick={this.toggleExpanded.bind(this)}>Filter -</a></div>
       <div key="sep3" className="toggleSeparator" />
       {togglers}
       </div>;
+  }
+
+  public setDefaultStationCookie(stationId: string) {
+    let cookieStr = "defaultStation=" + stationId + "; max-age=31536000; path=/;";
+    console.log("Setting cookie: " + cookieStr);
+    document.cookie = cookieStr;
   }
 
   public componentWillReceiveProps(nextProps: FilterControlProps) {

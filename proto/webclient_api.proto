@@ -44,6 +44,7 @@ message TrainItinerary {
 
 message StationStatus {
   optional string name = 1;
+  optional string id = 5;
   repeated LineArrivals line = 2;
   optional int64 data_timestamp = 3;
 

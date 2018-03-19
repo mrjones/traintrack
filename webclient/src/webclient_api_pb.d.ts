@@ -548,6 +548,9 @@ export interface IStationStatus {
     /** StationStatus name */
     name?: string;
 
+    /** StationStatus id */
+    id?: string;
+
     /** StationStatus line */
     line?: ILineArrivals[];
 
@@ -569,6 +572,9 @@ export class StationStatus {
 
     /** StationStatus name. */
     public name: string;
+
+    /** StationStatus id. */
+    public id: string;
 
     /** StationStatus line. */
     public line: ILineArrivals[];

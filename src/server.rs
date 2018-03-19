@@ -269,24 +269,29 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rust
     }
 }
 
-// TODO(mrjones): Refactor shared cookie handling code.
-fn extract_default_station_from_cookie(context: &rustful::Context) -> Option<String> {
-    return context.headers.get::<rustful::header::Cookie>().and_then(
-        |cookies: &rustful::header::Cookie| {
-            let matches: Vec<&str> = cookies.iter().filter_map(|cookie| {
+fn extract_cookie_values_for_key(context: &rustful::Context, key: &str) -> Vec<String> {
+    match context.headers.get::<rustful::header::Cookie>() {
+        None => { return vec![] },
+        Some(ref cookies) => {
+            return cookies.iter().filter_map(|cookie| {
                 let parts: std::vec::Vec<&str> = cookie.splitn(2, '=').collect();
-                if parts.len() == 2 && parts[0] == "defaultStation" {
-                    return Some(parts[1]);
+                if parts.len() == 2 && parts[0] == key {
+                    return Some(parts[1].to_string());
                 } else {
                     return None;
                 }
-            }).collect::<std::vec::Vec<&str>>();
+            }).collect::<std::vec::Vec<String>>();
+        },
+    }
+}
 
-            if matches.len() == 0 {
-                return None;
-            }
-            return Some(matches[0].to_string());
-        });
+fn extract_default_station_from_cookie(context: &rustful::Context) -> Option<String> {
+    let id_matches = extract_cookie_values_for_key(context, "defaultStation");
+
+    if id_matches.len() == 0 {
+        return None;
+    }
+    return Some(id_matches[0].clone());
 }
 
 fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -328,6 +333,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
         }
 
         response.set_name(station.name.clone());
+        response.set_id(station.complex_id.clone());
         for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
             for (direction, stop_times) in trains.iter() {
                 let mut line = webclient_api::LineArrivals::new();
