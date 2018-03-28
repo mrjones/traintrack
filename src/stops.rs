@@ -255,6 +255,9 @@ impl Stops {
                 let mut reader = csv::Reader::from_file(trips_file)?;
                 for record in reader.decode() {
                     let record: TripCsvRecord = record?;
+                    // TODO: Use trip_id and parse it according to page 5
+                    // http://datamine.mta.info/sites/all/files/pdfs/GTFS-Realtime-NYC-Subway%20version%201%20dated%207%20Sep.pdf
+                    // Also don't forget to do so below
                     trips_by_id.insert(
                         record.service_id.clone(), record.clone());
                 }

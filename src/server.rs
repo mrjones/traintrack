@@ -346,7 +346,7 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
                     let mut r = webclient_api::LineArrival::new();
                     r.set_timestamp(a.timestamp.timestamp());
                     r.set_trip_id(a.trip_id.clone());
-                    r.set_headsign(a.headsign.clone());
+//                    r.set_headsign(a.headsign.clone());
                     return r;
                 }).collect());
 

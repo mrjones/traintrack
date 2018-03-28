@@ -179,18 +179,23 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
                         }
                         let route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 
+                        let nyct_train_id_or_empty = match maybe_nyct_extension {
+                            Some(ref nyct) => nyct.get_train_id().to_string(),
+                            None => String::new(),
+                        };
+                        info!("NYCT id: {}", nyct_train_id_or_empty);
                         if route_trains.contains_key(&direction) {
                             route_trains.get_mut(&direction).unwrap().push(
                                 Arrival::new(
                                     timestamp,
                                     trip.get_trip_id(),
-                                    stops.trip_headsign_for_id(trip.get_trip_id()).unwrap_or("".to_string()).as_ref()));
+                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref()));
                         } else {
                             route_trains.insert(direction, vec![
                                 Arrival::new(
                                     timestamp,
                                     trip.get_trip_id(),
-                                    stops.trip_headsign_for_id(trip.get_trip_id()).unwrap_or("".to_string()).as_ref())]);
+                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref())]);
                         }
                     }
                 }
