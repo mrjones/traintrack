@@ -92,13 +92,15 @@ pub fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) 
 pub struct Arrival {
     pub timestamp: chrono::DateTime<chrono::Utc>,
     pub trip_id: String,
+    pub headsign: String,
 }
 
 impl Arrival {
-    pub fn new(timestamp: chrono::DateTime<chrono::Utc>, trip_id: &str) -> Arrival {
+    pub fn new(timestamp: chrono::DateTime<chrono::Utc>, trip_id: &str, headsign: &str) -> Arrival {
         return Arrival{
             timestamp: timestamp,
             trip_id: trip_id.to_string(),
+            headsign: headsign.to_string(),
         };
     }
 }
@@ -169,14 +171,6 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
                             None => infer_direction_for_trip_id(trip.get_trip_id()),
                         };
 
-                        // TODO(mrjones): Figure out why this is necessary
-                        if trip.get_route_id() == "E" {
-                            direction = match direction {
-                                Direction::UPTOWN => Direction::DOWNTOWN,
-                                Direction::DOWNTOWN => Direction::UPTOWN,
-                            };
-                        }
-
                         let timestamp = chrono::Utc.timestamp(
                             stop_time_update.get_arrival().get_time(), 0);
 
@@ -186,9 +180,17 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
                         let route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
 
                         if route_trains.contains_key(&direction) {
-                            route_trains.get_mut(&direction).unwrap().push(Arrival::new(timestamp, trip.get_trip_id()));
+                            route_trains.get_mut(&direction).unwrap().push(
+                                Arrival::new(
+                                    timestamp,
+                                    trip.get_trip_id(),
+                                    stops.trip_headsign_for_id(trip.get_trip_id()).unwrap_or("".to_string()).as_ref()));
                         } else {
-                            route_trains.insert(direction, vec![Arrival::new(timestamp, trip.get_trip_id())]);
+                            route_trains.insert(direction, vec![
+                                Arrival::new(
+                                    timestamp,
+                                    trip.get_trip_id(),
+                                    stops.trip_headsign_for_id(trip.get_trip_id()).unwrap_or("".to_string()).as_ref())]);
                         }
                     }
                 }

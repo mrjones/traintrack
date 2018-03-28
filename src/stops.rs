@@ -40,6 +40,8 @@ pub struct Stops {
     routes: Vec<Route>,
 
     complexes: std::collections::HashMap<String, Stop>,
+
+    trips_by_id: std::collections::HashMap<String, TripCsvRecord>,
 }
 
 // For Stations.csv
@@ -73,15 +75,15 @@ struct StopCsvRecord {
     parent_station: Option<String>,
 }
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Clone, Debug, RustcDecodable)]
 struct TripCsvRecord {
-    route_id: String,
-    service_id: String,
-    trip_id: String,
-    trip_headsign: String,
-    direction_id: i32,
-    block_id: Option<String>,
-    shape_id: String,
+    pub route_id: String,
+    pub service_id: String,
+    pub trip_id: String,
+    pub trip_headsign: String,
+    pub direction_id: i32,
+    pub block_id: Option<String>,
+    pub shape_id: String,
 }
 
 #[derive(Debug, RustcDecodable)]
@@ -132,6 +134,10 @@ impl Stops {
     pub fn stops_for_route(&self, route_id: &str) -> result::TTResult<&Vec<Stop>> {
         return self.stops_by_route.get(route_id).ok_or(
             result::quick_err(&format!("No stops for route: {}", route_id)));
+    }
+
+    pub fn trip_headsign_for_id(&self, id: &str) -> Option<String> {
+        return self.trips_by_id.get(id).map(|rec| rec.trip_headsign.clone());
     }
 
     pub fn compute_stops_for_route(
@@ -241,6 +247,19 @@ impl Stops {
                 lines: std::collections::BTreeSet::new(), // TODO
             });
 
+            info!("Parsing trips.txt");
+            let mut trips_file = gtfs_directory.clone();
+            trips_file.push("trips.txt");
+            let mut trips_by_id = std::collections::HashMap::new();
+            {
+                let mut reader = csv::Reader::from_file(trips_file)?;
+                for record in reader.decode() {
+                    let record: TripCsvRecord = record?;
+                    trips_by_id.insert(
+                        record.service_id.clone(), record.clone());
+                }
+            }
+
             return Ok(Stops{
                 stops: stops,
 //                trip_ids_by_route: std::collections::HashMap::new(),
@@ -248,6 +267,7 @@ impl Stops {
                 stops_by_route: stops_by_route,
                 routes: routes,
                 complexes: complexes,
+                trips_by_id: trips_by_id,
             });
         } else if logic == StopsLogic::GTFS {
             info!("Parsing stops.txt");
@@ -271,11 +291,14 @@ impl Stops {
             info!("Parsing trips.txt");
             let mut trips_file = gtfs_directory.clone();
             trips_file.push("trips.txt");
+            let mut trips_by_id = std::collections::HashMap::new();
             let mut trip_ids_by_route: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
             {
                 let mut reader = csv::Reader::from_file(trips_file)?;
                 for record in reader.decode() {
                     let record: TripCsvRecord = record?;
+                    trips_by_id.insert(
+                        record.service_id.clone(), record.clone());
                     if trip_ids_by_route.contains_key(&record.route_id) {
                         trip_ids_by_route.get_mut(&record.route_id).unwrap().push(
                             record.trip_id);
@@ -323,6 +346,7 @@ impl Stops {
                 stops_by_route: stops_by_route,
                 routes: routes,
                 complexes: std::collections::HashMap::new(), // TODO
+                trips_by_id: trips_by_id,
             });
         } else {
             return Err(result::quick_err("Uknown stops logic"));

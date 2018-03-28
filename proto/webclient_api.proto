@@ -14,6 +14,7 @@ message DebugInfo {
 message LineArrival {
   optional int64 timestamp = 1;
   optional string trip_id = 2;
+  optional string headsign = 3;
 }
 
 message LineArrivals {

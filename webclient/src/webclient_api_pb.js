@@ -304,6 +304,7 @@ $root.LineArrival = (function() {
      * @interface ILineArrival
      * @property {number|Long} [timestamp] LineArrival timestamp
      * @property {string} [tripId] LineArrival tripId
+     * @property {string} [headsign] LineArrival headsign
      */
 
     /**
@@ -337,6 +338,14 @@ $root.LineArrival = (function() {
     LineArrival.prototype.tripId = "";
 
     /**
+     * LineArrival headsign.
+     * @member {string}headsign
+     * @memberof LineArrival
+     * @instance
+     */
+    LineArrival.prototype.headsign = "";
+
+    /**
      * Creates a new LineArrival instance using the specified properties.
      * @function create
      * @memberof LineArrival
@@ -364,6 +373,8 @@ $root.LineArrival = (function() {
             writer.uint32(/* id 1, wireType 0 =*/8).int64(message.timestamp);
         if (message.tripId != null && message.hasOwnProperty("tripId"))
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.tripId);
+        if (message.headsign != null && message.hasOwnProperty("headsign"))
+            writer.uint32(/* id 3, wireType 2 =*/26).string(message.headsign);
         return writer;
     };
 
@@ -403,6 +414,9 @@ $root.LineArrival = (function() {
                 break;
             case 2:
                 message.tripId = reader.string();
+                break;
+            case 3:
+                message.headsign = reader.string();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -445,6 +459,9 @@ $root.LineArrival = (function() {
         if (message.tripId != null && message.hasOwnProperty("tripId"))
             if (!$util.isString(message.tripId))
                 return "tripId: string expected";
+        if (message.headsign != null && message.hasOwnProperty("headsign"))
+            if (!$util.isString(message.headsign))
+                return "headsign: string expected";
         return null;
     };
 
@@ -471,6 +488,8 @@ $root.LineArrival = (function() {
                 message.timestamp = new $util.LongBits(object.timestamp.low >>> 0, object.timestamp.high >>> 0).toNumber();
         if (object.tripId != null)
             message.tripId = String(object.tripId);
+        if (object.headsign != null)
+            message.headsign = String(object.headsign);
         return message;
     };
 
@@ -494,6 +513,7 @@ $root.LineArrival = (function() {
             } else
                 object.timestamp = options.longs === String ? "0" : 0;
             object.tripId = "";
+            object.headsign = "";
         }
         if (message.timestamp != null && message.hasOwnProperty("timestamp"))
             if (typeof message.timestamp === "number")
@@ -502,6 +522,8 @@ $root.LineArrival = (function() {
                 object.timestamp = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp) : options.longs === Number ? new $util.LongBits(message.timestamp.low >>> 0, message.timestamp.high >>> 0).toNumber() : message.timestamp;
         if (message.tripId != null && message.hasOwnProperty("tripId"))
             object.tripId = message.tripId;
+        if (message.headsign != null && message.hasOwnProperty("headsign"))
+            object.headsign = message.headsign;
         return object;
     };
 

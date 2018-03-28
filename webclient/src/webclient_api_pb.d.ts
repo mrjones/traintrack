@@ -124,6 +124,9 @@ export interface ILineArrival {
 
     /** LineArrival tripId */
     tripId?: string;
+
+    /** LineArrival headsign */
+    headsign?: string;
 }
 
 /** Represents a LineArrival. */
@@ -140,6 +143,9 @@ export class LineArrival {
 
     /** LineArrival tripId. */
     public tripId: string;
+
+    /** LineArrival headsign. */
+    public headsign: string;
 
     /**
      * Creates a new LineArrival instance using the specified properties.
