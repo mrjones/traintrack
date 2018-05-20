@@ -137,7 +137,7 @@ impl Fetcher {
                                     last_good_fetch: Some(chrono::Utc::now()),
                                     last_any_fetch: Some(chrono::Utc::now()),
                                 });
-                            self.archive.save(feed_id, &new_feed).unwrap();
+                            self.archive.save(feed_id, &new_feed).ok();
                         },
                         Err(err) => {
                             error!("Error fetching: {}", err);
