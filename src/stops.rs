@@ -45,23 +45,44 @@ pub struct Stops {
 }
 
 // For Stations.csv
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize, RustcDecodable)]
 struct StationCsvRecord {
+    #[serde(rename = "Station ID")]
     mta_station_id: String,
+
+    #[serde(rename = "Complex ID")]
     complex_id: String,
+
+    #[serde(rename = "GTFS Stop ID")]
     gtfs_stop_id: String,
+
+    #[serde(rename = "Division")]
     division: String,
+
+    #[serde(rename = "Line")]
     line: String,
+
+    #[serde(rename = "Stop Name")]
     name: String,
+
+    #[serde(rename = "Borough")]
     borough: String,
+
+    #[serde(rename = "Daytime Routes")]
     daytime_routes: String,
+
+    #[serde(rename = "Structure")]
     structure: String,
+
+    #[serde(rename = "GTFS Latitude")]
     latitude: f32,
+
+    #[serde(rename = "GTFS Longitude")]
     longitude: f32,
 }
 
 // For Stops.txt
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize, RustcDecodable)]
 struct StopCsvRecord {
     stop_id: String,
     stop_code: Option<String>,
@@ -75,7 +96,7 @@ struct StopCsvRecord {
     parent_station: Option<String>,
 }
 
-#[derive(Clone, Debug, RustcDecodable)]
+#[derive(Clone, Debug, Deserialize, RustcDecodable)]
 struct TripCsvRecord {
     pub route_id: String,
     pub service_id: String,
@@ -86,7 +107,7 @@ struct TripCsvRecord {
     pub shape_id: String,
 }
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize, RustcDecodable)]
 struct StopTimeCsvRecord {
     trip_id: String,
     arrival_time: String,
@@ -99,7 +120,7 @@ struct StopTimeCsvRecord {
     shape_dist_traveled: Option<String>
 }
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize, RustcDecodable)]
 struct RouteCsvRecord {
     route_id: String,
     agency_id: String,
@@ -183,12 +204,13 @@ impl Stops {
 
         let gtfs_directory = std::path::PathBuf::from(filename.to_string());
         info!("Parsing routes.txt");
-        let mut routes_file = gtfs_directory.clone();
-        routes_file.push("routes.txt");
+        let mut routes_file_name = gtfs_directory.clone();
+        routes_file_name.push("routes.txt");
         let mut routes = Vec::new();
         {
-            let mut reader = csv::Reader::from_file(routes_file)?;
-            for record in reader.decode() {
+            let routes_file = std::fs::File::open(routes_file_name)?;
+            let mut reader = csv::Reader::from_reader(routes_file);
+            for record in reader.deserialize() {
                 let record: RouteCsvRecord = record?;
                 routes.push(Route{
                     id: record.route_id,
@@ -199,14 +221,15 @@ impl Stops {
 
         if logic == StopsLogic::MTA {
             info!("Parsing MTA's Stations.csv");
-            let mut routes_file = gtfs_directory.clone();
-            routes_file.push("Stations.csv");
+            let mut routes_file_name = gtfs_directory.clone();
+            routes_file_name.push("Stations.csv");
             let mut stops = std::collections::HashMap::new();
             let mut complexes = std::collections::HashMap::new();
             let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
             {
-                let mut reader = csv::Reader::from_file(routes_file)?;
-                for record in reader.decode() {
+                let routes_file = std::fs::File::open(routes_file_name)?;
+                let mut reader = csv::Reader::from_reader(routes_file);
+                for record in reader.deserialize() {
                     let record: StationCsvRecord = record?;
                     let stop = Stop{
                         id: record.gtfs_stop_id.clone(),
@@ -248,12 +271,13 @@ impl Stops {
             });
 
             info!("Parsing trips.txt");
-            let mut trips_file = gtfs_directory.clone();
-            trips_file.push("trips.txt");
+            let mut trips_file_name = gtfs_directory.clone();
+            trips_file_name.push("trips.txt");
             let mut trips_by_id = std::collections::HashMap::new();
             {
-                let mut reader = csv::Reader::from_file(trips_file)?;
-                for record in reader.decode() {
+                let trips_file = std::fs::File::open(trips_file_name)?;
+                let mut reader = csv::Reader::from_reader(trips_file);
+                for record in reader.deserialize() {
                     let record: TripCsvRecord = record?;
                     // TODO: Use trip_id and parse it according to page 5
                     // http://datamine.mta.info/sites/all/files/pdfs/GTFS-Realtime-NYC-Subway%20version%201%20dated%207%20Sep.pdf
@@ -274,12 +298,13 @@ impl Stops {
             });
         } else if logic == StopsLogic::GTFS {
             info!("Parsing stops.txt");
-            let mut stops_file = gtfs_directory.clone();
-            stops_file.push("stops.txt");
+            let mut stops_file_name = gtfs_directory.clone();
+            stops_file_name.push("stops.txt");
             let mut stops = std::collections::HashMap::new();
             {
-                let mut reader = csv::Reader::from_file(stops_file)?;
-                for record in reader.decode() {
+                let stops_file = std::fs::File::open(stops_file_name)?;
+                let mut reader = csv::Reader::from_reader(stops_file);
+                for record in reader.deserialize() {
                     let record: StopCsvRecord = record?;
                     stops.insert(record.stop_id.clone(), Stop{
                         id: record.stop_id.clone(),
@@ -292,13 +317,14 @@ impl Stops {
             }
 
             info!("Parsing trips.txt");
-            let mut trips_file = gtfs_directory.clone();
-            trips_file.push("trips.txt");
+            let mut trips_file_name = gtfs_directory.clone();
+            trips_file_name.push("trips.txt");
             let mut trips_by_id = std::collections::HashMap::new();
             let mut trip_ids_by_route: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
             {
-                let mut reader = csv::Reader::from_file(trips_file)?;
-                for record in reader.decode() {
+                let trips_file = std::fs::File::open(trips_file_name)?;
+                let mut reader = csv::Reader::from_reader(trips_file);
+                for record in reader.deserialize() {
                     let record: TripCsvRecord = record?;
                     trips_by_id.insert(
                         record.service_id.clone(), record.clone());
@@ -313,12 +339,13 @@ impl Stops {
             }
 
             info!("Parsing stop_times.txt");
-            let mut trip_stops_file = gtfs_directory.clone();
-            trip_stops_file.push("stop_times.txt");
+            let mut trip_stops_file_name = gtfs_directory.clone();
+            trip_stops_file_name.push("stop_times.txt");
             let mut stop_ids_by_trip: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
             {
-                let mut reader = csv::Reader::from_file(trip_stops_file)?;
-                for record in reader.decode() {
+                let trip_stops_file = std::fs::File::open(trip_stops_file_name)?;
+                let mut reader = csv::Reader::from_reader(trip_stops_file);
+                for record in reader.deserialize() {
                     let record: StopTimeCsvRecord = record?;
                     if stop_ids_by_trip.contains_key(&record.trip_id) {
                         stop_ids_by_trip.get_mut(&record.trip_id).unwrap().push(

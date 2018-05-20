@@ -258,9 +258,10 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &TTContext, rust
         // TODO(mrjones): return proper MIME type
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => {
-            let json = protobuf_json::proto_to_json(data);
-            println!("JSON: {}", json);
-            return Ok(json.to_string().as_bytes().to_vec());
+            return Err(result::quick_err("JSON encoding is broken"));
+//            let json = protobuf_json::proto_to_json(data);
+//            println!("JSON: {}", json);
+//            return Ok(json.to_string().as_bytes().to_vec());
         },
         _ => {
             let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
