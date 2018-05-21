@@ -316,26 +316,20 @@ fn add_recent_station_to_cookie(id: &str, context: &rustful::Context, prc: &mut 
     return Ok(());
 }
 
-fn extract_default_station_from_cookie(context: &rustful::Context) -> Option<String> {
-    let id_matches = extract_cookie_values_for_key(context, "defaultStation");
-
-    if id_matches.len() == 0 {
-        return None;
-    }
-    return Some(id_matches[0].clone());
-}
-
 fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     let _all_span = per_request_context.timer.span("station_detail_api");
 
-    let station_id;
+    let station_id: String;
     let station;
     {
         let _parse_query_span = per_request_context.timer.span("parse_query");
         let station_id_str = rustful_context.variables.get("station_id").ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
         if station_id_str == "default" {
-            station_id = extract_default_station_from_cookie(&rustful_context)
+            station_id = extract_recent_stations_from_cookie(&rustful_context)
+                .into_iter()
+                .rev()
+                .next()
                 .unwrap_or("028".to_string());
         } else {
             station_id = station_id_str.into_owned();
