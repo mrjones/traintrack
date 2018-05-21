@@ -416,6 +416,8 @@ fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, p
         for x in &stop.lines {
             station.mut_lines().push(x.to_string());
         }
+        // TODO(mrjones): recent_stations should be short-ish
+        // But it's not ideal to linear search it repeatedly.
         match recent_stations.iter().position(|id| id == &stop.complex_id) {
             Some(pos) => {
                 priority_responses.insert(pos, station);
