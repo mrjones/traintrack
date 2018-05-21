@@ -26,7 +26,7 @@ use feedfetcher;
 use gtfs_realtime;
 use prefs;
 use protobuf;
-use protobuf_json;
+//use protobuf_json;
 use result;
 use stops;
 use utils;
@@ -147,7 +147,7 @@ impl RequestTimer {
 
 struct PerRequestContext {
     timer: RequestTimer,
-    response_modifiers: std::vec::Vec<fn(&mut rustful::Response)>,
+    response_modifiers: std::vec::Vec<Box<Fn(&mut rustful::Response)>>,
 }
 
 impl PerRequestContext {
@@ -211,7 +211,15 @@ fn get_homepage(tt_context: &TTContext, rustful_context: rustful::Context, _: &m
             return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
         }
     }
+}
 
+fn get_recent_stations(_: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
+    return Ok(extract_recent_stations_from_cookie(&rustful_context).join(":").as_bytes().to_vec());
+}
+
+fn add_recent_station(_: &TTContext, rustful_context: rustful::Context, prc: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
+    add_recent_station_to_cookie("42", &rustful_context, prc)?;
+    return Ok("Done?".to_string().as_bytes().to_vec());
 }
 
 fn firestore(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -284,6 +292,28 @@ fn extract_cookie_values_for_key(context: &rustful::Context, key: &str) -> Vec<S
             }).collect::<std::vec::Vec<String>>();
         },
     }
+}
+
+fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {
+    let matches = extract_cookie_values_for_key(context, "recentStations");
+
+    if matches.len() == 0 { return vec![]; }
+
+    return matches[0].split(':').map(|x| x.to_string()).collect();
+}
+
+fn add_recent_station_to_cookie(id: &str, context: &rustful::Context, prc: &mut PerRequestContext) -> result::TTResult<()> {
+    let mut list: Vec<String> = extract_recent_stations_from_cookie(context).into_iter().filter(|x| x != id).take(15).collect();
+    list.push(id.to_string());
+    let newval = list.join(":");
+
+    prc.response_modifiers.push(Box::new(move |response: &mut rustful::Response| {
+        response.headers_mut().set(
+            rustful::header::SetCookie(vec![
+                format!("recentStations={}; Path=/", newval).to_string(),
+            ]));
+    }));
+    return Ok(());
 }
 
 fn extract_default_station_from_cookie(context: &rustful::Context) -> Option<String> {
@@ -367,10 +397,17 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
         result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationStatus::mut_debug_info));
     }
 
+    // TODO(mrjones): Consider not failing the whole request if this fails.
+    add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
+
     return result;
 }
 
 fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, per_request_context: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let recent_stations = extract_recent_stations_from_cookie(&rustful_context);
+
+    let mut priority_responses = std::collections::BTreeMap::new();
+
     let mut response = webclient_api::StationList::new();
     for &ref stop in tt_context.stops.complexes_iter() {
         let mut station = webclient_api::Station::new();
@@ -379,7 +416,19 @@ fn station_list_api(tt_context: &TTContext, rustful_context: rustful::Context, p
         for x in &stop.lines {
             station.mut_lines().push(x.to_string());
         }
-        response.mut_station().push(station);
+        match recent_stations.iter().position(|id| id == &stop.complex_id) {
+            Some(pos) => {
+                priority_responses.insert(pos, station);
+            },
+            None => {
+                response.mut_station().push(station);
+            }
+        }
+    }
+
+    // TODO(mrjones): This gets the order right but is not as clear as it could be.
+    for (_, station) in priority_responses {
+        response.mut_station().insert(0, station);
     }
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationList::mut_debug_info));
@@ -426,13 +475,13 @@ fn google_login_redirect_handler(tt_context: &TTContext, rustful_context: rustfu
         &host_str);
 
     println!("Pusing modifier");
-    prc.response_modifiers.push(|ref mut response| {
+    prc.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
         println!("modifier executing");
         response.headers_mut().set(
             rustful::header::SetCookie(vec![
                 "foo2=bar2".to_string(),
             ]));
-    });
+    }));
 
     return Ok(format!("Welcome {:?}", google_id).as_bytes().to_vec());
 }
@@ -750,6 +799,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.path("mkuser").then().on_get(PageType::Dynamic(create_user));
             node.path("set_homepage").then().on_get(PageType::Dynamic(set_homepage));
             node.path("get_homepage").then().on_get(PageType::Dynamic(get_homepage));
+            node.path("recent").then().on_get(PageType::Dynamic(get_recent_stations));
+            node.path("add_recent").then().on_get(PageType::Dynamic(add_recent_station));
         });
 
         node.path("stations").then().on_get(PageType::Dynamic(list_stations));

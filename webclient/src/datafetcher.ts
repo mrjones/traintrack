@@ -81,7 +81,7 @@ export class DataFetcher {
       let url = "/api/stations";
 
       console.log("Requesting station list");
-      fetch(url).then((response: Response) => {
+      fetch(url, {credentials: 'include'}).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
