@@ -50,12 +50,14 @@ impl FeedArchive {
     }
 
     // TODO(mrjones): Proably remove from API?
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn local_keys(&self, feed_id: i32) -> Vec<u64> {
         return self.local_archive.read().unwrap().get(&feed_id)
             .map(|feed_archive| feed_archive.keys().cloned().collect())
             .unwrap_or(vec![]);
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn local_get(&self, feed_id: i32, key: u64) -> Option<gtfs_realtime::FeedMessage> {
         return self.local_archive.read().unwrap().get(&feed_id).and_then(|archives| archives.get(&key).map(|a| a.clone()));
     }

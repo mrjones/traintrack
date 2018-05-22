@@ -55,6 +55,7 @@ impl Fetcher {
         }
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn new_remote_fetcher(proxy_url: &str, archive: archive::FeedArchive) -> Fetcher {
         info!("Using remote feedproxy at {}", proxy_url);
         return Fetcher{
@@ -65,6 +66,7 @@ impl Fetcher {
         }
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn known_feed_ids(&self) -> Vec<i32> {
         return self.latest_values.read().unwrap().keys().map(|i| *i).collect();
     }
@@ -73,18 +75,22 @@ impl Fetcher {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn archived_value(&self, feed_id: i32, key: u64) -> Option<gtfs_realtime::FeedMessage> {
         return self.archive.local_get(feed_id, key);
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn archive_keys(&self, feed_id: i32) -> Vec<u64> {
         return self.archive.local_keys(feed_id);
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn all_feeds(&self) -> Vec<FetchResult> {
         return self.latest_values.read().unwrap().values().map(|v| v.clone()).collect();
     }
 
+    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn with_feeds<F, R>(&self, mut handler: F) -> R
         where F: FnMut(Vec<&FetchResult>) -> R{
         let feeds = self.latest_values.read().unwrap();

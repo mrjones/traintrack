@@ -35,6 +35,7 @@ pub struct GoogleIdToken {
     pub sub: String,
 }
 
+#[allow(dead_code)]  // Used in server, but not proxy.
 pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id: &str, google_client_secret: &str, host: &str) -> result::TTResult<GoogleIdToken> {
     println!("gotcha code: {}", auth_code);
 
@@ -135,7 +136,7 @@ pub fn generate_google_bearer_token(
     return Ok(response_json.access_token)
 }
 
-// TODO(mrjones): Move this and make it real
+#[allow(dead_code)]  // Used in server, but not proxy.
 pub fn do_firestore_request(google_api_key: &str, bearer_token: &str) -> result::TTResult<String> {
     let url = format!("https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key={}", google_api_key);
 
