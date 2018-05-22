@@ -26,6 +26,7 @@ import { Helmet } from "react-helmet";
 import { LineViewRouterWrapper } from './lineview';
 import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
+import { AboutPage } from './about-page';
 import { TrainItineraryWrapper } from './train-itinerary';
 import { TransferPageWrapper } from './transfer-view';
 
@@ -60,6 +61,7 @@ ReactDOM.render(
               <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
               <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' component={TransferPageWrapper}/>
               <ReactRouter.Route path='/app/transfer' component={TransferPageWrapper}/>
+              <ReactRouter.Route path='/app/about' component={AboutPage}/>
               <ReactRouter.Route path='/app' component={StationPageWrapper}/>
               <ReactRouter.Route path='/' component={StationPageWrapper}/>
             </ReactRouter.Switch>

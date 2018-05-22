@@ -180,7 +180,6 @@ fn create_user(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestCo
             return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
         }
     }
-
 }
 
 fn set_homepage(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -193,7 +192,6 @@ fn set_homepage(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestC
             return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
         }
     }
-
 }
 
 fn get_homepage(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -780,6 +778,8 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
     router.build().many(|node| {
         node.then().on_get(PageType::new_static_page(
             format!("{}/singlepage.html", static_dir)));
+        node.path("about").then().on_get(PageType::new_static_page(
+            format!("{}/about.html", static_dir)));
         node.path("debug").many(|node| {
             node.then().on_get(PageType::Dynamic(debug));
             node.path("dump_proto").many(|node| {
@@ -798,6 +798,7 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.path("recent").then().on_get(PageType::Dynamic(get_recent_stations));
             node.path("add_recent").then().on_get(PageType::Dynamic(add_recent_station));
         });
+
 
         node.path("stations").then().on_get(PageType::Dynamic(list_stations));
         node.path("station").many(|node| {
