@@ -14,6 +14,7 @@
 
 import * as moment from "moment";
 import * as React from "react";
+import * as ReactRouter from "react-router-dom";
 
 import * as proto from './webclient_api_pb';
 
@@ -47,7 +48,7 @@ export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerSt
       return <SingleDataRequestDebugger key={d.apiUrl} request={d}/>;
     });
 
-    return <div className="apiDebugger">{requestElts}</div>;
+    return <div className="apiDebugger"><ReactRouter.Link to={"/app/about"}>Feedback</ReactRouter.Link>{requestElts}</div>;
   }
 };
 

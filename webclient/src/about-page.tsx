@@ -21,6 +21,13 @@ export class AboutPage extends React.Component<any, any> {
 
 
   public render() {
-    return <div>About TrainTrack</div>;
+    return <div>
+      <h2>About TrainTrack</h2>
+      <p>TrainTrack was was developed by <a href="http://mrjon.es">Matt Jones</a>. It is written in Rust and React (source on <a href="http://github.com/mrjones/traintrack">GitHub</a>) and powered by <a href="http://datamine.mta.info/list-of-feeds">the MTA's public data feeds</a>.</p>
+
+      <p>Please send feedback to <a href="mailto:traintrack@mrjon.es">traintrack@mrjon.es</a>.</p>
+      </div>;
   }
+
+
 }
