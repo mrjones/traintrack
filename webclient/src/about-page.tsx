@@ -23,10 +23,18 @@ export class AboutPage extends React.Component<any, any> {
   public render() {
     return <div>
       <h2>About TrainTrack</h2>
-      <p>TrainTrack was was developed by <a href="http://mrjon.es">Matt Jones</a>. It is written in Rust and React (source on <a href="http://github.com/mrjones/traintrack">GitHub</a>) and powered by <a href="http://datamine.mta.info/list-of-feeds">the MTA's public data feeds</a>.</p>
+      <p>TrainTrack was was developed by <a href="http://mrjon.es">Matt Jones</a>. It is written in Rust and React (source on <a href="http://github.com/mrjones/traintrack">GitHub</a>) and powered by <a href="http://datamine.mta.info/list-of-feeds">data feeds from the MTA</a>.</p>
 
       <p>Please send feedback to <a href="mailto:traintrack@mrjon.es">traintrack@mrjon.es</a>.</p>
+      <p><b>Recent changes</b>
+      <ul>
+      <li>2018-05-22: Optimized JS file size to speed up page loads.</li>
+      <li>2018-05-21: Remember recent stations in "Jump To Station" list.</li>
+      <li>2018-05-21: Remember most recent station when loading home page.</li>
+      </ul>
+      </p>
       </div>;
+
   }
 
 

@@ -48,7 +48,7 @@ export class ApiDebugger extends React.Component<ApiDebuggerProps, ApiDebuggerSt
       return <SingleDataRequestDebugger key={d.apiUrl} request={d}/>;
     });
 
-    return <div className="apiDebugger"><ReactRouter.Link to={"/app/about"}>Feedback</ReactRouter.Link>{requestElts}</div>;
+    return <div className="apiDebugger"><ReactRouter.Link to={"/app/about"}>About / Feedback</ReactRouter.Link>{requestElts}</div>;
   }
 };
 
