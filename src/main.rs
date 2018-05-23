@@ -103,6 +103,7 @@ fn main() {
     opts.optflag("d", "disable-background-fetch", "If true, won't periodically fetch feeds in the background..");
     opts.optopt("x", "proxy-url", "If set, use feedproxy at this URL. Otherwise do fetching locally.", "PROXY_URL");
     opts.optopt("w", "webclient-js-file", "The file to serve as webclient.js.", "JS_FILE");
+    opts.optflag("z", "webclient-js-gzipped", "Assume the the --webclient-js-file is gzipped.");
 
     opts.optopt("", "google-api-id", "The Google OAuth client id.", "ID");
     opts.optopt("", "google-api-secret", "The Google OAuth client secret.", "SECRET");
@@ -156,8 +157,16 @@ fn main() {
         fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
+
     let webclient_js_file = matches.opt_str("webclient-js-file").unwrap_or(
         "./webclient/bin/webclient.js".to_string());
+
+    let webclient_js_bundle;
+    if matches.opt_present("webclient-js-gzipped") {
+        webclient_js_bundle = server::JsBundleFile::Gzipped(webclient_js_file);
+    } else {
+        webclient_js_bundle = server::JsBundleFile::Raw(webclient_js_file);
+    };
 
     let google_api_info = match matches.opt_str("google-api-id") {
         Some(id) => match matches.opt_str("google-api-secret") {
@@ -179,5 +188,5 @@ fn main() {
         stops, fetcher, tt_version, build_timestamp, google_api_info,
         matches.opt_str("firebase-api-key"),
         matches.opt_str("google-service-account-pem-file"));
-    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_file);
+    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_bundle);
 }

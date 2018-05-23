@@ -691,14 +691,23 @@ fn dump_proto(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut
     }
 }
 
+enum Encoding {
+    Normal,
+    Gzipped,
+}
+
 enum PageType {
     Dynamic(fn(&TTContext, rustful::Context, &mut PerRequestContext) -> result::TTResult<Vec<u8>>),
-    Static(std::path::PathBuf),
+    Static(std::path::PathBuf, Encoding),
 }
 
 impl PageType {
     fn new_static_page<P: AsRef<std::path::Path>>(path: P) -> PageType {
-        return PageType::Static(path.as_ref().to_path_buf());
+        return PageType::Static(path.as_ref().to_path_buf(), Encoding::Normal);
+    }
+
+    fn new_static_gzipped_page<P: AsRef<std::path::Path>>(path: P) -> PageType {
+        return PageType::Static(path.as_ref().to_path_buf(), Encoding::Gzipped);
     }
 }
 
@@ -754,7 +763,16 @@ impl rustful::Handler for PageType {
                     }
                 }
             },
-            &PageType::Static(ref file_path) => {
+            &PageType::Static(ref file_path, ref encoding) => {
+                match encoding {
+                    Encoding::Gzipped => {
+                      response.headers_mut().set(
+                          rustful::header::ContentEncoding(vec![
+                              rustful::header::Encoding::Gzip,
+                          ]));
+                      },
+                    _ => {},
+                };
                 match response.send_file_with_mime(file_path, rustful::file::ext_to_mime) {
                     Ok(_) => {},
                     Err(rustful::response::FileError::Open(io_err, mut response)) => {
@@ -770,7 +788,12 @@ impl rustful::Handler for PageType {
     }
 }
 
-pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file: &str) {
+pub enum JsBundleFile {
+    Raw(String),
+    Gzipped(String),
+}
+
+pub fn serve(context: TTContext, port: u16, static_dir: &str, js_bundle: &JsBundleFile) {
     let global: rustful::server::Global = Box::new(context).into();
     assert!(!global.get::<TTContext>().is_none());
 
@@ -778,8 +801,6 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
     router.build().many(|node| {
         node.then().on_get(PageType::new_static_page(
             format!("{}/singlepage.html", static_dir)));
-        node.path("about").then().on_get(PageType::new_static_page(
-            format!("{}/about.html", static_dir)));
         node.path("debug").many(|node| {
             node.then().on_get(PageType::Dynamic(debug));
             node.path("dump_proto").many(|node| {
@@ -820,7 +841,14 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, webclient_js_file:
             node.path("*").then().on_get(PageType::new_static_page(
                 format!("{}/singlepage.html", static_dir)));
         });
-        node.path("webclient.js").then().on_get(PageType::new_static_page(webclient_js_file));
+        match js_bundle {
+            JsBundleFile::Raw(ref path) => {
+                node.path("webclient.js").then().on_get(PageType::new_static_page(path));
+            },
+            JsBundleFile::Gzipped(ref path) => {
+                node.path("webclient.js").then().on_get(PageType::new_static_gzipped_page(path));
+            }
+        }
         node.path("login").then().on_get(PageType::Dynamic(login_link));
         node.path("google_login_redirect").then().on_get(PageType::Dynamic(google_login_redirect_handler));
         node.path("api").many(|node| {
