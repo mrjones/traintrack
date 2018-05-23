@@ -28,6 +28,7 @@ export class AboutPage extends React.Component<any, any> {
       <p>Please send feedback to <a href="mailto:traintrack@mrjon.es">traintrack@mrjon.es</a>.</p>
       <p><b>Recent changes</b>
       <ul>
+      <li>2018-05-23: Increased file caching to speed up page loads.</li>
       <li>2018-05-22: Optimized JS file size to speed up page loads.</li>
       <li>2018-05-21: Remember recent stations in "Jump To Station" list.</li>
       <li>2018-05-21: Remember most recent station when loading home page.</li>

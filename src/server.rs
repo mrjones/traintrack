@@ -698,16 +698,20 @@ enum Encoding {
 
 enum PageType {
     Dynamic(fn(&TTContext, rustful::Context, &mut PerRequestContext) -> result::TTResult<Vec<u8>>),
-    Static(std::path::PathBuf, Encoding),
+    Static(std::path::PathBuf, Encoding, Option<std::time::Duration>),
 }
 
 impl PageType {
     fn new_static_page<P: AsRef<std::path::Path>>(path: P) -> PageType {
-        return PageType::Static(path.as_ref().to_path_buf(), Encoding::Normal);
+        return PageType::Static(path.as_ref().to_path_buf(),
+                                Encoding::Normal,
+                                Some(std::time::Duration::from_secs(7 * 24 * 60 * 60)));
     }
 
     fn new_static_gzipped_page<P: AsRef<std::path::Path>>(path: P) -> PageType {
-        return PageType::Static(path.as_ref().to_path_buf(), Encoding::Gzipped);
+        return PageType::Static(path.as_ref().to_path_buf(),
+                                Encoding::Gzipped,
+                                Some(std::time::Duration::from_secs(7 * 24 * 60 * 60)));
     }
 }
 
@@ -763,7 +767,7 @@ impl rustful::Handler for PageType {
                     }
                 }
             },
-            &PageType::Static(ref file_path, ref encoding) => {
+            &PageType::Static(ref file_path, ref encoding, ref cache_duration) => {
                 match encoding {
                     Encoding::Gzipped => {
                       response.headers_mut().set(
@@ -773,6 +777,16 @@ impl rustful::Handler for PageType {
                       },
                     _ => {},
                 };
+
+                cache_duration.map(|cache_duration| {
+                    response.headers_mut().set(
+                        rustful::header::CacheControl(vec![
+                            rustful::header::CacheDirective::MaxAge(
+                                cache_duration.as_secs() as u32),
+                            rustful::header::CacheDirective::Public,
+                        ]));
+                });
+
                 match response.send_file_with_mime(file_path, rustful::file::ext_to_mime) {
                     Ok(_) => {},
                     Err(rustful::response::FileError::Open(io_err, mut response)) => {
