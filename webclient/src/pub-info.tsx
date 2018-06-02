@@ -20,6 +20,7 @@ class PubInfoState { }
 class PubInfoProps {
   public reloadFn: () => void;
   public pubTimestamp: moment.Moment;
+  public isLoading: boolean;
 }
 
 export class PubInfo extends React.Component<PubInfoProps, PubInfoState> {
@@ -34,8 +35,11 @@ export class PubInfo extends React.Component<PubInfoProps, PubInfoState> {
       </div>;
     }
 
+
+    const loadingMessage = this.props.isLoading ? "[Loading...]" : "";
+
     return <div className="pubTime">
-      Published at {this.props.pubTimestamp.format("LTS")} ({this.props.pubTimestamp.fromNow()}) <a href="#" onClick={this.props.reloadFn}>Reload</a>
+      Published at {this.props.pubTimestamp.format("LTS")} ({this.props.pubTimestamp.fromNow()}) <a href="#" onClick={this.props.reloadFn}>Reload</a> {loadingMessage}
       </div>;
   }
 }

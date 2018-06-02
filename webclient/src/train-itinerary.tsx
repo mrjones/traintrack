@@ -27,7 +27,7 @@ import { Loadable, itemIsBeingLoaded } from './async';
 import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { PubInfo } from './pub-info';
-import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction, StartLoadingTrainItineraryAction } from './state-machine';
 
 export class TrainItineraryQueryParams {
   public static parseFrom(query: history.Search): TrainItineraryQueryParams {
@@ -48,12 +48,19 @@ function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResul
   };
 }
 
+function startLoadingTrainItinerary(trainId: string): StartLoadingTrainItineraryAction {
+  return {
+    type: TTActionTypes.START_LOADING_TRAIN_ITINERARY,
+    payload: trainId,
+  };
+}
+
 function loadTrainItinerary(trainId: string) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
     if (itemIsBeingLoaded(trainId, getState().core.trainItineraries)) {
       return;
     }
-    // dispatch(startLoadingTrainItinerary(stationId));
+    dispatch(startLoadingTrainItinerary(trainId));
     // TODO(mrjones): check for errors which might wedge us in "loading"
     context.dataFetcher.fetchTrainItinerary(trainId).then(
       (result: DebuggableResult<proto.ITrainItinerary>) => {
@@ -64,6 +71,7 @@ function loadTrainItinerary(trainId: string) {
 
 class TrainItineraryDataProps {
   public hasData: boolean;
+  public loading: boolean;
   public data: DebuggableResult<proto.ITrainItinerary>;
 }
 class TrainItineraryDispatchProps {
@@ -131,7 +139,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
 
     return <div className="page">
       <div className="pageTitle"><h2><span style={lineStyle} className="lineName">{this.props.data.data.line}</span> Train ({this.props.trainId})</h2></div>
-      <PubInfo reloadFn={this.reloadData.bind(this)} pubTimestamp={dataTs} />
+      <PubInfo reloadFn={this.reloadData.bind(this)} pubTimestamp={dataTs} isLoading={this.props.loading}/>
       {body}
       <ApiDebugger datasFetched={[this.props.data]} />
     </div>;
@@ -148,12 +156,14 @@ const mapStateToProps = (state: TTState, ownProps: TrainItineraryExplicitProps):
   if (maybeData !== undefined && maybeData.valid) {
     return {
       hasData: true,
+      loading: maybeData.loading,
       data: maybeData.data,
     };
   } else {
     return {
       hasData: false,
-      data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
+      loading: true,
+     data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
     };
   }
 };

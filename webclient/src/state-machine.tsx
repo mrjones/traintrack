@@ -56,6 +56,7 @@ export enum TTActionTypes {
   INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
   INSTALL_LINE_DETAILS = "INSTALL_LINE_DETAILS",
 
+  START_LOADING_TRAIN_ITINERARY = "START_LOADING_TRAIN_ITINERARY",
   INSTALL_TRAIN_ITINERARY = "INSTALL_TRAIN_ITINERARY",
 };
 
@@ -67,13 +68,14 @@ export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LI
 export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
 export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<proto.StationList>]>;
 
+export type StartLoadingTrainItineraryAction = TTAction<TTActionTypes.START_LOADING_TRAIN_ITINERARY, string>;
 export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_ITINERARY, [string, DebuggableResult<proto.ITrainItinerary>]>;
 
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
   InstallStationListAction |
   InstallLineListAction | InstallLineDetailsAction |
-  InstallTrainItineraryAction;
+  InstallTrainItineraryAction | StartLoadingTrainItineraryAction;
 
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
@@ -141,6 +143,22 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     console.log("INSTALL_LINE_DETAILS -> " + id);
     partialState = {
       lineDetails: state.lineDetails.set(id, obj),
+    };
+    break;
+  }
+  case TTActionTypes.START_LOADING_TRAIN_ITINERARY: {
+    let id: string = action.payload;
+    console.log("START_LOADING_TRAIN_ITINERARY -> " + id);
+    let defaultValue: Loadable<DebuggableResult<proto.ITrainItinerary>> = {
+      data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
+      loading: true,
+      valid: false,
+    };
+    let loadable: Loadable<DebuggableResult<proto.ITrainItinerary>> =
+      state.trainItineraries.get(id, defaultValue);
+    loadable.loading = true;
+    partialState = {
+      trainItineraries: state.trainItineraries.set(id, loadable),
     };
     break;
   }

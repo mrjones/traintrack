@@ -33,6 +33,31 @@ import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { fetchStationList, loadStationDetails } from './state-actions';
 
+class DataFetchState {
+  private fetching: boolean;
+  private startFetchFn: () => void;
+
+  constructor(startFetchFn: () => void) {
+    this.startFetchFn = startFetchFn;
+    this.fetching = false;
+  }
+
+  public isFetching(): boolean {
+    return this.fetching;
+  }
+
+  // TODO(mrjones): Think about fetch vs forceFetch?
+  public fetch() {
+    this.fetching = true;
+    this.startFetchFn();
+  }
+
+  // TODO(mrjones): who calls fetchdone?
+  public fetchDone() {
+    this.fetching = false;
+  }
+}
+
 export class StationPageQueryParams {
   public static parseFrom(query: history.Search): StationPageQueryParams {
     let parsed = querystring.parse(query);
@@ -164,6 +189,7 @@ class StationMultiLineDataProps {
   public stationName: string;
   public data: DebuggableResult<proto.StationStatus>;
   public hasData: boolean;
+  public loading: boolean;
 }
 class StationMultiLineDispatchProps {
   public fetchStationData: (stationId: string) => any;
@@ -182,12 +208,14 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
       stationName: maybeData.data.data.name,
       data: maybeData.data,
       hasData: true,
+      loading: maybeData.loading,
     };
   } else {
     return {
       stationName: "Loading...",
       data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
       hasData: false,
+      loading: true,
     };
   }
 };
@@ -246,7 +274,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
 
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
-            <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} />
+            <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} isLoading={this.props.loading}/>
             <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
