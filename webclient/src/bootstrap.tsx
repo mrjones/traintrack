@@ -27,14 +27,15 @@ import { LineViewRouterWrapper } from './lineview';
 import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { AboutPage } from './about-page';
+import { Prefetcher } from './prefetcher';
 import { TrainItineraryWrapper } from './train-itinerary';
 import { TransferPageWrapper } from './transfer-view';
 
 import { DataFetcher } from './datafetcher';
-import { TTContext, initialState, transition } from './state-machine';
+import { TTContext, TTState, initialState, transition } from './state-machine';
 
 let context = new TTContext(new DataFetcher(0));
-let store = Redux.createStore(
+let store: Redux.Store<TTState> = Redux.createStore(
   Redux.combineReducers({core: transition}),
   {core: initialState},
   Redux.applyMiddleware(thunk.withExtraArgument(context)));
@@ -71,3 +72,5 @@ ReactDOM.render(
     </div>
   </ReactRedux.Provider>,
   document.getElementById('tt_app'));
+
+let prefetcher = new Prefetcher(context, store);

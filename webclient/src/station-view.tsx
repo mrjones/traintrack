@@ -33,31 +33,6 @@ import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { fetchStationList, loadStationDetails } from './state-actions';
 
-class DataFetchState {
-  private fetching: boolean;
-  private startFetchFn: () => void;
-
-  constructor(startFetchFn: () => void) {
-    this.startFetchFn = startFetchFn;
-    this.fetching = false;
-  }
-
-  public isFetching(): boolean {
-    return this.fetching;
-  }
-
-  // TODO(mrjones): Think about fetch vs forceFetch?
-  public fetch() {
-    this.fetching = true;
-    this.startFetchFn();
-  }
-
-  // TODO(mrjones): who calls fetchdone?
-  public fetchDone() {
-    this.fetching = false;
-  }
-}
-
 export class StationPageQueryParams {
   public static parseFrom(query: history.Search): StationPageQueryParams {
     let parsed = querystring.parse(query);
