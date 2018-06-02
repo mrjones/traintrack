@@ -231,9 +231,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
           return Math.min(minSoFar, candidate.data.dataTimestamp as number);
         }, Number.MAX_SAFE_INTEGER);
 
-      // TODO(mrjones): Bring this back
-      // <h2>{rootStation.name}</h2>
+      const rootStation = this.props.stationDatas[
+        this.props.stationIndex.get(rootSpecForProps(this.props).stationId)].data;
+
       component = <div className="transferView">
+        <h2>{rootStation.name}</h2>
         <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.forceFetchData.bind(this)} isLoading={this.props.loadingAnyData}/>
         <ul className="transferTree">{lis}</ul>
       </div>;
