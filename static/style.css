@@ -142,6 +142,8 @@ h2 {
     margin-top: 0;
 }
 
+.transferTree li.expired,
+.transferTree li.expired a,
 .stationLine li.expired,
 .stationLine li.expired a {
     color: #CCCCCC;

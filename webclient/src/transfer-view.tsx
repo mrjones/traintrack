@@ -216,7 +216,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
         };
 
         let rootTime = moment.unix(tripWithConnections.rootTs);
-        return <li key={tripWithConnections.rootTripId}>
+        let className = "upcoming";
+        if (rootTime < moment()) {
+          className = "expired";
+        }
+        return <li key={tripWithConnections.rootTripId} className={className}>
           {rootTime.format("LT")}
           {' '}
           ({rootTime.fromNow()})
