@@ -390,7 +390,13 @@ fn station_detail_api(tt_context: &TTContext, rustful_context: rustful::Context,
     }
 
     // TODO(mrjones): Consider not failing the whole request if this fails.
-    add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
+    use std::borrow::Borrow;
+    let is_prefetch = rustful_context.query.get("prefetch")
+        .map(|x| String::from(x.borrow())) == Some("true".to_string());
+
+    if !is_prefetch {
+        add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
+    }
 
     return result;
 }
