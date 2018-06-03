@@ -60,10 +60,10 @@ export class DataFetcher {
     });
   }
 
-  public fetchStationStatus(stationId: string): Promise<DebuggableResult<proto.StationStatus>> {
+  public fetchStationStatus(stationId: string, isPrefetch = false): Promise<DebuggableResult<proto.StationStatus>> {
     return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
       let startMoment = moment();
-      const url = "/api/station/" + stationId;
+      const url = "/api/station/" + stationId + (isPrefetch ? "?prefetch=true" : "");
       fetch(url, {credentials: 'include'}).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {

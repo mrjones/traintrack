@@ -10,8 +10,8 @@ export class Prefetcher {
     this.reduxStore = reduxStore;
   }
 
-  private prefetchStation(stationId: string) {
-    let loadFn = loadStationDetails("617");
+  public prefetchStation(stationId: string) {
+    let loadFn = loadStationDetails(stationId, true);
 
     loadFn(
       this.reduxStore.dispatch,

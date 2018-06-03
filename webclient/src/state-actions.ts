@@ -33,7 +33,7 @@ function installStationDetails(newStationId: string, newStationInfo: DebuggableR
   };
 }
 
-export function loadStationDetails(stationId: string) {
+export function loadStationDetails(stationId: string, isPrefetch = false) {
   return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
     let existing = getState().core.stationDetails.get(stationId);
     if (existing !== undefined && existing.loading) {
@@ -42,7 +42,7 @@ export function loadStationDetails(stationId: string) {
       return;
     }
     dispatch(startLoadingStationDetails(stationId));
-    context.dataFetcher.fetchStationStatus(stationId)
+    context.dataFetcher.fetchStationStatus(stationId, isPrefetch)
       .then((result: DebuggableResult<proto.StationStatus>) => {
         dispatch(installStationDetails(stationId, result));
       });
