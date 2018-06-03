@@ -87,6 +87,10 @@ class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebugge
       components.push("server_build=" + serverInfo.buildVersion);
     }
 
+    if (BUILD_LABEL) {
+      components.push("client_build=" + BUILD_LABEL);
+    }
+
     return <div className="apiRequest">
       API: <a href={jsonLink}>{jsonLink}</a> <span className="debugDetails">({components.join(" ")})</span>
     </div>;

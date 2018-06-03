@@ -45,9 +45,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': '"production"'
-    }),
     new CompressionPlugin({
       asset: "[path].gz",
       algorithm: "gzip",
