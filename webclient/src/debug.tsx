@@ -19,6 +19,7 @@ import * as ReactRouter from "react-router-dom";
 import * as proto from './webclient_api_pb';
 
 import { DebuggableResult } from './datafetcher';
+import { Prefetcher } from './prefetcher';
 
 export class ClientDebugInfo {
   public fetchStarted: moment.Moment;
@@ -94,5 +95,19 @@ class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebugge
     return <div className="apiRequest">
       API: <a href={jsonLink}>{jsonLink}</a> <span className="debugDetails">({components.join(" ")})</span>
     </div>;
+  }
+}
+
+class PrefetcherDebuggerPageProps {
+  public prefetcher: Prefetcher;
+}
+
+export class PrefetcherDebuggerPage extends React.Component<PrefetcherDebuggerPageProps, any> {
+  constructor(props: any) {
+    super(props);
+  }
+
+  public render() {
+    return <div><h2>Prefetcher Debug Info</h2>{this.props.prefetcher.statusPage()}</div>;
   }
 }

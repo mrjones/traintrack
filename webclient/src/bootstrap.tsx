@@ -27,6 +27,7 @@ import { LineViewRouterWrapper } from './lineview';
 import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { AboutPage } from './about-page';
+import { PrefetcherDebuggerPage } from './debug';
 import { Prefetcher } from './prefetcher';
 import { TrainItineraryWrapper } from './train-itinerary';
 import { TransferPageWrapper } from './transfer-view';
@@ -39,6 +40,8 @@ let store: Redux.Store<TTState> = Redux.createStore(
   Redux.combineReducers({core: transition}),
   {core: initialState},
   Redux.applyMiddleware(thunk.withExtraArgument(context)));
+
+let prefetcher = new Prefetcher(ENABLE_PREFETCHING === true, context, store);
 
 ReactDOM.render(
   <ReactRedux.Provider store={store}>
@@ -62,6 +65,7 @@ ReactDOM.render(
               <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
               <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' component={TransferPageWrapper}/>
               <ReactRouter.Route path='/app/transfer' component={TransferPageWrapper}/>
+              <ReactRouter.Route path='/app/debug/prefetcher' render={(props) => (<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
               <ReactRouter.Route path='/app/about' component={AboutPage}/>
               <ReactRouter.Route path='/app' component={StationPageWrapper}/>
               <ReactRouter.Route path='/' component={StationPageWrapper}/>
@@ -73,7 +77,6 @@ ReactDOM.render(
   </ReactRedux.Provider>,
   document.getElementById('tt_app'));
 
-let prefetcher = new Prefetcher(context, store);
 if (ENABLE_PREFETCHING) {
   console.log("Prefetching enabled");
   prefetcher.prefetchRecentStations();

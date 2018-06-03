@@ -1,3 +1,4 @@
+import * as React from "react";
 import * as Redux from "redux";
 import * as Cookie from "es-cookie";
 
@@ -7,10 +8,18 @@ import { loadStationDetails } from './state-actions';
 
 
 export class Prefetcher {
-  constructor(context: TTContext, reduxStore: Redux.Store<TTState>) {
-    console.log("Prefetcher ctor");
+  constructor(enabled: boolean, context: TTContext, reduxStore: Redux.Store<TTState>) {
+    this.enabled = enabled;
     this.context = context;
     this.reduxStore = reduxStore;
+  }
+
+  public statusPage(): JSX.Element {
+    return <div>Status: {this.enabled ? "Enabled" : "Disabled"}</div>;
+  }
+
+  public isEnabled(): boolean {
+    return this.enabled;
   }
 
   public prefetchRecentStations() {
@@ -33,6 +42,7 @@ export class Prefetcher {
       this.context);
   }
 
+  private enabled: boolean;
   private context: TTContext;
   private reduxStore: Redux.Store<TTState>;
 }
