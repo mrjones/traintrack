@@ -74,11 +74,9 @@ ReactDOM.render(
   document.getElementById('tt_app'));
 
 let prefetcher = new Prefetcher(context, store);
-// TODO(mrjones): Enable prefetching
-// prefetcher.prefetchRecentStations();
-
 if (ENABLE_PREFETCHING) {
   console.log("Prefetching enabled");
+  prefetcher.prefetchRecentStations();
 } else {
   console.log("Prefetching disabled");
 }
