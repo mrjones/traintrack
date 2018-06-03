@@ -74,3 +74,5 @@ ReactDOM.render(
   document.getElementById('tt_app'));
 
 let prefetcher = new Prefetcher(context, store);
+// TODO(mrjones): Enable prefetching
+// prefetcher.prefetchRecentStations();
