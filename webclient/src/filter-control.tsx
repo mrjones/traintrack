@@ -203,7 +203,7 @@ const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): 
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): FilterControlDispatchProps => ({ });
+const mapDispatchToProps = (dispatch: Redux.Dispatch): FilterControlDispatchProps => ({ });
 
 export class FilterControl extends React.Component<FilterControlProps, FilterControlLocalState> {
   public constructor(props: any) {

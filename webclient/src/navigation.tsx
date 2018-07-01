@@ -22,6 +22,7 @@ import * as proto from './webclient_api_pb';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
 import { TTActionTypes, TTContext, TTState, InstallLineListAction } from './state-machine';
+import { TTThunkDispatch } from './thunk-types';
 
 class LinePickerDataProps {
   public dataLoaded: boolean;
@@ -79,7 +80,7 @@ function installLineList(allLines: DebuggableResult<proto.LineList>): InstallLin
 }
 
 function loadLineList() {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+  return (dispatch: TTThunkDispatch, getState: () => TTState, context: TTContext) => {
     if (getState().core.allLines.valid || getState().core.allLines.loading) {
       return;
     }
@@ -95,7 +96,7 @@ const mapLineStateToProps = (state: TTState, ownProps: LinePickerExplicitProps):
   lineList: state.core.allLines.data,
 });
 
-const mapLineDispatchToProps = (dispatch: Redux.Dispatch<TTState>): LinePickerDispatchProps => ({
+const mapLineDispatchToProps = (dispatch: TTThunkDispatch): LinePickerDispatchProps => ({
   initializeData: () => dispatch(loadLineList()),
 });
 
@@ -129,7 +130,7 @@ const mapStationStateToProps = (state: TTState, ownProps: StationPickerExplicitP
   allStations: state.core.allStations,
 });
 
-const mapStationDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationPickerDispatchProps => ({ });
+const mapStationDispatchToProps = (dispatch: Redux.Dispatch): StationPickerDispatchProps => ({ });
 
 export class StationPicker extends React.Component<StationPickerAllProps, StationPickerLocalState> {
   constructor(props: StationPickerAllProps) {

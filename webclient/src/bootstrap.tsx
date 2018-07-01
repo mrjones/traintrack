@@ -17,7 +17,7 @@ import * as ReactDOM from "react-dom";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
-import thunk from "redux-thunk";
+import * as ReduxThunk from "redux-thunk";
 
 
 import { BrowserRouter } from "react-g-analytics";
@@ -39,7 +39,7 @@ let context = new TTContext(new DataFetcher(0));
 let store: Redux.Store<TTState> = Redux.createStore(
   Redux.combineReducers({core: transition}),
   {core: initialState},
-  Redux.applyMiddleware(thunk.withExtraArgument(context)));
+  Redux.applyMiddleware((ReduxThunk.default.withExtraArgument(context) as ReduxThunk.ThunkMiddleware<TTState>)));
 
 let prefetcher = new Prefetcher(ENABLE_PREFETCHING === true, context, store);
 

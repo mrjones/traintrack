@@ -16,9 +16,12 @@ import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
+import * as ReduxThunk from "redux-thunk";
+
 
 import * as proto from './webclient_api_pb';
 
+import { TTAsyncThunkAction, TTThunkDispatch } from './thunk-types';
 import { Loadable, itemIsBeingLoaded } from './async';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
@@ -31,8 +34,8 @@ function installLineDetails(lineId: string, stations: DebuggableResult<proto.Sta
   };
 }
 
-function fetchLineDetails(lineId: string) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+function fetchLineDetails(lineId: string): TTAsyncThunkAction {
+  return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext): Promise<Redux.Action> => {
     if (itemIsBeingLoaded(lineId, getState().core.lineDetails)) {
       return;
     }
@@ -114,7 +117,7 @@ const mapStateToProps = (state: TTState, ownProps: LineViewExplicitProps): LineV
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): LineViewDispatchProps => ({
+const mapDispatchToProps = (dispatch: TTThunkDispatch): LineViewDispatchProps => ({
   fetchLineData: (lineId: string) => dispatch(fetchLineDetails(lineId)),
 });
 

@@ -28,6 +28,7 @@ import { DebuggableResult } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { PubInfo } from './pub-info';
 import { TTActionTypes, TTContext, TTState, InstallTrainItineraryAction, StartLoadingTrainItineraryAction } from './state-machine';
+import { TTThunkDispatch } from './thunk-types';
 
 export class TrainItineraryQueryParams {
   public static parseFrom(query: history.Search): TrainItineraryQueryParams {
@@ -56,7 +57,7 @@ function startLoadingTrainItinerary(trainId: string): StartLoadingTrainItinerary
 }
 
 function loadTrainItinerary(trainId: string) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+  return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
     if (itemIsBeingLoaded(trainId, getState().core.trainItineraries)) {
       return;
     }
@@ -168,7 +169,7 @@ const mapStateToProps = (state: TTState, ownProps: TrainItineraryExplicitProps):
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): TrainItineraryDispatchProps => {
+const mapDispatchToProps = (dispatch: TTThunkDispatch): TrainItineraryDispatchProps => {
   return {
     loadItinerary: (trainId: string) => dispatch(loadTrainItinerary(trainId)),
   };

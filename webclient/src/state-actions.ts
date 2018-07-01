@@ -34,7 +34,7 @@ function installStationDetails(newStationId: string, newStationInfo: DebuggableR
 }
 
 export function loadStationDetails(stationId: string, isPrefetch = false) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+  return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
     let existing = getState().core.stationDetails.get(stationId);
     if (existing !== undefined && existing.loading) {
       // Someone is already loading this
@@ -50,7 +50,7 @@ export function loadStationDetails(stationId: string, isPrefetch = false) {
 }
 
 export function loadMultipleStationDetails(stationIds: string[]) {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+  return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
     for (let stationId of stationIds) {
       let existing = getState().core.stationDetails.get(stationId);
       if (existing !== undefined && existing.loading) {
@@ -75,7 +75,7 @@ function installStationList(allStations: proto.StationList): InstallStationListA
 }
 
 export function fetchStationList() {
-  return (dispatch: Redux.Dispatch<TTState>, getState: () => TTState, context: TTContext) => {
+  return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
     context.dataFetcher.fetchStationList()
       .then((result: DebuggableResult<proto.StationList>) => {
         dispatch(installStationList(result.data));

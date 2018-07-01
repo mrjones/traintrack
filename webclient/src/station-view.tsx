@@ -32,6 +32,7 @@ import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { fetchStationList, loadStationDetails } from './state-actions';
+import { TTThunkDispatch } from './thunk-types';
 
 export class StationPageQueryParams {
   public static parseFrom(query: history.Search): StationPageQueryParams {
@@ -195,7 +196,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): StationMultiLineDispatchProps => ({
+const mapDispatchToProps = (dispatch: TTThunkDispatch): StationMultiLineDispatchProps => ({
   fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId)),
   initializeData: () => dispatch(fetchStationList()),
 });

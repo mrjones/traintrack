@@ -27,6 +27,7 @@ import { DebuggableResult } from './datafetcher';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { loadMultipleStationDetails } from './state-actions';
+import { TTThunkDispatch } from './thunk-types';
 
 class TransferSpec {
   public stationId: string;
@@ -149,7 +150,7 @@ const mapStateToProps = (state: TTState, ownProps: TransferPageExplicitProps): T
   }
 };
 
-const mapDispatchToProps = (dispatch: Redux.Dispatch<TTState>): TransferPageDispatchProps => ({
+const mapDispatchToProps = (dispatch: TTThunkDispatch): TransferPageDispatchProps => ({
     fetchDataForStations: (stationIds: string[]) => dispatch(loadMultipleStationDetails(stationIds)),
 });
 
