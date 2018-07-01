@@ -17,7 +17,8 @@ import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
 
 import { DebuggableResult } from './datafetcher';
-import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, InstallLineListAction } from './state-machine';
+import { TTThunkDispatch } from './thunk-types';
 
 function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
   return {
@@ -79,6 +80,25 @@ export function fetchStationList() {
     context.dataFetcher.fetchStationList()
       .then((result: DebuggableResult<proto.StationList>) => {
         dispatch(installStationList(result.data));
+      });
+  };
+}
+
+function installLineList(allLines: DebuggableResult<proto.LineList>): InstallLineListAction {
+  return {
+    type: TTActionTypes.INSTALL_LINE_LIST,
+    payload: allLines,
+  };
+}
+
+export function loadLineList() {
+  return (dispatch: TTThunkDispatch, getState: () => TTState, context: TTContext) => {
+    if (getState().core.allLines.valid || getState().core.allLines.loading) {
+      return;
+    }
+    context.dataFetcher.fetchLineList()
+      .then((result: DebuggableResult<proto.LineList>) => {
+        dispatch(installLineList(result));
       });
   };
 }

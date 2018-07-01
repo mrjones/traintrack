@@ -108,6 +108,6 @@ export class PrefetcherDebuggerPage extends React.Component<PrefetcherDebuggerPa
   }
 
   public render() {
-    return <div><h2>Prefetcher Debug Info</h2>{this.props.prefetcher.statusPage()}</div>;
+    return <div><h2>Prefetcher (Debug)</h2>{this.props.prefetcher.statusPage()}</div>;
   }
 }

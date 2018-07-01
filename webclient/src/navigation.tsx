@@ -22,6 +22,7 @@ import * as proto from './webclient_api_pb';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
 import { TTActionTypes, TTContext, TTState, InstallLineListAction } from './state-machine';
+import { loadLineList } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
 
 class LinePickerDataProps {
@@ -70,25 +71,6 @@ export default class LinePicker extends React.Component<LinePickerProps, LinePic
             <ApiDebugger datasFetched={[this.props.lineList]} />
             </div>);
   }
-}
-
-function installLineList(allLines: DebuggableResult<proto.LineList>): InstallLineListAction {
-  return {
-    type: TTActionTypes.INSTALL_LINE_LIST,
-    payload: allLines,
-  };
-}
-
-function loadLineList() {
-  return (dispatch: TTThunkDispatch, getState: () => TTState, context: TTContext) => {
-    if (getState().core.allLines.valid || getState().core.allLines.loading) {
-      return;
-    }
-    context.dataFetcher.fetchLineList()
-      .then((result: DebuggableResult<proto.LineList>) => {
-        dispatch(installLineList(result));
-      });
-  };
 }
 
 const mapLineStateToProps = (state: TTState, ownProps: LinePickerExplicitProps): LinePickerDataProps => ({

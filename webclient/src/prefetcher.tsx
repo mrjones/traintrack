@@ -3,7 +3,7 @@ import * as Redux from "redux";
 import * as Cookie from "es-cookie";
 
 import { TTContext, TTState } from './state-machine';
-import { loadStationDetails } from './state-actions';
+import { loadLineList, loadStationDetails } from './state-actions';
 
 
 
@@ -31,6 +31,12 @@ export class Prefetcher {
     for (let i = 0; i < 2 && i < recentStations.length; i++) {
       this.prefetchStation(recentStations[i]);
     }
+
+    let loadLineListFn = loadLineList();
+    loadLineListFn(
+      this.reduxStore.dispatch,
+      this.reduxStore.getState,
+      this.context);
   }
 
   private prefetchStation(stationId: string) {
