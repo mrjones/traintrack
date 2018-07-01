@@ -83,3 +83,9 @@ if (ENABLE_PREFETCHING) {
 } else {
   console.log("Prefetching disabled");
 }
+
+const bootstrapLoadTimeMs = new Date().getTime();
+if (htmlLoadTimeMs) {
+  console.log("boostrapLoadTimeMs: " + bootstrapLoadTimeMs +
+              " (+" + (bootstrapLoadTimeMs - htmlLoadTimeMs) + "ms)");
+}
