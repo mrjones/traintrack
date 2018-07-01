@@ -31,7 +31,7 @@ import { ConnectedFilterControl, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
-import { fetchStationList, loadStationDetails } from './state-actions';
+import { loadStationDetails } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
 
 export class StationPageQueryParams {
@@ -169,8 +169,6 @@ class StationMultiLineDataProps {
 }
 class StationMultiLineDispatchProps {
   public fetchStationData: (stationId: string) => any;
-  // TODO(mrjones): This belongs on StationPage (or higher) once that component is Redux-ified
-  public initializeData: () => any;
 }
 class StationMultiLineLocalState { }
 
@@ -198,7 +196,6 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
 
 const mapDispatchToProps = (dispatch: TTThunkDispatch): StationMultiLineDispatchProps => ({
   fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId)),
-  initializeData: () => dispatch(fetchStationList()),
 });
 
 class StationMultiLine extends React.Component<StationMultiLineProps, StationMultiLineLocalState> {
@@ -218,9 +215,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
   }
 
   public componentWillMount() {
-    // TODO(mrjones): batch?
     this.fetchDataIfNecessary(this.props);
-    this.props.initializeData();
   }
 
   public componentWillReceiveProps(nextProps: StationMultiLineProps) {

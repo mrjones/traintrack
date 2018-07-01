@@ -30,7 +30,7 @@ export class TTContext {
 export type TTCoreState = {
   stationDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationStatus>>>;
 
-  allStations: proto.StationList,
+  allStations: Loadable<proto.StationList>,
 
   allLines: Loadable<DebuggableResult<proto.LineList>>,
   lineDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationList>>>;
@@ -80,7 +80,7 @@ export type TTActions =
 export const initialState: TTCoreState = {
   stationDetails: Immutable.Map(),
 
-  allStations: new proto.StationList(),
+  allStations: {loading: false, valid: false},
   allLines: {loading: false, valid: false},
   lineDetails: Immutable.Map(),
 
@@ -121,8 +121,13 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_STATION_LIST: {
     console.log("INSTALL_STATION_LIST");
+    let obj: Loadable<proto.StationList> = {
+      data: action.payload,
+      loading: false,
+      valid: true,
+    };
     partialState = {
-      allStations: action.payload,
+      allStations: obj,
     };
     break;
   }

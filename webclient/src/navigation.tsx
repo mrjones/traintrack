@@ -19,10 +19,11 @@ import * as Redux from "redux";
 
 import * as proto from './webclient_api_pb';
 
+import { Loadable } from './async';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
-import { TTActionTypes, TTContext, TTState, InstallLineListAction } from './state-machine';
-import { loadLineList } from './state-actions';
+import { TTActionTypes, TTContext, TTState } from './state-machine';
+import { fetchStationList, loadLineList } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
 
 class LinePickerDataProps {
@@ -95,9 +96,11 @@ export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteCo
 }
 
 class StationPickerDataProps {
-  public allStations: proto.StationList;
+  public allStations: Loadable<proto.StationList>;
 }
-class StationPickerDispatchProps { }
+class StationPickerDispatchProps {
+  public loadStationData: () => any;
+}
 class StationPickerExplicitProps {
   public stationId: string;
 }
@@ -112,7 +115,9 @@ const mapStationStateToProps = (state: TTState, ownProps: StationPickerExplicitP
   allStations: state.core.allStations,
 });
 
-const mapStationDispatchToProps = (dispatch: Redux.Dispatch): StationPickerDispatchProps => ({ });
+const mapStationDispatchToProps = (dispatch: TTThunkDispatch): StationPickerDispatchProps => ({
+  loadStationData: () => dispatch(fetchStationList()),
+});
 
 export class StationPicker extends React.Component<StationPickerAllProps, StationPickerLocalState> {
   constructor(props: StationPickerAllProps) {
@@ -124,15 +129,27 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
     };
   }
 
+  public componentWillMount() {
+    if (!this.props.allStations.valid && !this.props.allStations.loading) {
+      this.props.loadStationData();
+    }
+  }
+
   private handleFilterTextChanged(e: React.FormEvent<HTMLInputElement>) {
     this.setState({currentFilterText: e.currentTarget.value});
   }
 
   public render() {
+    if (this.props.allStations.loading) {
+      return <div className="stationPicker">Loading</div>;
+    }
+    if (!this.props.allStations.valid) {
+      return <div className="stationPicker">Error.</div>;
+    }
     let i = 0;
     const max = 10;
     let done = false;
-    let stationLis = this.props.allStations.station.map(
+    let stationLis = this.props.allStations.data.station.map(
       (station: proto.Station) => {
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
