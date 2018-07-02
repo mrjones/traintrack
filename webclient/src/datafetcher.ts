@@ -22,18 +22,24 @@ import { ClientDebugInfo } from './debug';
 
 export default class Foo {};
 
+export enum RequestInitiator { PREFETCH, ON_DEMAND, UNKNOWN };
+
 export class DebuggableResult<T> {
   public data: T;
   public apiUrl: string;
   public serverDebugInfo?: proto.IDebugInfo;
   public clientDebugInfo?: ClientDebugInfo;
+  public initiator: RequestInitiator;
 
   public constructor(data: T, apiUrl: string, serverDebugInfo?: proto.IDebugInfo, clientDebugInfo?: ClientDebugInfo) {
     this.data = data;
     this.apiUrl = apiUrl;
     this.serverDebugInfo = serverDebugInfo;
     this.clientDebugInfo = clientDebugInfo;
+    this.initiator = RequestInitiator.UNKNOWN;
   }
+
+  public setInitiator(initiator: RequestInitiator) { this.initiator = initiator; }
 }
 
 export class DataFetcher {

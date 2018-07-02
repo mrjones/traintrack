@@ -92,8 +92,15 @@ class SingleDataRequestDebugger extends React.Component<SingleDataRequestDebugge
       components.push("client_build=" + BUILD_LABEL);
     }
 
+    let prefetcherLink;
+    if (process.env.NODE_ENV === "development") {
+      prefetcherLink = <div><ReactRouter.Link to={`/app/debug/prefetcher`}>Prefetcher Status</ReactRouter.Link></div>;
+
+    }
+
     return <div className="apiRequest">
       API: <a href={jsonLink}>{jsonLink}</a> <span className="debugDetails">({components.join(" ")})</span>
+      {prefetcherLink}
     </div>;
   }
 }

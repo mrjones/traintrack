@@ -25,7 +25,7 @@ import * as proto from './webclient_api_pb';
 import * as utils from './utils';
 
 import { Loadable } from './async';
-import { DebuggableResult } from './datafetcher';
+import { DebuggableResult, RequestInitiator } from './datafetcher';
 import { ApiDebugger } from './debug';
 import { ConnectedFilterControl, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
@@ -195,7 +195,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
 };
 
 const mapDispatchToProps = (dispatch: TTThunkDispatch): StationMultiLineDispatchProps => ({
-  fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId)),
+  fetchStationData: (stationId: string) => dispatch(loadStationDetails(stationId, RequestInitiator.ON_DEMAND)),
 });
 
 class StationMultiLine extends React.Component<StationMultiLineProps, StationMultiLineLocalState> {
