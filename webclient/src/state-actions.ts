@@ -17,7 +17,7 @@ import * as Redux from "redux";
 import * as proto from './webclient_api_pb';
 
 import { DebuggableResult, RequestInitiator } from './datafetcher';
-import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, InstallLineListAction } from './state-machine';
+import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, StartLoadingStationListAction, InstallLineListAction, StartLoadingLineListAction } from './state-machine';
 import { TTThunkDispatch } from './thunk-types';
 
 function startLoadingStationDetails(stationId: string): StartLoadingStationDetailsAction {
@@ -77,13 +77,29 @@ function installStationList(allStations: proto.StationList): InstallStationListA
   };
 }
 
+function startLoadingStationList(): StartLoadingStationListAction {
+  return {
+    type: TTActionTypes.START_LOADING_STATION_LIST,
+    payload: null,
+  };
+}
+
+
 export function fetchStationList(initiator = RequestInitiator.UNKNOWN) {
   return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
+    dispatch(startLoadingStationList());
     context.dataFetcher.fetchStationList()
       .then((result: DebuggableResult<proto.StationList>) => {
         result.setInitiator(initiator);
         dispatch(installStationList(result.data));
       });
+  };
+}
+
+function startLoadingLineList(): StartLoadingLineListAction {
+  return {
+    type: TTActionTypes.START_LOADING_LINE_LIST,
+    payload: null,
   };
 }
 
@@ -99,6 +115,7 @@ export function loadLineList(initiator = RequestInitiator.UNKNOWN) {
     if (getState().core.allLines.valid || getState().core.allLines.loading) {
       return;
     }
+    dispatch(startLoadingLineList());
     context.dataFetcher.fetchLineList()
       .then((result: DebuggableResult<proto.LineList>) => {
         result.setInitiator(initiator);

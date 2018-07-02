@@ -41,7 +41,7 @@ let store: Redux.Store<TTState> = Redux.createStore(
   {core: initialState},
   Redux.applyMiddleware((ReduxThunk.default.withExtraArgument(context) as ReduxThunk.ThunkMiddleware<TTState>)));
 
-let prefetcher = new Prefetcher(ENABLE_PREFETCHING === true, context, store);
+let prefetcher = new Prefetcher(ENABLE_PREFETCHING, context, store);
 
 ReactDOM.render(
   <ReactRedux.Provider store={store}>
@@ -79,7 +79,8 @@ ReactDOM.render(
 
 if (ENABLE_PREFETCHING) {
   console.log("Prefetching enabled");
-  prefetcher.prefetchRecentStations();
+  //  prefetcher.prefetchRecentStations();
+  store.subscribe(() => prefetcher.kick());
 } else {
   console.log("Prefetching disabled");
 }

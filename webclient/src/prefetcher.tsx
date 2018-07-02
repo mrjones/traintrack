@@ -16,6 +16,11 @@ export class Prefetcher {
     this.reduxStore = reduxStore;
   }
 
+
+  public kick(): void {
+    this.prefetchMissingData();
+  }
+
   public statusPage(): JSX.Element {
     let stationLis = this.reduxStore.getState().core.stationDetails.map(
       (value: Loadable<DebuggableResult<proto.StationStatus>>, key: string) => {
@@ -38,30 +43,48 @@ export class Prefetcher {
   }
 
   public prefetchRecentStations() {
-    const recentStationsStr = Cookie.get("recentStations");
-    if (recentStationsStr === undefined) { return; }
-
-
-    const recentStations = recentStationsStr.split(":").reverse();
-    // TODO(mrjones): Send one batch request
-    for (let i = 0; i < 3 && i < recentStations.length; i++) {
-      this.prefetchStation(recentStations[i]);
-    }
-
-    let loadLineListFn = loadLineList(RequestInitiator.PREFETCH);
-    loadLineListFn(
-      this.reduxStore.dispatch,
-      this.reduxStore.getState,
-      this.context);
-
-    let loadStationListFn = fetchStationList(RequestInitiator.PREFETCH);
-    loadStationListFn(
-      this.reduxStore.dispatch,
-      this.reduxStore.getState,
-      this.context);
+    this.prefetchMissingData();
   }
 
-  private prefetchStation(stationId: string) {
+  private prefetchMissingData() {
+    const currentState = this.reduxStore.getState();
+    const recentStationsStr = Cookie.get("recentStations");
+    if (recentStationsStr) {
+      this.prefetchStations(
+        recentStationsStr.split(":").reverse().slice(0, 3), currentState);
+    }
+
+    if (!currentState.core.allLines.valid &&
+        !currentState.core.allLines.loading) {
+      console.log("Prefetching line metadata.");
+      let loadLineListFn = loadLineList(RequestInitiator.PREFETCH);
+      loadLineListFn(
+        this.reduxStore.dispatch,
+        this.reduxStore.getState,
+        this.context);
+    }
+
+    if (!currentState.core.allStations.valid &&
+        !currentState.core.allStations.loading) {
+      console.log("Prefetching station list.");;
+      let loadStationListFn = fetchStationList(RequestInitiator.PREFETCH);
+      loadStationListFn(
+        this.reduxStore.dispatch,
+        this.reduxStore.getState,
+        this.context);
+    }
+  }
+
+  private prefetchStations(stationIds: string[], state: TTState) {
+    // TODO(mrjones): Send one batch request
+    stationIds.forEach((id: string) => this.prefetchStation(id, state));
+  }
+
+  private prefetchStation(stationId: string, state: TTState) {
+    if (state.core.stationDetails.has(stationId)) {
+      return;
+    }
+    console.log("Prefetching recent station: " + stationId);
     let loadFn = loadStationDetails(stationId, RequestInitiator.PREFETCH);
 
     loadFn(

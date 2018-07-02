@@ -52,8 +52,11 @@ export enum TTActionTypes {
   INSTALL_STATION_DETAILS = "INSTALL_STATION_DETAILS",
 
   INSTALL_STATION_LIST = "INSTALL_STATION_LIST",
+  START_LOADING_STATION_LIST = "START_LOADING_STATION_LIST",
 
   INSTALL_LINE_LIST = "INSTALL_LINE_LIST",
+  START_LOADING_LINE_LIST = "START_LOADING_LINE_LIST",
+
   INSTALL_LINE_DETAILS = "INSTALL_LINE_DETAILS",
 
   START_LOADING_TRAIN_ITINERARY = "START_LOADING_TRAIN_ITINERARY",
@@ -64,8 +67,11 @@ export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOAD
 export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
 
 export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
+export type StartLoadingStationListAction = TTAction<TTActionTypes.START_LOADING_STATION_LIST, null>;
 
 export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
+export type StartLoadingLineListAction = TTAction<TTActionTypes.START_LOADING_LINE_LIST, null>;
+
 export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<proto.StationList>]>;
 
 export type StartLoadingTrainItineraryAction = TTAction<TTActionTypes.START_LOADING_TRAIN_ITINERARY, string>;
@@ -73,8 +79,9 @@ export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_I
 
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
-  InstallStationListAction |
-  InstallLineListAction | InstallLineDetailsAction |
+  InstallStationListAction | StartLoadingStationListAction |
+  InstallLineListAction | StartLoadingLineListAction |
+  InstallLineDetailsAction |
   InstallTrainItineraryAction | StartLoadingTrainItineraryAction;
 
 export const initialState: TTCoreState = {
@@ -119,6 +126,15 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
     };
     break;
   }
+  case TTActionTypes.START_LOADING_STATION_LIST: {
+    console.log("START_LOADING_STATION_LIST");
+    partialState = {
+      allStations: state.allStations,
+    };
+    partialState.allStations.loading = true;
+    break;
+
+  }
   case TTActionTypes.INSTALL_STATION_LIST: {
     console.log("INSTALL_STATION_LIST");
     let obj: Loadable<proto.StationList> = {
@@ -130,6 +146,15 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
       allStations: obj,
     };
     break;
+  }
+  case TTActionTypes.START_LOADING_LINE_LIST: {
+    console.log("START_LOADING_LINE_LIST");
+    partialState = {
+      allLines: state.allLines,
+    };
+    partialState.allLines.loading = true;
+    break;
+
   }
   case TTActionTypes.INSTALL_LINE_LIST: {
     console.log("INSTALL_LINE_LIST");
