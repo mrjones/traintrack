@@ -14,21 +14,27 @@
 
 import * as $protobuf from "protobufjs";
 
+/** Direction enum. */
+export enum Direction {
+    UPTOWN = 0,
+    DOWNTOWN = 1
+}
+
 /** Properties of a DebugInfo. */
 export interface IDebugInfo {
 
     /** DebugInfo processingTimeMs */
-    processingTimeMs?: (number|Long);
+    processingTimeMs?: (number|Long|null);
 
     /** DebugInfo buildVersion */
-    buildVersion?: string;
+    buildVersion?: (string|null);
 
     /** DebugInfo buildTimestamp */
-    buildTimestamp?: (number|Long);
+    buildTimestamp?: (number|Long|null);
 }
 
 /** Represents a DebugInfo. */
-export class DebugInfo {
+export class DebugInfo implements IDebugInfo {
 
     /**
      * Constructs a new DebugInfo.
@@ -120,17 +126,17 @@ export class DebugInfo {
 export interface ILineArrival {
 
     /** LineArrival timestamp */
-    timestamp?: (number|Long);
+    timestamp?: (number|Long|null);
 
     /** LineArrival tripId */
-    tripId?: string;
+    tripId?: (string|null);
 
     /** LineArrival headsign */
-    headsign?: string;
+    headsign?: (string|null);
 }
 
 /** Represents a LineArrival. */
-export class LineArrival {
+export class LineArrival implements ILineArrival {
 
     /**
      * Constructs a new LineArrival.
@@ -222,23 +228,23 @@ export class LineArrival {
 export interface ILineArrivals {
 
     /** LineArrivals line */
-    line?: string;
+    line?: (string|null);
 
     /** LineArrivals direction */
-    direction?: Direction;
+    direction?: (Direction|null);
 
     /** LineArrivals lineColorHex */
-    lineColorHex?: string;
+    lineColorHex?: (string|null);
 
     /** LineArrivals arrivals */
-    arrivals?: ILineArrival[];
+    arrivals?: (ILineArrival[]|null);
 
     /** LineArrivals debugInfo */
-    debugInfo?: IDebugInfo;
+    debugInfo?: (IDebugInfo|null);
 }
 
 /** Represents a LineArrivals. */
-export class LineArrivals {
+export class LineArrivals implements ILineArrivals {
 
     /**
      * Constructs a new LineArrivals.
@@ -336,14 +342,14 @@ export class LineArrivals {
 export interface ITrainItineraryArrival {
 
     /** TrainItineraryArrival timestamp */
-    timestamp?: (number|Long);
+    timestamp?: (number|Long|null);
 
     /** TrainItineraryArrival station */
-    station?: IStation;
+    station?: (IStation|null);
 }
 
 /** Represents a TrainItineraryArrival. */
-export class TrainItineraryArrival {
+export class TrainItineraryArrival implements ITrainItineraryArrival {
 
     /**
      * Constructs a new TrainItineraryArrival.
@@ -432,26 +438,26 @@ export class TrainItineraryArrival {
 export interface ITrainItinerary {
 
     /** TrainItinerary line */
-    line?: string;
+    line?: (string|null);
 
     /** TrainItinerary direction */
-    direction?: Direction;
+    direction?: (Direction|null);
 
     /** TrainItinerary lineColorHex */
-    lineColorHex?: string;
+    lineColorHex?: (string|null);
 
     /** TrainItinerary arrival */
-    arrival?: ITrainItineraryArrival[];
+    arrival?: (ITrainItineraryArrival[]|null);
 
     /** TrainItinerary dataTimestamp */
-    dataTimestamp?: (number|Long);
+    dataTimestamp?: (number|Long|null);
 
     /** TrainItinerary debugInfo */
-    debugInfo?: IDebugInfo;
+    debugInfo?: (IDebugInfo|null);
 }
 
 /** Represents a TrainItinerary. */
-export class TrainItinerary {
+export class TrainItinerary implements ITrainItinerary {
 
     /**
      * Constructs a new TrainItinerary.
@@ -552,23 +558,23 @@ export class TrainItinerary {
 export interface IStationStatus {
 
     /** StationStatus name */
-    name?: string;
+    name?: (string|null);
 
     /** StationStatus id */
-    id?: string;
+    id?: (string|null);
 
     /** StationStatus line */
-    line?: ILineArrivals[];
+    line?: (ILineArrivals[]|null);
 
     /** StationStatus dataTimestamp */
-    dataTimestamp?: (number|Long);
+    dataTimestamp?: (number|Long|null);
 
     /** StationStatus debugInfo */
-    debugInfo?: IDebugInfo;
+    debugInfo?: (IDebugInfo|null);
 }
 
 /** Represents a StationStatus. */
-export class StationStatus {
+export class StationStatus implements IStationStatus {
 
     /**
      * Constructs a new StationStatus.
@@ -666,17 +672,17 @@ export class StationStatus {
 export interface IStation {
 
     /** Station id */
-    id?: string;
+    id?: (string|null);
 
     /** Station name */
-    name?: string;
+    name?: (string|null);
 
     /** Station lines */
-    lines?: string[];
+    lines?: (string[]|null);
 }
 
 /** Represents a Station. */
-export class Station {
+export class Station implements IStation {
 
     /**
      * Constructs a new Station.
@@ -768,14 +774,14 @@ export class Station {
 export interface IStationList {
 
     /** StationList station */
-    station?: IStation[];
+    station?: (IStation[]|null);
 
     /** StationList debugInfo */
-    debugInfo?: IDebugInfo;
+    debugInfo?: (IDebugInfo|null);
 }
 
 /** Represents a StationList. */
-export class StationList {
+export class StationList implements IStationList {
 
     /**
      * Constructs a new StationList.
@@ -864,17 +870,17 @@ export class StationList {
 export interface ILine {
 
     /** Line name */
-    name?: string;
+    name?: (string|null);
 
     /** Line colorHex */
-    colorHex?: string;
+    colorHex?: (string|null);
 
     /** Line active */
-    active?: boolean;
+    active?: (boolean|null);
 }
 
 /** Represents a Line. */
-export class Line {
+export class Line implements ILine {
 
     /**
      * Constructs a new Line.
@@ -966,14 +972,14 @@ export class Line {
 export interface ILineList {
 
     /** LineList line */
-    line?: ILine[];
+    line?: (ILine[]|null);
 
     /** LineList debugInfo */
-    debugInfo?: IDebugInfo;
+    debugInfo?: (IDebugInfo|null);
 }
 
 /** Represents a LineList. */
-export class LineList {
+export class LineList implements ILineList {
 
     /**
      * Constructs a new LineList.
@@ -1056,10 +1062,4 @@ export class LineList {
      * @returns JSON object
      */
     public toJSON(): { [k: string]: any };
-}
-// NOTE: THIS WAS ADDED MANUALLY
-// https://github.com/dcodeIO/protobuf.js/issues/780
-export enum Direction {
-    UPTOWN,
-    DOWNTOWN,
 }

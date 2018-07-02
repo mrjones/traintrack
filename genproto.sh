@@ -38,12 +38,12 @@ GTFS_REALTIME_RS=src/gtfs_realtime.rs
 $PBJS -t static-module -w commonjs -o $WEBCLIENT_API_JS $API_PROTO
 $PBJS -t static-module $API_PROTO | $PBTS -o $WEBCLIENT_API_D_TS -
 
-echo "// NOTE: THIS WAS ADDED MANUALLY" >> $WEBCLIENT_API_D_TS
-echo "// https://github.com/dcodeIO/protobuf.js/issues/780" >> $WEBCLIENT_API_D_TS
-echo "export enum Direction {" >> $WEBCLIENT_API_D_TS
-echo "    UPTOWN," >> $WEBCLIENT_API_D_TS
-echo "    DOWNTOWN," >> $WEBCLIENT_API_D_TS
-echo "}" >> $WEBCLIENT_API_D_TS
+#echo "// NOTE: THIS WAS ADDED MANUALLY" >> $WEBCLIENT_API_D_TS
+#echo "// https://github.com/dcodeIO/protobuf.js/issues/780" >> $WEBCLIENT_API_D_TS
+#echo "export enum Direction {" >> $WEBCLIENT_API_D_TS
+#echo "    UPTOWN," >> $WEBCLIENT_API_D_TS
+#echo "    DOWNTOWN," >> $WEBCLIENT_API_D_TS
+#echo "}" >> $WEBCLIENT_API_D_TS
 
 LICENSE_TXT=$(cat <<-END
 // Copyright 2018 Google LLC
