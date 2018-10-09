@@ -182,6 +182,7 @@ class FilterControlDispatchProps { };
 class FilterControlExplicitProps {
   public stationId: string;
   public visibilityState: VisibilityState;
+  public queryParamsToPropagate: Immutable.Set<String>;
 }
 class FilterControlLocalState {
   public lineColors: Map<string, string>;  // TODO: move to props
@@ -221,7 +222,10 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
         <a className="toggleExpander" href="#" onClick={this.toggleExpanded.bind(this)}>Filter +</a>
         </div>;
     }
+
     let togglers = new Array<JSX.Element>();
+    let queryString = this.props.queryParamsToPropagate.isEmpty() ? "" : "?" + this.props.queryParamsToPropagate.join("&");
+
     utils.directionsForStation(this.props.allTrains).map((direction: proto.Direction) => {
       let visible = this.props.visibilityState.includesDirection(direction);
       let className = "toggleButton autowidth " + (visible ? "active" : "inactive");
@@ -229,7 +233,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
 
       let newVisibility = this.props.visibilityState.clone();
       newVisibility.toggleDirection(direction);
-      let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec();
+      let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec() + queryString;
       togglers.push(<div key={utils.directionName(direction)} className={className}>
                       <ReactRouter.Link to={link}>{name}</ReactRouter.Link>
                     </div>);
@@ -245,7 +249,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
       let className = "toggleButton " + (visible ? "active" : "inactive");
       let newVisibility = this.props.visibilityState.clone();
       newVisibility.toggleLine(line);
-      let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec();
+      let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec() + queryString;
       togglers.push(<div key={line} className={className} style={style}>
                       <ReactRouter.Link to={link}>{line}</ReactRouter.Link>
                     </div>);
@@ -256,7 +260,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     let className = "togglebutton autowidth " + (this.props.visibilityState.isCombined() ? "active" : "inactive");
     let newVisibility = this.props.visibilityState.clone();
     newVisibility.toggleCombined();
-    let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec();
+    let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec() + queryString;
     togglers.push(<div key="mixing" className={className}><ReactRouter.Link to={link}>Combined</ReactRouter.Link></div>);
 
     if (this.props.visibilityState.shouldShowAlphaFeatures()) {

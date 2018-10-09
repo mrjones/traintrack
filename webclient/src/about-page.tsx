@@ -34,6 +34,7 @@ export class AboutPage extends React.Component<any, any> {
       <li>2018-05-22: Optimized JS file size to speed up page loads.</li>
       <li>2018-05-21: Remember recent stations in "Jump To Station" list.</li>
       <li>2018-05-21: Remember most recent station when loading home page.</li>
+      <li>2018-10-09: Persist train highlighting when using station filtering controls.</li>
       </ul>
       </p>
       </div>;

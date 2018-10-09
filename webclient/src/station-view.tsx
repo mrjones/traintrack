@@ -35,12 +35,23 @@ import { loadStationDetails } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
 
 export class StationPageQueryParams {
+  public constructor(highlightedTrains: Immutable.Set<string>) {
+    this.highlightedTrains = highlightedTrains;
+  }
+
   public static parseFrom(query: history.Search): StationPageQueryParams {
     let parsed = querystring.parse(query);
-    return {
-      highlightedTrains: parsed["highlight"] ?
-        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set(),
-    };
+    return new StationPageQueryParams(
+      parsed["highlight"] ?
+        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set());
+  }
+
+  public asParams(): Immutable.Set<string> {
+    if (this.highlightedTrains.isEmpty()) {
+      return Immutable.Set();
+    } else {
+      return Immutable.Set.of("highlight=" + this.highlightedTrains.join(","));
+    }
   }
 
   public highlightedTrains: Immutable.Set<string>;
@@ -160,6 +171,7 @@ class StationMultiLineExplicitProps {
   public stationId: string;
   public visibilityState: VisibilityState;
   public highlightedTrains: Immutable.Set<string>;
+  public queryParamsToPropagate: Immutable.Set<string>;
 }
 class StationMultiLineDataProps {
   public stationName: string;
@@ -246,7 +258,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} isLoading={this.props.loading}/>
-            <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState}/>
+            <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState} queryParamsToPropagate={this.props.queryParamsToPropagate}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
             </div>);
@@ -294,7 +306,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-      <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState} highlightedTrains={this.props.queryParams.highlightedTrains}/>
+            <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState} highlightedTrains={this.props.queryParams.highlightedTrains} queryParamsToPropagate={this.props.queryParams.asParams()}/>
     </div>);
   }
 }
