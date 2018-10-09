@@ -561,55 +561,6 @@ fn train_detail_api(tt_context: &TTContext, rustful_context: rustful::Context, p
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::TrainItinerary::mut_debug_info));
 }
 
-fn station_detail(tt_context: &TTContext, rustful_context: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let station_id = rustful_context.variables.get("station_id").ok_or(
-        result::TTError::Uncategorized("Missing station_id".to_string()))?;
-    let desired_route = rustful_context.variables.get("route_id").map(|x| x.to_string());
-    let station_id = station_id.into_owned();
-    let station = tt_context.stops.lookup_by_id(&station_id).ok_or(
-        result::TTError::Uncategorized(
-            format!("No station with ID {}", station_id)))?;
-    let feed = tt_context.feed(16)?;
-
-    let tz = chrono_tz::America::New_York;
-
-    let upcoming = utils::all_upcoming_trains(&station_id, &feed.feed, &tt_context.stops);
-    let mut body = format!("<html><head><title>Station {}</title><link rel='stylesheet' type='text/css' href='/style.css'/></head><body><h1>Station {}</h1>", station.name, station.name);
-
-    body.push_str(&format!("<div><b><a href='/app/station/{}'>NEW VERSION OF THIS PAGE</a></b></div>", station_id));
-
-    upcoming.trains_by_route_and_direction.iter().map(|(ref route, ref trains)| {
-        if desired_route.is_some() && desired_route != Some(route.to_string()) {
-            return;
-        }
-
-        body.push_str(&format!("<h2>{}</h2>", route));
-
-        trains.iter().map(|(ref direction, ref times)| {
-            body.push_str(&format!("<h3>{:?}</h3><ul>", direction));
-            times.iter().map(|time| {
-                let css_class;
-                if time.timestamp < chrono::Utc::now() {
-                    css_class = "class='past'" ;
-                } else {
-                    css_class = "";
-                };
-
-                body.push_str(&format!("<li {}>{}</li>", css_class, time.timestamp.with_timezone(&tz).format("%H:%M %p")));
-            }).count();
-            body.push_str(&format!("</ul>"));
-        }).count();
-    }).count();
-
-    body.push_str("</body></html>");
-
-    return Ok(body.as_bytes().to_vec());
-}
-
-fn list_stations(_: &TTContext, _: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
-    return Ok("<html><body><script language='javascript'>window.location = '/app/lines';</script></body></html>".as_bytes().to_vec());
-}
-
 fn debug(tt_context: &TTContext, _: rustful::Context, _: &mut PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();
 
@@ -838,15 +789,6 @@ pub fn serve(context: TTContext, port: u16, static_dir: &str, js_bundle: &JsBund
             node.path("get_homepage").then().on_get(PageType::Dynamic(get_homepage));
             node.path("recent").then().on_get(PageType::Dynamic(get_recent_stations));
             node.path("add_recent").then().on_get(PageType::Dynamic(add_recent_station));
-        });
-
-
-        node.path("stations").then().on_get(PageType::Dynamic(list_stations));
-        node.path("station").many(|node| {
-            node.path(":station_id").many(|node| {
-                node.then().on_get(PageType::Dynamic(station_detail));
-                node.path(":route_id").then().on_get(PageType::Dynamic(station_detail));
-            });
         });
 
         node.path("style.css").then().on_get(PageType::new_static_page(
