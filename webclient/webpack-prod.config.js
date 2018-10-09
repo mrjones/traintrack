@@ -6,7 +6,7 @@ const template = require('./webpack.config.js');
 module.exports = merge(template, {
   plugins: [
     new webpack.DefinePlugin({
-      'ENABLE_PREFETCHING': 'false',
+      'ENABLE_PREFETCHING': 'true',
       'BUILD_LABEL': '"PROD"',
     }),
   ],

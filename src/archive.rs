@@ -79,11 +79,7 @@ impl FeedArchive {
 
         let client = reqwest::Client::new();
         let mut response = client.post(&url)
-            .header(reqwest::header::Authorization(
-                reqwest::header::Bearer {
-                    token: token.to_string()
-                }
-            ))
+            .bearer_auth(token)
             .body(buf)
             .send()?;
 

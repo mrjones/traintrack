@@ -143,11 +143,7 @@ pub fn do_firestore_request(google_api_key: &str, bearer_token: &str) -> result:
     let client = reqwest::Client::new();
     let mut decode_res = client
         .get(&url)
-        .header(reqwest::header::Authorization(
-            reqwest::header::Bearer {
-                token: bearer_token.to_string()
-            }
-        ))
+        .bearer_auth(bearer_token)
         .send().expect("decode http");
 
     return Ok(decode_res.text().unwrap());
