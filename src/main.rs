@@ -35,6 +35,7 @@ mod api_handlers;
 mod archive;
 mod auth;
 mod context;
+mod debug_handlers;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
