@@ -18,9 +18,12 @@ extern crate std;
 
 use chrono::TimeZone;
 
+use context;
 use feedfetcher;
 use gtfs_realtime;
 use nyct_subway;
+use result;
+use rustful;
 use stops;
 
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -212,5 +215,43 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
     return UpcomingTrainsResult {
         trains_by_route_and_direction: upcoming,
         underlying_data_timestamp: chrono::Utc.timestamp(min_relevant_ts as i64, 0),
+    }
+}
+
+pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {
+    let matches = extract_cookie_values_for_key(context, "recentStations");
+
+    if matches.len() == 0 { return vec![]; }
+
+    return matches[0].split(':').map(|x| x.to_string()).collect();
+}
+
+pub fn add_recent_station_to_cookie(id: &str, context: &rustful::Context, prc: &mut context::PerRequestContext) -> result::TTResult<()> {
+    let mut list: Vec<String> = extract_recent_stations_from_cookie(context).into_iter().filter(|x| x != id).take(15).collect();
+    list.push(id.to_string());
+    let newval = list.join(":");
+
+    prc.response_modifiers.push(Box::new(move |response: &mut rustful::Response| {
+        response.headers_mut().set(
+            rustful::header::SetCookie(vec![
+                format!("recentStations={}; Path=/", newval).to_string(),
+            ]));
+    }));
+    return Ok(());
+}
+
+fn extract_cookie_values_for_key(context: &rustful::Context, key: &str) -> Vec<String> {
+    match context.headers.get::<rustful::header::Cookie>() {
+        None => { return vec![] },
+        Some(ref cookies) => {
+            return cookies.iter().filter_map(|cookie| {
+                let parts: std::vec::Vec<&str> = cookie.splitn(2, '=').collect();
+                if parts.len() == 2 && parts[0] == key {
+                    return Some(parts[1].to_string());
+                } else {
+                    return None;
+                }
+            }).collect::<std::vec::Vec<String>>();
+        },
     }
 }

@@ -31,8 +31,10 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
+mod api_handlers;
 mod archive;
 mod auth;
+mod context;
 mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
@@ -170,7 +172,7 @@ fn main() {
 
     let google_api_info = match matches.opt_str("google-api-id") {
         Some(id) => match matches.opt_str("google-api-secret") {
-            Some(secret) => Some(server::GoogleApiInfo{id: id, secret: secret}),
+            Some(secret) => Some(context::GoogleApiInfo{id: id, secret: secret}),
             None => None,
         },
         None => None,
@@ -184,7 +186,7 @@ fn main() {
     let tt_version = option_env!("TRAINTRACK_VERSION").unwrap_or("<not set>");
     println!("TRAINTRACK_VERSION={}", tt_version);
 
-    let server_context = server::TTContext::new(
+    let server_context = context::TTContext::new(
         stops, fetcher, tt_version, build_timestamp, google_api_info,
         matches.opt_str("firebase-api-key"),
         matches.opt_str("google-service-account-pem-file"));
