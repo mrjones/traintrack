@@ -1063,3 +1063,195 @@ export class LineList implements ILineList {
      */
     public toJSON(): { [k: string]: any };
 }
+
+/** Properties of a TrainArrivalHistoryEntry. */
+export interface ITrainArrivalHistoryEntry {
+
+    /** TrainArrivalHistoryEntry dataTimestamp */
+    dataTimestamp?: (number|Long|null);
+
+    /** TrainArrivalHistoryEntry arrivalTime */
+    arrivalTime?: (number|Long|null);
+}
+
+/** Represents a TrainArrivalHistoryEntry. */
+export class TrainArrivalHistoryEntry implements ITrainArrivalHistoryEntry {
+
+    /**
+     * Constructs a new TrainArrivalHistoryEntry.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: ITrainArrivalHistoryEntry);
+
+    /** TrainArrivalHistoryEntry dataTimestamp. */
+    public dataTimestamp: (number|Long);
+
+    /** TrainArrivalHistoryEntry arrivalTime. */
+    public arrivalTime: (number|Long);
+
+    /**
+     * Creates a new TrainArrivalHistoryEntry instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns TrainArrivalHistoryEntry instance
+     */
+    public static create(properties?: ITrainArrivalHistoryEntry): TrainArrivalHistoryEntry;
+
+    /**
+     * Encodes the specified TrainArrivalHistoryEntry message. Does not implicitly {@link TrainArrivalHistoryEntry.verify|verify} messages.
+     * @param message TrainArrivalHistoryEntry message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: ITrainArrivalHistoryEntry, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified TrainArrivalHistoryEntry message, length delimited. Does not implicitly {@link TrainArrivalHistoryEntry.verify|verify} messages.
+     * @param message TrainArrivalHistoryEntry message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: ITrainArrivalHistoryEntry, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a TrainArrivalHistoryEntry message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns TrainArrivalHistoryEntry
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): TrainArrivalHistoryEntry;
+
+    /**
+     * Decodes a TrainArrivalHistoryEntry message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns TrainArrivalHistoryEntry
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): TrainArrivalHistoryEntry;
+
+    /**
+     * Verifies a TrainArrivalHistoryEntry message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a TrainArrivalHistoryEntry message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns TrainArrivalHistoryEntry
+     */
+    public static fromObject(object: { [k: string]: any }): TrainArrivalHistoryEntry;
+
+    /**
+     * Creates a plain object from a TrainArrivalHistoryEntry message. Also converts values to other types if specified.
+     * @param message TrainArrivalHistoryEntry
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: TrainArrivalHistoryEntry, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this TrainArrivalHistoryEntry to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
+
+/** Properties of a TrainArrivalHistory. */
+export interface ITrainArrivalHistory {
+
+    /** TrainArrivalHistory debugInfo */
+    debugInfo?: (IDebugInfo|null);
+
+    /** TrainArrivalHistory history */
+    history?: (ITrainArrivalHistoryEntry[]|null);
+}
+
+/** Represents a TrainArrivalHistory. */
+export class TrainArrivalHistory implements ITrainArrivalHistory {
+
+    /**
+     * Constructs a new TrainArrivalHistory.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: ITrainArrivalHistory);
+
+    /** TrainArrivalHistory debugInfo. */
+    public debugInfo?: (IDebugInfo|null);
+
+    /** TrainArrivalHistory history. */
+    public history: ITrainArrivalHistoryEntry[];
+
+    /**
+     * Creates a new TrainArrivalHistory instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns TrainArrivalHistory instance
+     */
+    public static create(properties?: ITrainArrivalHistory): TrainArrivalHistory;
+
+    /**
+     * Encodes the specified TrainArrivalHistory message. Does not implicitly {@link TrainArrivalHistory.verify|verify} messages.
+     * @param message TrainArrivalHistory message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: ITrainArrivalHistory, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified TrainArrivalHistory message, length delimited. Does not implicitly {@link TrainArrivalHistory.verify|verify} messages.
+     * @param message TrainArrivalHistory message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: ITrainArrivalHistory, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a TrainArrivalHistory message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns TrainArrivalHistory
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): TrainArrivalHistory;
+
+    /**
+     * Decodes a TrainArrivalHistory message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns TrainArrivalHistory
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): TrainArrivalHistory;
+
+    /**
+     * Verifies a TrainArrivalHistory message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a TrainArrivalHistory message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns TrainArrivalHistory
+     */
+    public static fromObject(object: { [k: string]: any }): TrainArrivalHistory;
+
+    /**
+     * Creates a plain object from a TrainArrivalHistory message. Also converts values to other types if specified.
+     * @param message TrainArrivalHistory
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: TrainArrivalHistory, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this TrainArrivalHistory to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}

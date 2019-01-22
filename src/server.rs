@@ -242,7 +242,12 @@ pub fn serve(context: context::TTContext, port: u16, static_dir: &str, js_bundle
         node.path("api").many(|node| {
             node.path("lines").then().on_get(PageType::Dynamic(api_handlers::line_list_handler));
             node.path("station").many(|node| {
-                node.path(":station_id").then().on_get(PageType::Dynamic(api_handlers::station_detail_handler));
+                node.path(":station_id").many(|node| {
+                    node.then().on_get(PageType::Dynamic(api_handlers::station_detail_handler));
+                    node.path("train_history").many(|node| {
+                        node.path(":train_id").then().on_get(PageType::Dynamic(api_handlers::train_arrival_history_handler));
+                    });
+                });
             });
             node.path("train").many(|node| {
                 node.path(":train_id").then().on_get(PageType::Dynamic(api_handlers::train_detail_handler));

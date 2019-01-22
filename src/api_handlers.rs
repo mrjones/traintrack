@@ -209,6 +209,36 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::TrainItinerary::mut_debug_info));
 }
 
+pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let station_id_str = rustful_context.variables.get("station_id").ok_or(
+        result::TTError::Uncategorized("Missing station_id".to_string()))?;
+    let train_id_str = rustful_context.variables.get("train_id").ok_or(
+        result::TTError::Uncategorized("Missing station_id".to_string()))?;
+
+    let mut response = webclient_api::TrainArrivalHistory::new();
+
+    for feed_id in tt_context.fetcher.known_feed_ids() {
+        for archive_id in tt_context.fetcher.archive_keys(feed_id) {
+            let feed = tt_context.fetcher.archived_value(feed_id, archive_id).unwrap();
+            for entity in feed.get_entity() {
+                if entity.has_trip_update() && entity.get_trip_update().get_trip().get_trip_id() == train_id_str {
+                    for station in entity.get_trip_update().get_stop_time_update() {
+                        if utils::stop_matches(station.get_stop_id(), &station_id_str, &tt_context.stops) {
+                            let mut history_entry = webclient_api::TrainArrivalHistoryEntry::new();
+                            history_entry.set_data_timestamp(feed.get_header().get_timestamp() as i64);
+                            history_entry.set_arrival_time(station.get_arrival().get_time());
+                            response.mut_history().push(history_entry);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::TrainArrivalHistory::mut_debug_info));
+}
+
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
 fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {

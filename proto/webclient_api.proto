@@ -75,3 +75,14 @@ message LineList {
 
   optional DebugInfo debug_info = 4;
 }
+
+message TrainArrivalHistoryEntry {
+  optional int64 data_timestamp = 1;
+  optional int64 arrival_time = 2;
+}
+
+message TrainArrivalHistory {
+  optional DebugInfo debug_info = 1;
+
+  repeated TrainArrivalHistoryEntry history = 2;
+}
