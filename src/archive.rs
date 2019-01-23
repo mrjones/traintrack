@@ -63,6 +63,7 @@ impl FeedArchive {
     }
 
     // TODO(mrjones): Do asynchronously on background thread
+    // TODO(mrjones): Don't re-post feed if it hasn't changed? It might be incurring ops, which aren't free on GCS.
     fn gcs_save(&self, feed_id: i32, message: &gtfs_realtime::FeedMessage, gcs_options: &GcsArchiveOptions) -> result::TTResult<()> {
         // TODO(mrjones): Cache and reuse
         let token = auth::generate_google_bearer_token(
