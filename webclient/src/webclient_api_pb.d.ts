@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import * as $protobuf from "protobufjs";
-
 /** Direction enum. */
 export enum Direction {
     UPTOWN = 0,
