@@ -23,6 +23,7 @@
 # 3. Install pbjs/pbts:
 # - npm install (already defined in project.json)
 ~/downloads/proto/bin/protoc --proto_path ./proto/ --plugin ~/.cargo/bin/protoc-gen-rust --rust_out ./src/ proto/*.proto
+~/downloads/proto/bin/protoc --proto_path ./proto/ --plugin ~/.cargo/bin/protoc-gen-rust --rust_out ./ttpredict/src/ proto/gtfs-realtime.proto
 
 PBJS=./webclient/node_modules/protobufjs/bin/pbjs
 PBTS=./webclient/node_modules/protobufjs/bin/pbts
