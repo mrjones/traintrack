@@ -1,0 +1,14 @@
+[package]
+name = "tt_googleauth"
+version = "0.0.1"
+authors = ["Matt Jones <jonesmr@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = "*"
+error-chain = "*"
+frank_jwt = "*"
+reqwest = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
