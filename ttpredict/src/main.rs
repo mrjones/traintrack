@@ -1,15 +1,20 @@
 extern crate getopts;
 extern crate reqwest;
 extern crate serde;
+extern crate serde_aux;
 #[macro_use] extern crate serde_derive;
 extern crate serde_json;
 extern crate tt_googleauth;
 extern crate url;
 
+use serde_aux::prelude::*;
+
 #[derive(Serialize, Deserialize)]
 struct GcsListBucketItem {
     id: String,
     name: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    size: i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -48,6 +53,7 @@ fn main() {
     let client = reqwest::Client::new();
 
     let mut page_token: Option<String> = None;
+    let mut total_size = 0;
 
     loop {
         let mut params: Vec<String> = vec![];
@@ -76,6 +82,10 @@ fn main() {
         let response_text = response.text().expect("response text");
         let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
 
+        for item in &response.items {
+            total_size += item.size
+        }
+
         println!("{} items", response.items.len());
 
         page_token = response.next_page_token;
@@ -84,4 +94,6 @@ fn main() {
             break;
         }
     }
+
+    println!("Total size: {}", total_size);
 }
