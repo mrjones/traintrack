@@ -11,4 +11,7 @@ getopts = "*"
 oauth2 = { git = "https://github.com/ramosbugs/oauth2-rs" }
 url = "*"
 reqwest = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
 tt_googleauth = { path = "../googleauth" }

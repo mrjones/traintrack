@@ -1,7 +1,21 @@
 extern crate getopts;
 extern crate reqwest;
+extern crate serde;
+#[macro_use] extern crate serde_derive;
+extern crate serde_json;
 extern crate tt_googleauth;
 extern crate url;
+
+#[derive(Serialize, Deserialize)]
+struct GcsListBucketItem {
+    id: String,
+    name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct GcsListBucketPage {
+    items: Vec<GcsListBucketItem>,
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -34,5 +48,10 @@ fn main() {
         .bearer_auth(token)
         .send().expect("client.get");
 
-    print!("GCS response: {}", response.text().expect("response.text"));
+    let response_text = response.text().expect("response text");
+    let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
+
+    for item in response.items.iter().take(10) {
+        println!("Item {}", item.name);
+    }
 }
