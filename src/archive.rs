@@ -72,7 +72,7 @@ impl FeedArchive {
 
         let url = format!(
             "https://www.googleapis.com/upload/storage/v1/b/{}/o?uploadType=media&name=feed-{}-{}",
-            gcs_options.bucket_name, message.get_header().get_timestamp(), feed_id);
+            gcs_options.bucket_name, feed_id, message.get_header().get_timestamp());
 
         use protobuf::Message;
         let mut buf = vec![];
