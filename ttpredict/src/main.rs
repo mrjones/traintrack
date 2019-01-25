@@ -13,8 +13,10 @@ struct GcsListBucketItem {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct GcsListBucketPage {
     items: Vec<GcsListBucketItem>,
+    next_page_token: String,
 }
 
 fn main() {
@@ -51,6 +53,7 @@ fn main() {
     let response_text = response.text().expect("response text");
     let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
 
+    println!("{} items", response.items.size());
     for item in response.items.iter().take(10) {
         println!("Item {}", item.name);
     }
