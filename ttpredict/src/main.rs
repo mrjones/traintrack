@@ -24,6 +24,7 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.optopt("", "gcs-bucket", "GCS bucket where feeds were archived", "BUCKET");
+    opts.optopt("", "gcs-prefix", "Prefix to use when listing GCS bucket", "PREFIX");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -34,6 +35,8 @@ fn main() {
         Some(bucket) => bucket,
         None => panic!("Must supply --gcs-bucket"),
     };
+
+    let gcs_prefix = matches.opt_str("gcs-prefix");
 
     let auther = tt_googleauth::GoogleAuth::new(
         "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com",
@@ -47,12 +50,24 @@ fn main() {
     let mut page_token: Option<String> = None;
 
     loop {
-        let url = match page_token {
-            Some(page_token) => format!(
-                "https://www.googleapis.com/storage/v1/b/{}/o?pageToken={}", gcs_bucket, page_token),
-            None => format!(
-                "https://www.googleapis.com/storage/v1/b/{}/o", gcs_bucket),
-        };
+        let mut params: Vec<String> = vec![];
+
+        match page_token {
+            Some(ref page_token) => params.push(format!("pageToken={}", page_token)),
+            None => {},
+        }
+
+        match gcs_prefix {
+            Some(ref prefix) => params.push(format!("prefix={}", prefix)),
+            None => {},
+        }
+
+        let mut url = format!(
+            "https://www.googleapis.com/storage/v1/b/{}/o", gcs_bucket);
+
+        if params.len() > 0 {
+            url = format!("{}?{}", url, params.join("&"));
+        }
 
         let mut response = client.get(&url)
             .bearer_auth(auth_token.clone())
@@ -61,12 +76,7 @@ fn main() {
         let response_text = response.text().expect("response text");
         let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
 
-
         println!("{} items", response.items.len());
-        for item in response.items.iter().take(10) {
-            println!("Item {}", item.name);
-        }
-
 
         page_token = response.next_page_token;
 

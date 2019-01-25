@@ -71,7 +71,7 @@ impl FeedArchive {
             vec!["https://www.googleapis.com/auth/devstorage.read_write".to_string()])?;
 
         let url = format!(
-            "https://www.googleapis.com/upload/storage/v1/b/{}/o?uploadType=media&name=feed-{}-{}",
+            "https://www.googleapis.com/upload/storage/v1/b/{}/o?uploadType=media&name=ttfeed-{}-{}",
             gcs_options.bucket_name, feed_id, message.get_header().get_timestamp());
 
         use protobuf::Message;
