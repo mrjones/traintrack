@@ -80,5 +80,9 @@ fn main() {
         count += 1;
     }
 
+    storage.iterate_history(|trip_id, predictions| {
+        println!("{} {:?}", trip_id, predictions);
+    });
+
     println!("Total size: {}, Count: {}", total_size, count);
 }
