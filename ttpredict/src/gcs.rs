@@ -26,6 +26,18 @@ pub struct GcsBucketItemIterator {
     prefix: Option<String>,
 }
 
+fn fetch_object(bucket: &str, object_name: &str, auth_token: &str) -> String {
+    let url = format!(
+        "https://www.googleapis.com/storage/v1/b/{}/o/{}?alt=media", bucket, object_name);
+
+    let client = reqwest::Client::new();  // TODO: Store & reuse?
+    let mut response = client.get(&url)
+        .bearer_auth(auth_token.clone())
+        .send().expect("client.get");
+
+    return response.text().expect("response text");
+}
+
 fn next_page(next_page_token: Option<&str>, gcs_bucket: &str, auth_token: &str, prefix: Option<&str>) -> Option<GcsListBucketPage> {
     let mut params: Vec<String> = vec![];
 
@@ -109,5 +121,9 @@ impl GcsClient {
 
     pub fn list_bucket(&self, bucket_name: &str, prefix: Option<&str>) -> GcsBucketItemIterator{
         return GcsBucketItemIterator::new(bucket_name, &self.auth_token, prefix);
+    }
+
+    pub fn fetch(&self, bucket_name: &str, object_name: &str) -> String {
+        return fetch_object(bucket_name, object_name, &self.auth_token);
     }
 }

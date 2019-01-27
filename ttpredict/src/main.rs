@@ -56,15 +56,22 @@ fn main() {
 
     let gcs_client = gcs::GcsClient::new(&auth_token);
     for item in gcs_client.list_bucket(&gcs_bucket, gcs_prefix.as_ref().map(String::as_str)) {
-        total_size += item.size as i64;
-        count += 1;
 
-        println!("name: {}", item.name);
+        if count == 0 {
+            println!("Fetching: {}", item.name);
+            let body = gcs_client.fetch(&gcs_bucket, &item.name);
+//            let somebody: String = body.chars().take(50).collect();
+//            println!("{}...", somebody);
+            println!("{}", body);
+        }
 
         if count % 5000 == 0 {
             println!("So far: size: {}, Count: {}", total_size, count);
 
         }
+
+        total_size += item.size as i64;
+        count += 1;
     }
 
     println!("Total size: {}, Count: {}", total_size, count);
