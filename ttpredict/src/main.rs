@@ -10,6 +10,7 @@ extern crate url;
 
 mod gcs;
 mod gtfs_realtime;
+mod storage;
 
 #[derive(Serialize, Deserialize)]
 struct GcsListBucketItem {
@@ -58,6 +59,7 @@ fn main() {
 
     let mut total_size: i64 = 0;
     let mut count = 0;
+    let storage = storage::TripStorage::new();
 
     let gcs_client = gcs::GcsClient::new(&auth_token);
     for item in gcs_client.list_bucket(&gcs_bucket, gcs_prefix.as_ref().map(String::as_str)) {
@@ -67,8 +69,9 @@ fn main() {
             let body = gcs_client.fetch(&gcs_bucket, &item.name);
             let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&body).expect("parse proto");
             for entity in feed.get_entity() {
-                if entity.has_trip_update() && entity.get_trip_update().has_trip() {
-                    println!("Trip {} {}", entity.get_id(), entity.get_trip_update().get_trip().get_trip_id());
+                if entity.has_trip_update() {
+                    storage.store_trip_update(feed.get_header().get_timestamp(),
+                                              entity.get_trip_update());
                 }
             }
         }
