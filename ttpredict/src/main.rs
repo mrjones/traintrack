@@ -51,57 +51,21 @@ fn main() {
     let auth_token = auther.generate_bearer_token(
         vec!["https://www.googleapis.com/auth/devstorage.read_write".to_string()]).expect("generate_bearer_token");
 
-    let mut total_size = 0;
+    let mut total_size: i64 = 0;
+    let mut count = 0;
 
     let gcs_client = gcs::GcsClient::new(&auth_token);
-    for item in gcs_client.list_bucket(&gcs_bucket) {
-        total_size += item.size;
-    }
+    for item in gcs_client.list_bucket(&gcs_bucket, gcs_prefix.as_ref().map(String::as_str)) {
+        total_size += item.size as i64;
+        count += 1;
 
-    /*
-    let mut page_token: Option<String> = None;
-    let client = reqwest::Client::new();
+        println!("name: {}", item.name);
 
-    loop {
-        let mut params: Vec<String> = vec![];
+        if count % 5000 == 0 {
+            println!("So far: size: {}, Count: {}", total_size, count);
 
-        match page_token {
-            Some(ref page_token) => params.push(format!("pageToken={}", page_token)),
-            None => {},
-        }
-
-        match gcs_prefix {
-            Some(ref prefix) => params.push(format!("prefix={}", prefix)),
-            None => {},
-        }
-
-        let mut url = format!(
-            "https://www.googleapis.com/storage/v1/b/{}/o", gcs_bucket);
-
-        if params.len() > 0 {
-            url = format!("{}?{}", url, params.join("&"));
-        }
-
-        let mut response = client.get(&url)
-            .bearer_auth(auth_token.clone())
-            .send().expect("client.get");
-
-        let response_text = response.text().expect("response text");
-        let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
-
-        for item in &response.items {
-            total_size += item.size
-        }
-
-        println!("{} items", response.items.len());
-
-        page_token = response.next_page_token;
-
-        if page_token.is_none() {
-            break;
         }
     }
-*/
 
-    println!("Total size: {}", total_size);
+    println!("Total size: {}, Count: {}", total_size, count);
 }

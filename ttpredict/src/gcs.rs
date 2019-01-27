@@ -26,7 +26,7 @@ pub struct GcsBucketItemIterator {
     prefix: Option<String>,
 }
 
-fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str, prefix: Option<&str>) -> Option<GcsListBucketPage> {
+fn next_page(next_page_token: Option<&str>, gcs_bucket: &str, auth_token: &str, prefix: Option<&str>) -> Option<GcsListBucketPage> {
     let mut params: Vec<String> = vec![];
 
     match next_page_token {
@@ -52,7 +52,8 @@ fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str, 
         .send().expect("client.get");
 
     let response_text = response.text().expect("response text");
-    let response: GcsListBucketPage = serde_json::from_str(&response_text).expect("parse json");
+    let response: GcsListBucketPage = serde_json::from_str(&response_text).expect(&format!("parse json: {}", response_text));
+
 
     return Some(response);
 }
@@ -63,7 +64,7 @@ impl GcsBucketItemIterator {
             bucket: bucket.to_string(),
             auth_token: auth_token.to_string(),
             prefix: prefix.map(|x| x.to_string()),
-            current_page: next_page(None, auth_token, bucket, prefix),
+            current_page: next_page(None, bucket, auth_token, prefix),
             current_page_ptr: 0,
         };
     }
@@ -80,7 +81,15 @@ impl Iterator for GcsBucketItemIterator {
                 let ret = current_page.items[self.current_page_ptr].clone(); // Avoid clone?
                 self.current_page_ptr = self.current_page_ptr + 1;
                 if self.current_page_ptr >= current_page.items.len() {
-                    self.current_page = next_page(current_page.next_page_token.as_ref().map(String::as_str), &self.bucket, &self.auth_token, &self.prefix.as_ref().map(String::as_str));
+                    if current_page.next_page_token.is_some() {
+                        self.current_page = next_page(
+                            current_page.next_page_token.as_ref().map(String::as_str),
+                            &self.bucket,
+                            &self.auth_token,
+                            self.prefix.as_ref().map(String::as_str));
+                    } else {
+                        self.current_page = None;
+                    }
                     self.current_page_ptr = 0;
                 }
                 return Some(ret);
@@ -98,7 +107,7 @@ impl GcsClient {
         return GcsClient{auth_token: auth_token.to_string()}
     }
 
-    pub fn list_bucket(&self, bucket_name: &str) -> GcsBucketItemIterator{
-        return GcsBucketItemIterator::new(bucket_name, &self.auth_token);
+    pub fn list_bucket(&self, bucket_name: &str, prefix: Option<&str>) -> GcsBucketItemIterator{
+        return GcsBucketItemIterator::new(bucket_name, &self.auth_token, prefix);
     }
 }
