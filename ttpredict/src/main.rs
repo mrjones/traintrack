@@ -1,4 +1,5 @@
 extern crate getopts;
+extern crate protobuf;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_aux;
@@ -8,7 +9,7 @@ extern crate tt_googleauth;
 extern crate url;
 
 mod gcs;
-
+mod gtfs_realtime;
 
 #[derive(Serialize, Deserialize)]
 struct GcsListBucketItem {
@@ -62,7 +63,12 @@ fn main() {
             let body = gcs_client.fetch(&gcs_bucket, &item.name);
 //            let somebody: String = body.chars().take(50).collect();
 //            println!("{}...", somebody);
-            println!("{}", body);
+            let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&body).expect("parse proto");
+            for entity in feed.get_entity() {
+                if entity.has_trip_update() && entity.get_trip_update().has_trip() {
+                    println!("Trip {} {}", entity.get_id(), entity.get_trip_update().get_trip().get_trip_id());
+                }
+            }
         }
 
         if count % 5000 == 0 {

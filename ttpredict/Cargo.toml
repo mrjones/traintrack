@@ -9,10 +9,11 @@ getopts = "*"
 # Use the 2.0 / Alpha version at head.
 # We could depend on the 1.x version on crates.io, but then we'll just have to migrate.
 oauth2 = { git = "https://github.com/ramosbugs/oauth2-rs" }
-url = "*"
+protobuf = "*"
 reqwest = "*"
 serde = "*"
 serde-aux = "*"
 serde_derive = "*"
 serde_json = "*"
 tt_googleauth = { path = "../googleauth" }
+url = "*"

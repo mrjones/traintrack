@@ -26,7 +26,7 @@ pub struct GcsBucketItemIterator {
     prefix: Option<String>,
 }
 
-fn fetch_object(bucket: &str, object_name: &str, auth_token: &str) -> String {
+fn fetch_object(bucket: &str, object_name: &str, auth_token: &str) -> Vec<u8> {
     let url = format!(
         "https://www.googleapis.com/storage/v1/b/{}/o/{}?alt=media", bucket, object_name);
 
@@ -35,7 +35,9 @@ fn fetch_object(bucket: &str, object_name: &str, auth_token: &str) -> String {
         .bearer_auth(auth_token.clone())
         .send().expect("client.get");
 
-    return response.text().expect("response text");
+    let mut buf: Vec<u8> = vec![];
+    response.copy_to(&mut buf).expect("Extract bytes");
+    return buf;
 }
 
 fn next_page(next_page_token: Option<&str>, gcs_bucket: &str, auth_token: &str, prefix: Option<&str>) -> Option<GcsListBucketPage> {
@@ -123,7 +125,7 @@ impl GcsClient {
         return GcsBucketItemIterator::new(bucket_name, &self.auth_token, prefix);
     }
 
-    pub fn fetch(&self, bucket_name: &str, object_name: &str) -> String {
+    pub fn fetch(&self, bucket_name: &str, object_name: &str) -> Vec<u8> {
         return fetch_object(bucket_name, object_name, &self.auth_token);
     }
 }
