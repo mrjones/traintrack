@@ -23,9 +23,10 @@ pub struct GcsBucketItemIterator {
     current_page: Option<GcsListBucketPage>,
     current_page_ptr: usize,
     auth_token: String,
+    prefix: Option<String>,
 }
 
-fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str) -> Option<GcsListBucketPage> {
+fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str, prefix: Option<&str>) -> Option<GcsListBucketPage> {
     let mut params: Vec<String> = vec![];
 
     match next_page_token {
@@ -33,10 +34,10 @@ fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str) 
         None => {},
     }
 
-//        match gcs_prefix {
-//            Some(ref prefix) => params.push(format!("prefix={}", prefix)),
-//            None => {},
-//        }
+    match prefix {
+        Some(prefix) => params.push(format!("prefix={}", prefix)),
+        None => {},
+    }
 
     let mut url = format!(
         "https://www.googleapis.com/storage/v1/b/{}/o", gcs_bucket);
@@ -57,11 +58,12 @@ fn next_page(next_page_token: Option<&str>, auth_token: &str, gcs_bucket: &str) 
 }
 
 impl GcsBucketItemIterator {
-    fn new(bucket: &str, auth_token: &str) -> GcsBucketItemIterator {
+    fn new(bucket: &str, auth_token: &str, prefix: Option<&str>) -> GcsBucketItemIterator {
         return GcsBucketItemIterator{
             bucket: bucket.to_string(),
             auth_token: auth_token.to_string(),
-            current_page: next_page(None, auth_token, bucket),
+            prefix: prefix.map(|x| x.to_string()),
+            current_page: next_page(None, auth_token, bucket, prefix),
             current_page_ptr: 0,
         };
     }
@@ -78,7 +80,7 @@ impl Iterator for GcsBucketItemIterator {
                 let ret = current_page.items[self.current_page_ptr].clone(); // Avoid clone?
                 self.current_page_ptr = self.current_page_ptr + 1;
                 if self.current_page_ptr >= current_page.items.len() {
-                    self.current_page = next_page(current_page.next_page_token.as_ref().map(String::as_str), &self.bucket, &self.auth_token);
+                    self.current_page = next_page(current_page.next_page_token.as_ref().map(String::as_str), &self.bucket, &self.auth_token, &self.prefix.as_ref().map(String::as_str));
                     self.current_page_ptr = 0;
                 }
                 return Some(ret);
