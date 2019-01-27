@@ -32,6 +32,7 @@ fn main() {
     let mut opts = getopts::Options::new();
     opts.optopt("", "gcs-bucket", "GCS bucket where feeds were archived", "BUCKET");
     opts.optopt("", "gcs-prefix", "Prefix to use when listing GCS bucket", "PREFIX");
+    opts.optopt("", "max-feeds-to-process", "Maximum number of feeds to process, useful for iterative debugging.  Not really meant for production.", "NUM_FEEDS");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -45,6 +46,9 @@ fn main() {
 
     let gcs_prefix = matches.opt_str("gcs-prefix");
 
+    let max_feeds = matches.opt_get::<usize>("max-feeds-to-process")
+        .expect("--max-feeds-to-process").unwrap_or(1000000);
+
     let auther = tt_googleauth::GoogleAuth::new(
         "traintrack-nyc@mrjones-traintrack.iam.gserviceaccount.com",
         "/home/mrjones/src/traintrack/google-service-account-key.pem").expect("GoogleAuth::new");
@@ -57,23 +61,16 @@ fn main() {
 
     let gcs_client = gcs::GcsClient::new(&auth_token);
     for item in gcs_client.list_bucket(&gcs_bucket, gcs_prefix.as_ref().map(String::as_str)) {
-
-        if count == 0 {
+        // TODO(mrjones): Do this with take() ... only if take() is lazy.
+        if count < max_feeds {
             println!("Fetching: {}", item.name);
             let body = gcs_client.fetch(&gcs_bucket, &item.name);
-//            let somebody: String = body.chars().take(50).collect();
-//            println!("{}...", somebody);
             let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&body).expect("parse proto");
             for entity in feed.get_entity() {
                 if entity.has_trip_update() && entity.get_trip_update().has_trip() {
                     println!("Trip {} {}", entity.get_id(), entity.get_trip_update().get_trip().get_trip_id());
                 }
             }
-        }
-
-        if count % 5000 == 0 {
-            println!("So far: size: {}, Count: {}", total_size, count);
-
         }
 
         total_size += item.size as i64;
