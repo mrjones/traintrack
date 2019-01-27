@@ -59,7 +59,7 @@ fn main() {
 
     let mut total_size: i64 = 0;
     let mut count = 0;
-    let storage = storage::TripStorage::new();
+    let mut storage = storage::TripStorage::new();
 
     let gcs_client = gcs::GcsClient::new(&auth_token);
     for item in gcs_client.list_bucket(&gcs_bucket, gcs_prefix.as_ref().map(String::as_str)) {
