@@ -7,13 +7,14 @@ extern crate serde_json;
 extern crate tt_googleauth;
 extern crate url;
 
-use serde_aux::prelude::*;
+mod gcs;
+
 
 #[derive(Serialize, Deserialize)]
 struct GcsListBucketItem {
     id: String,
     name: String,
-    #[serde(deserialize_with = "deserialize_number_from_string")]
+    #[serde(deserialize_with = "serde_aux::field_attributes::deserialize_number_from_string")]
     size: i32,
 }
 
@@ -50,10 +51,16 @@ fn main() {
     let auth_token = auther.generate_bearer_token(
         vec!["https://www.googleapis.com/auth/devstorage.read_write".to_string()]).expect("generate_bearer_token");
 
-    let client = reqwest::Client::new();
-
-    let mut page_token: Option<String> = None;
     let mut total_size = 0;
+
+    let gcs_client = gcs::GcsClient::new(&auth_token);
+    for item in gcs_client.list_bucket(&gcs_bucket) {
+        total_size += item.size;
+    }
+
+    /*
+    let mut page_token: Option<String> = None;
+    let client = reqwest::Client::new();
 
     loop {
         let mut params: Vec<String> = vec![];
@@ -94,6 +101,7 @@ fn main() {
             break;
         }
     }
+*/
 
     println!("Total size: {}", total_size);
 }
