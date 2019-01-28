@@ -28,7 +28,7 @@ impl TripStorage {
         }
     }
 
-    pub fn iterate_history(&self, f: fn(&str, &std::collections::BTreeMap<u64, i64>)) {
+    pub fn iterate_history<F>(&self, mut f: F) where F: FnMut(&str, &std::collections::BTreeMap<u64, i64>) {
         for (ref trip_id, ref predictions) in &self.prediction_history {
             f(trip_id, predictions);
         }

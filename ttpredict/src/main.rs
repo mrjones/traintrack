@@ -80,9 +80,39 @@ fn main() {
         count += 1;
     }
 
+    #[derive(Debug)]
+    struct Prediction {
+        trip_id: String,
+        actual_arrival: i64,
+        prediction: i64,
+        predicted_at: i64,
+        predicted_wait: i64,
+        actual_wait: i64,
+        error: i64,
+    }
+
+    let mut prediction_records = vec![];
     storage.iterate_history(|trip_id, predictions| {
-        println!("{} {:?}", trip_id, predictions);
+        let (final_ts, final_prediction) = predictions.iter().last().expect("last");
+
+        if final_prediction - *final_ts as i64 <= 60 {
+            for (ts, prediction) in predictions {
+                prediction_records.push(Prediction{
+                    trip_id: trip_id.to_string(),
+                    actual_arrival: *final_prediction,
+                    prediction: *prediction,
+                    predicted_at: *ts as i64,
+                    predicted_wait: (prediction - *ts as i64),
+                    actual_wait: (final_prediction - *ts as i64),
+                    error: final_prediction - prediction,
+                });
+            }
+        }
     });
+
+    for record in prediction_records {
+        println!("{:?}", record);
+    }
 
     println!("Total size: {}, Count: {}", total_size, count);
 }
