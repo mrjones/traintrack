@@ -90,7 +90,7 @@ impl MtaFeedClient {
         }
     }
 
-    // TODO(mrjones): dedup
+    // TODO(mrjones): What the heck is this doing?
     fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
