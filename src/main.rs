@@ -30,6 +30,7 @@ extern crate rustful;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+extern crate serde_xml_rs;
 
 mod api_handlers;
 mod archive;
@@ -44,6 +45,7 @@ mod prefs;
 mod result;
 mod server;
 mod stops;
+mod statusxml;
 mod utils;
 mod webclient_api;
 
@@ -165,8 +167,6 @@ fn main() {
                         fetch_period_seconds, 0));
                 }
             }).unwrap();
-//        let mut fetcher_thread = feedfetcher::FetcherThread::new();
-//        fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
 

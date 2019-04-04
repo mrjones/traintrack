@@ -23,6 +23,7 @@ extern crate protobuf;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+extern crate serde_xml_rs;
 extern crate tiny_http;
 
 mod auth;
@@ -31,6 +32,7 @@ mod feedfetcher;
 mod feedproxy_api;
 mod gtfs_realtime;
 mod result;
+mod statusxml;
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;
@@ -127,13 +129,23 @@ fn main() {
         feedfetcher::MtaFeedClient::new(&key, archive::FeedArchive::new(gcs_config)));
 
     let clientclone = mta_client.clone();
-    let _fetcher_handle = std::thread::Builder::new()
-        .name("mta_fetcher_thread".to_string())
+    let clientclone2 = mta_client.clone();
+    let _feed_fetcher_handle = std::thread::Builder::new()
+        .name("feed_fetcher_thread".to_string())
         .spawn(move || {
             loop {
                 clientclone.fetch_all_feeds();
                 std::thread::sleep(std::time::Duration::new(
                     fetch_period_seconds, 0));
+            }
+        }).unwrap();
+    let _status_fetcher_handle = std::thread::Builder::new()
+        .name("status_fetcher_thread".to_string())
+        .spawn(move || {
+            loop {
+                clientclone2.fetch_subway_status();
+                std::thread::sleep(std::time::Duration::new(
+                    5 * fetch_period_seconds, 0));
             }
         }).unwrap();
 

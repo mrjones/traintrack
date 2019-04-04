@@ -7,3 +7,19 @@ message FeedProxyResponse {
   optional int64 last_good_fetch_timestamp = 2;
   optional int64 last_attempted_fetch_timestamp = 3;
 }
+
+message SubwayStatus {
+  repeated Situation situation = 1;
+}
+
+message Situation {
+  optional string summary = 1;
+  optional bool planned = 2;
+  optional string reason_name = 3;
+  repeated AffectedLine affected_line = 4;
+}
+
+message AffectedLine {
+  optional string line = 1;
+  optional int32 direction = 2;
+}

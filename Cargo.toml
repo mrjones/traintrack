@@ -32,6 +32,7 @@ rustful = { git = "https://github.com/Ogeon/rustful" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
+serde-xml-rs = "*"
 time = "*"
 tiny_http = "*"
 

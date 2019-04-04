@@ -26,6 +26,7 @@ use archive;
 use feedproxy_api;
 use gtfs_realtime;
 use result;
+use statusxml;
 
 static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36, 51];
 
@@ -60,6 +61,37 @@ impl MtaFeedClient {
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+    }
+
+    pub fn fetch_subway_status(&self) {
+        match self.fetch_subway_status2() {
+            Ok(()) => {},
+            Err(err) => { error!("Error fetching line status: {:?}", err); },
+        }
+    }
+
+    fn fetch_subway_status2(&self) -> result::TTResult<()> {
+        let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
+        debug!("Fetching URL: {}", url);
+
+        let mut response: reqwest::Response = reqwest::get(&url)?;
+        if !response.status().is_success() {
+            return Err(result::quick_err(
+                format!("HTTP error: {}", response.status()).as_ref()));
+        }
+
+        let mut body = vec![];
+        response.read_to_end(&mut body)?;
+        let parsed = statusxml::parse(&body)?;
+
+        for situation in &parsed.situations {
+            println!("Situation: {}", situation.summary);
+            for affected_line in &situation.affected_lines {
+                println!("- Affecting {} {}", affected_line.line, affected_line.direction);
+            }
+        }
+
+        return Ok(());
     }
 
     pub fn fetch_all_feeds(&self) {
@@ -255,34 +287,5 @@ impl ProxyClient {
             last_any_fetch: Some(chrono::Utc.timestamp(
                 proxy_response.get_last_attempted_fetch_timestamp(), 0)),
         });
-    }
-}
-
-pub struct FetcherThread {
-    cancelled: std::sync::Arc<std::sync::Mutex<bool>>,
-    handle: Option<std::thread::JoinHandle<()>>,
-}
-
-impl FetcherThread {
-    pub fn new() -> FetcherThread {
-        return FetcherThread{
-            cancelled: std::sync::Arc::new(std::sync::Mutex::new(false)),
-            handle: None,
-        };
-    }
-
-    pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<ProxyClient>, period: std::time::Duration) {
-        let f = fetcher.clone();
-        let cancelled = self.cancelled.clone();
-        let handle = std::thread::Builder::new()
-            .name("FetcherThread".to_string())
-            .spawn(move || {
-                while *cancelled.lock().unwrap() != true {
-                    f.fetch_once();
-                    std::thread::sleep(period);
-                }
-            }).unwrap();
-
-        self.handle = Some(handle);
     }
 }

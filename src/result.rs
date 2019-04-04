@@ -17,6 +17,7 @@ extern crate frank_jwt;
 extern crate protobuf;
 extern crate reqwest;
 extern crate serde_json;
+extern crate serde_xml_rs;
 extern crate std;
 
 pub type TTResult<T> = std::result::Result<T, TTError>;
@@ -30,6 +31,8 @@ pub enum TTError {
     SerializationError(serde_json::Error),
     ParseIntError(std::num::ParseIntError),
     HttpClientError(reqwest::Error),
+    Utf8Error(std::str::Utf8Error),
+    XmlError(serde_xml_rs::Error),
     Uncategorized(String),
 }
 
@@ -61,6 +64,12 @@ impl std::fmt::Display for TTError {
             TTError::HttpClientError(ref err) => {
                 return write!(f, "Http Client Error: {}", err);
             },
+            TTError::Utf8Error(ref err) => {
+                return write!(f, "UTF8 Error: {}", err);
+            },
+            TTError::XmlError(ref err) => {
+                return write!(f, "XML Error: {}", err);
+            },
             TTError::Uncategorized(ref e) => std::fmt::Display::fmt(e, f),
         }
     }
@@ -76,6 +85,8 @@ impl std::error::Error for TTError {
             TTError::SerializationError(_) => "SerializationError",
             TTError::ParseIntError(_) => "ParseIntError",
             TTError::HttpClientError(_) => "HttpClientError",
+            TTError::Utf8Error(_) => "Utf8Errorr",
+            TTError::XmlError(_) => "XmlErrorr",
             TTError::Uncategorized(ref str) => str,
         }
     }
@@ -125,5 +136,17 @@ impl From<reqwest::Error> for TTError {
 impl From<frank_jwt::Error> for TTError {
     fn from(err: frank_jwt::Error) -> TTError {
         return TTError::JWTError(err);
+    }
+}
+
+impl From<std::str::Utf8Error> for TTError {
+    fn from(err: std::str::Utf8Error) -> TTError {
+        return TTError::Utf8Error(err);
+    }
+}
+
+impl From<serde_xml_rs::Error> for TTError {
+    fn from(err: serde_xml_rs::Error) -> TTError {
+        return TTError::XmlError(err);
     }
 }
