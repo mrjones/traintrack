@@ -44,6 +44,121 @@ pub struct Fetcher {
     proxy_url: Option<String>,
 }
 
+pub struct MtaFeedClient {
+    mta_api_key: String,
+    latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+    archive: archive::FeedArchive,
+}
+
+impl MtaFeedClient {
+    pub fn new(mta_api_key: &str, archive: archive::FeedArchive) -> MtaFeedClient {
+        return MtaFeedClient{
+            mta_api_key: mta_api_key.to_string(),
+            latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            archive: archive,
+        };
+    }
+
+    pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
+        return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+    }
+
+    pub fn fetch_all_feeds(&self) {
+        use chrono::TimeZone;
+
+        for feed_id in FEED_IDS {
+            match self.fetch_one_feed(*feed_id) {
+                Ok(new_feed) => {
+                    self.latest_values.write().unwrap().insert(
+                        *feed_id,
+                        FetchResult{
+                            feed: new_feed.clone(),
+                            timestamp: chrono::Utc.timestamp(
+                                new_feed.get_header().get_timestamp() as i64, 0),
+                            // TODO(mrjones): This timestamp business is gross.
+                            // TODO(mrjones): Use the cached file's timestamp when using it
+                            last_good_fetch: Some(chrono::Utc::now()),
+                            last_any_fetch: Some(chrono::Utc::now()),
+                        });
+                    self.archive.save(*feed_id, &new_feed).ok();
+                },
+                Err(err) => {
+                    error!("Error fetching: {}", err);
+                    self.latest_values.write().unwrap().get_mut(feed_id).as_mut().map(
+                        |r| r.last_any_fetch = Some(chrono::Utc::now()));
+                }
+            }
+        }
+    }
+
+    // TODO(mrjones): dedup
+    fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        let mut file = std::fs::File::open(filename)?;
+        let mut data = Vec::new();
+        file.read_to_end(&mut data)?;
+        trace!("About to parse {} bytes", data.len());
+
+        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
+        trace!("Parsed: {:?}", feed.get_header());
+
+        return Ok(feed);
+    }
+
+    fn fetch_one_feed(&self, feed_id: i32) -> result::TTResult<gtfs_realtime::FeedMessage> {
+        let last_successful_fetch = match self.latest_values.read().unwrap().get(&feed_id) {
+            None => None,
+            Some(ref result) => result.last_good_fetch,
+        };
+
+        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", self.mta_api_key, feed_id);
+        debug!("Fetching URL: {}", url);
+
+        let mut response: reqwest::Response = reqwest::get(&url)?;
+        if !response.status().is_success() {
+            return Err(result::quick_err(
+                format!("HTTP error: {}", response.status()).as_ref()));
+        }
+
+        let mut body = vec![];
+        response.read_to_end(&mut body)?;
+        trace!("Response was {} bytes", body.len());
+
+        let lastresponse_fname = format!("lastresponse_{}.txt", feed_id);
+        let lastgood_fname = format!("lastgood_{}.txt", feed_id);
+
+        let mut file = std::fs::File::create(&lastresponse_fname)?;
+        file.write_all(&body)?;
+
+        let mut first_err = None;
+        // TODO(mrjones): Don't re-parse lastgood here:
+        // Just parse it at startup, and cache the object in memory.
+        for (candidate, timestamp) in vec![
+            (&lastresponse_fname, Some(chrono::Utc::now())),
+            (&lastgood_fname, last_successful_fetch)] {
+            match self.feed_from_file(&candidate, timestamp) {
+                Ok(feed) => {
+                    if candidate.to_string() == lastresponse_fname {
+                        trace!("About to write {}. {} bytes.",
+                              &lastgood_fname, body.len());
+                        let mut file = std::fs::File::create(&lastgood_fname)?;
+                        file.write_all(&body)?;
+                        trace!("Succeeded writing {}. {} bytes.",
+                               &lastgood_fname, body.len());
+                    }
+                    return Ok(feed);
+                },
+                Err(err) => {
+                    error!("Error parsing feed from '{}': {}", candidate, err);
+                    first_err = first_err.or(Some(err));
+                }
+            }
+        }
+
+        return Err(first_err.unwrap_or(
+            result::TTError::Uncategorized("Unknown error".to_string())));
+    }
+}
+
 impl Fetcher {
     pub fn new_local_fetcher(mta_api_key: &str, archive: archive::FeedArchive) -> Fetcher {
         info!("Using local feedfetcher");
@@ -263,10 +378,6 @@ impl FetcherThread {
         };
     }
 
-//    pub fn cancel(&self) {
-//        *self.cancelled.lock().unwrap() = true;
-//    }
-
     pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<Fetcher>, period: std::time::Duration) {
         let f = fetcher.clone();
         let cancelled = self.cancelled.clone();
@@ -281,11 +392,4 @@ impl FetcherThread {
 
         self.handle = Some(handle);
     }
-
-//    pub fn join(&mut self) {
-//        match self.handle.take() {
-//            Some(handle) => handle.join().unwrap(),
-//            None => {},
-//        }
-//    }
 }

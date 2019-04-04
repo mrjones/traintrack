@@ -19,11 +19,11 @@ extern crate getopts;
 extern crate log;
 extern crate log4rs;
 extern crate protobuf;
-extern crate tiny_http;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+extern crate tiny_http;
 
 mod auth;
 mod archive;
@@ -59,7 +59,7 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
         .unwrap();
 }
 
-fn handle(feed_id_str: &str, fetcher: &feedfetcher::Fetcher) -> result::TTResult<feedproxy_api::FeedProxyResponse> {
+fn handle(feed_id_str: &str, fetcher: &feedfetcher::MtaFeedClient) -> result::TTResult<feedproxy_api::FeedProxyResponse> {
     let feed_id = feed_id_str.parse::<i32>()?;
     let mut reply_data = feedproxy_api::FeedProxyResponse::new();
     match fetcher.latest_value(feed_id) {
@@ -123,12 +123,20 @@ fn main() {
             });
         });
 
-    let fetcher = std::sync::Arc::new(
-        feedfetcher::Fetcher::new_local_fetcher(
-            &key, archive::FeedArchive::new(gcs_config)));
-    let mut fetcher_thread = feedfetcher::FetcherThread::new();
-    fetcher_thread.fetch_periodically(
-        fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
+    let mta_client = std::sync::Arc::new(
+        feedfetcher::MtaFeedClient::new(&key, archive::FeedArchive::new(gcs_config)));
+
+    let clientclone = mta_client.clone();
+    let _fetcher_handle = std::thread::Builder::new()
+        .name("mta_fetcher_thread".to_string())
+        .spawn(move || {
+            loop {
+                clientclone.fetch_all_feeds();
+                std::thread::sleep(std::time::Duration::new(
+                    fetch_period_seconds, 0));
+            }
+        }).unwrap();
+
 
     let server = tiny_http::Server::http(format!("0.0.0.0:{}", port)).unwrap();
 
@@ -140,7 +148,7 @@ fn main() {
 
         if url_parts.len() == 3 && url_parts[1] == "feed" {
             // New style url /feed/<id>
-            match handle(url_parts[2], &fetcher) {
+            match handle(url_parts[2], &mta_client) {
                 Ok(reply_proto) => {
                     use protobuf::Message;
                     let reply_bytes = reply_proto.write_to_bytes().unwrap();
@@ -154,7 +162,7 @@ fn main() {
                 },
             }
         } else {
-            let current_data = fetcher.latest_value(16);
+            let current_data = mta_client.latest_value(16);
             // Legacy handler
             let mut reply_data = feedproxy_api::FeedProxyResponse::new();
             match current_data {
