@@ -137,7 +137,6 @@ fn main() {
             }
         }).unwrap();
 
-
     let server = tiny_http::Server::http(format!("0.0.0.0:{}", port)).unwrap();
 
     for request in server.incoming_requests() {

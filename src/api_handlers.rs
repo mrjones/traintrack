@@ -217,9 +217,9 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
 
     let mut response = webclient_api::TrainArrivalHistory::new();
 
-    for feed_id in tt_context.fetcher.known_feed_ids() {
-        for archive_id in tt_context.fetcher.archive_keys(feed_id) {
-            let feed = tt_context.fetcher.archived_value(feed_id, archive_id).unwrap();
+    for feed_id in tt_context.proxy_client.known_feed_ids() {
+        for archive_id in tt_context.proxy_client.archive_keys(feed_id) {
+            let feed = tt_context.proxy_client.archived_value(feed_id, archive_id).unwrap();
             for entity in feed.get_entity() {
                 if entity.has_trip_update() && entity.get_trip_update().get_trip().get_trip_id() == train_id_str {
                     for station in entity.get_trip_update().get_stop_time_update() {

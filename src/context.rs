@@ -18,7 +18,7 @@ pub struct TTBuildInfo {
 
 pub struct TTContext {
     pub stops: stops::Stops,
-    pub fetcher: std::sync::Arc<feedfetcher::Fetcher>,
+    pub proxy_client: std::sync::Arc<feedfetcher::ProxyClient>,
     pub build_info: TTBuildInfo,
     pub google_api_info: Option<GoogleApiInfo>,
     pub firebase_api_key: Option<String>,
@@ -45,7 +45,7 @@ pub struct RequestSpan {
 
 impl TTContext {
     pub fn new(stops: stops::Stops,
-               fetcher: std::sync::Arc<feedfetcher::Fetcher>,
+               proxy_client: std::sync::Arc<feedfetcher::ProxyClient>,
                tt_version: &str,
                build_timestamp: chrono::DateTime<chrono::Utc>,
                google_api_info: Option<GoogleApiInfo>,
@@ -53,7 +53,7 @@ impl TTContext {
                google_service_account_pem_file: Option<String>) -> TTContext {
         return TTContext{
             stops: stops,
-            fetcher: fetcher,
+            proxy_client: proxy_client,
             build_info: TTBuildInfo{
                 version: tt_version.to_string(),
                 timestamp: build_timestamp,
@@ -70,16 +70,16 @@ impl TTContext {
     }
 
     pub fn all_feeds(&self) -> result::TTResult<Vec<feedfetcher::FetchResult>> {
-        return Ok(self.fetcher.all_feeds());
+        return Ok(self.proxy_client.all_feeds());
     }
 
     pub fn with_feeds<F, R>(&self, handler: F) -> R
         where F: FnMut(Vec<&feedfetcher::FetchResult>) -> R {
-        return self.fetcher.with_feeds(handler);
+        return self.proxy_client.with_feeds(handler);
     }
 
     pub fn feed(&self, feed_id: i32) -> result::TTResult<feedfetcher::FetchResult> {
-        return match self.fetcher.latest_value(feed_id) {
+        return match self.proxy_client.latest_value(feed_id) {
             Some(result) => Ok(result),
             None => Err(result::TTError::Uncategorized(
                 "No feed data yet".to_string())),

@@ -37,7 +37,7 @@ pub struct FetchResult {
     pub last_any_fetch: Option<chrono::DateTime<chrono::Utc>>,
 }
 
-pub struct Fetcher {
+pub struct ProxyClient {
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
     archive: archive::FeedArchive,
     proxy_url: String,
@@ -170,11 +170,11 @@ impl MtaFeedClient {
     }
 }
 
-impl Fetcher {
+impl ProxyClient {
     #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn new_remote_fetcher(proxy_url: &str, archive: archive::FeedArchive) -> Fetcher {
+    pub fn new_proxy_client(proxy_url: &str, archive: archive::FeedArchive) -> ProxyClient {
         info!("Using remote feedproxy at {}", proxy_url);
-        return Fetcher{
+        return ProxyClient{
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             archive: archive,
             proxy_url: proxy_url.to_string(),
@@ -271,7 +271,7 @@ impl FetcherThread {
         };
     }
 
-    pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<Fetcher>, period: std::time::Duration) {
+    pub fn fetch_periodically(&mut self, fetcher: std::sync::Arc<ProxyClient>, period: std::time::Duration) {
         let f = fetcher.clone();
         let cancelled = self.cancelled.clone();
         let handle = std::thread::Builder::new()

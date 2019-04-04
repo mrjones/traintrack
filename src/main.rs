@@ -148,16 +148,25 @@ fn main() {
             });
         });
 
-    let fetcher = match maybe_proxy_url {
-        None => std::sync::Arc::new(feedfetcher::Fetcher::new_local_fetcher(
-            &key, archive::FeedArchive::new(gcs_config))),
-        Some(ref url) => std::sync::Arc::new(feedfetcher::Fetcher::new_remote_fetcher(
+    let proxy_client = match maybe_proxy_url {
+        None => panic!("Must set --proxy-url"),
+        Some(ref url) => std::sync::Arc::new(feedfetcher::ProxyClient::new_proxy_client(
             url, archive::FeedArchive::new(gcs_config))),
     };
     let stops = stops::Stops::new_from_csvs(&gtfs_directory).expect("parse stops");
     if !disable_background_fetch {
-        let mut fetcher_thread = feedfetcher::FetcherThread::new();
-        fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
+        let clientclone = proxy_client.clone();
+        let _fetcher_handle = std::thread::Builder::new()
+            .name("proxy_fetcher_thread".to_string())
+            .spawn(move || {
+                loop {
+                    clientclone.fetch_once();
+                    std::thread::sleep(std::time::Duration::new(
+                        fetch_period_seconds, 0));
+                }
+            }).unwrap();
+//        let mut fetcher_thread = feedfetcher::FetcherThread::new();
+//        fetcher_thread.fetch_periodically(fetcher.clone(), std::time::Duration::new(fetch_period_seconds, 0));
     }
 
 
@@ -188,7 +197,7 @@ fn main() {
     println!("TRAINTRACK_VERSION={}", tt_version);
 
     let server_context = context::TTContext::new(
-        stops, fetcher, tt_version, build_timestamp, google_api_info,
+        stops, proxy_client, tt_version, build_timestamp, google_api_info,
         matches.opt_str("firebase-api-key"),
         matches.opt_str("google-service-account-pem-file"));
     server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_bundle);
