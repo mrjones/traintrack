@@ -47,6 +47,7 @@ pub struct ProxyClient {
 pub struct MtaFeedClient {
     mta_api_key: String,
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+    latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
     archive: archive::FeedArchive,
 }
 
@@ -55,6 +56,7 @@ impl MtaFeedClient {
         return MtaFeedClient{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::new()),
             archive: archive,
         };
     }
@@ -65,12 +67,15 @@ impl MtaFeedClient {
 
     pub fn fetch_subway_status(&self) {
         match self.fetch_subway_status2() {
-            Ok(()) => {},
+            Ok(subway_status) => {
+                let mut cache = self.latest_status.write().unwrap();
+                *cache = subway_status;
+            },
             Err(err) => { error!("Error fetching line status: {:?}", err); },
         }
     }
 
-    fn fetch_subway_status2(&self) -> result::TTResult<()> {
+    fn fetch_subway_status2(&self) -> result::TTResult<feedproxy_api::SubwayStatus> {
         let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
         debug!("Fetching URL: {}", url);
 
@@ -82,16 +87,7 @@ impl MtaFeedClient {
 
         let mut body = vec![];
         response.read_to_end(&mut body)?;
-        let parsed = statusxml::parse(&body)?;
-
-        for situation in &parsed.situations {
-            println!("Situation: {}", situation.summary);
-            for affected_line in &situation.affected_lines {
-                println!("- Affecting {} {}", affected_line.line, affected_line.direction);
-            }
-        }
-
-        return Ok(());
+        return Ok(statusxml::parse(&body)?);
     }
 
     pub fn fetch_all_feeds(&self) {
