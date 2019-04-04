@@ -200,6 +200,7 @@ pub fn serve(context: context::TTContext, port: u16, static_dir: &str, js_bundle
             format!("{}/singlepage.html", static_dir)));
         node.path("debug").many(|node| {
             node.then().on_get(PageType::Dynamic(debug_handlers::debug_index));
+            node.path("dump_status").then().on_get(PageType::Dynamic(debug_handlers::dump_status));
             node.path("dump_proto").many(|node| {
                 node.then().on_get(PageType::Dynamic(debug_handlers::dump_feed_links));
                 node.path(":feed_id").many(|node| {

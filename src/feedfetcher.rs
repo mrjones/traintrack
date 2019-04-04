@@ -40,6 +40,7 @@ pub struct FetchResult {
 
 pub struct ProxyClient {
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+    latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
     archive: archive::FeedArchive,
     proxy_url: String,
 }
@@ -63,6 +64,10 @@ impl MtaFeedClient {
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+    }
+
+    pub fn latest_status(&self) -> feedproxy_api::SubwayStatus {
+        return self.latest_status.read().unwrap().clone();
     }
 
     pub fn fetch_subway_status(&self) {
@@ -204,6 +209,7 @@ impl ProxyClient {
         info!("Using remote feedproxy at {}", proxy_url);
         return ProxyClient{
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::new()),
             archive: archive,
             proxy_url: proxy_url.to_string(),
         }
@@ -216,6 +222,11 @@ impl ProxyClient {
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+    }
+
+    // TODO(mrjones): with_status?
+    pub fn latest_status(&self) -> feedproxy_api::SubwayStatus {
+        return self.latest_status.read().unwrap().clone();
     }
 
     #[allow(dead_code)]  // Used in server, but not proxy.
@@ -251,9 +262,35 @@ impl ProxyClient {
                         feed_id, new_result.clone());
                     self.archive.save(feed_id, &new_result.feed).unwrap();
                 }
-                Err(err) => { error!("Error fetching from proxy: {}", err); },
+                Err(err) => { error!("Error fetching feed {} from proxy: {}", feed_id, err); },
             }
         }
+
+        info!("Fetching subway status");
+        match self.fetch_status(&self.proxy_url) {
+            Ok(new_status) => {
+                *(self.latest_status.write().unwrap()) = new_status;
+            },
+            Err(err) => { error!("Error fetching status from proxy: {}", err); },
+        }
+    }
+
+    fn fetch_status(&self, proxy_url: &str) -> result::TTResult<feedproxy_api::SubwayStatus> {
+        let mut status_url = proxy_url.to_string();
+        if !status_url.ends_with("/") {
+            status_url.push_str("/");
+        }
+        status_url.push_str("status");
+        let mut response: reqwest::Response = reqwest::get(&status_url)?;
+        if !response.status().is_success() {
+            return Err(result::quick_err(format!(
+                "HTTP error: {}", response.status()).as_ref()));
+        }
+
+        let mut response_body = vec![];
+        response.read_to_end(&mut response_body)?;
+        return Ok(protobuf::parse_from_bytes::<feedproxy_api::SubwayStatus>(
+            &response_body)?);
     }
 
     fn fetch_once_remote(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {

@@ -11,7 +11,7 @@ use utils;
 pub fn debug_index(tt_context: &context::TTContext, _: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();
 
-    vec!["dump_proto", "fetch_now", "freshness"].iter().map(
+    vec!["dump_proto", "dump_status", "fetch_now", "freshness"].iter().map(
         |u| body.push_str(&format!("<li><a href='/debug/{}'>/{}</a></li>", u, u))).count();
     body.push_str("</ul></body></html>");
 
@@ -28,6 +28,10 @@ pub fn dump_feed_links(
     body.push_str("</ul>");
 
     return Ok(body.as_bytes().to_vec());
+}
+
+pub fn dump_status(tt_context: &context::TTContext, _: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    return Ok(format!("{:#?}", tt_context.proxy_client.latest_status()).as_bytes().to_vec());
 }
 
 pub fn dump_proto(tt_context: &context::TTContext, rustful_context: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {

@@ -157,8 +157,14 @@ fn main() {
         let url_clone = request.url().to_string();
         let url_parts: Vec<&str> = url_clone.split('/').collect();
 
-        if url_parts.len() == 3 && url_parts[1] == "feed" {
-            // New style url /feed/<id>
+        if url_parts.len() == 2 && url_parts[1] == "status" {
+            use protobuf::Message;
+            let status_proto = mta_client.latest_status();
+            let reply_bytes = status_proto.write_to_bytes().unwrap();
+            let response = tiny_http::Response::from_data(reply_bytes);
+            request.respond(response).unwrap();
+        } else if url_parts.len() == 3 && url_parts[1] == "feed" {
+            // New style url /status
             match handle(url_parts[2], &mta_client) {
                 Ok(reply_proto) => {
                     use protobuf::Message;
