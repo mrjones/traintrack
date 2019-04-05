@@ -32,6 +32,7 @@ import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { loadStationDetails } from './state-actions';
+import { SubwayStatus } from './subway-status';
 import { TTThunkDispatch } from './thunk-types';
 
 export class StationPageQueryParams {
@@ -258,6 +259,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} isLoading={this.props.loading}/>
+            <SubwayStatus status={this.props.data.data.statusMessage} />
             <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState} queryParamsToPropagate={this.props.queryParamsToPropagate}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>
@@ -306,7 +308,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
       <div className="jumpLink"><ReactRouter.Link to={`/app/lines`}>Pick by line</ReactRouter.Link></div>
       <div className={className}>{stationPickerToggle}</div>
       {stationPicker}
-            <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState} highlightedTrains={this.props.queryParams.highlightedTrains} queryParamsToPropagate={this.props.queryParams.asParams()}/>
+      <ConnectedStationMultiLine stationId={this.props.initialStationId} visibilityState={this.props.visibilityState} highlightedTrains={this.props.queryParams.highlightedTrains} queryParamsToPropagate={this.props.queryParams.asParams()}/>
     </div>);
   }
 }
