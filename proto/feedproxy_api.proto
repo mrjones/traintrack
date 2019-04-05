@@ -12,11 +12,14 @@ message SubwayStatus {
   repeated Situation situation = 1;
 }
 
+// TODO(mrjones): merge with webclient_api::SubwayStatusMessage
 message Situation {
   optional string summary = 1;
-  optional bool planned = 2;
-  optional string reason_name = 3;
-  repeated AffectedLine affected_line = 4;
+  optional string long_description = 2;
+  optional bool planned = 3;
+  optional string reason_name = 4;
+  repeated AffectedLine affected_line = 5;
+  optional int32 priority = 6;
 }
 
 message AffectedLine {

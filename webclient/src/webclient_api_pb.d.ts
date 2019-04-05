@@ -1267,8 +1267,20 @@ export interface ISubwayStatusMessage {
     /** SubwayStatusMessage summary */
     summary?: (string|null);
 
+    /** SubwayStatusMessage longDescription */
+    longDescription?: (string|null);
+
     /** SubwayStatusMessage affectedLine */
     affectedLine?: (IAffectedLineStatus[]|null);
+
+    /** SubwayStatusMessage planned */
+    planned?: (boolean|null);
+
+    /** SubwayStatusMessage reasonName */
+    reasonName?: (string|null);
+
+    /** SubwayStatusMessage priority */
+    priority?: (number|null);
 }
 
 /** Represents a SubwayStatusMessage. */
@@ -1283,8 +1295,20 @@ export class SubwayStatusMessage implements ISubwayStatusMessage {
     /** SubwayStatusMessage summary. */
     public summary: string;
 
+    /** SubwayStatusMessage longDescription. */
+    public longDescription: string;
+
     /** SubwayStatusMessage affectedLine. */
     public affectedLine: IAffectedLineStatus[];
+
+    /** SubwayStatusMessage planned. */
+    public planned: boolean;
+
+    /** SubwayStatusMessage reasonName. */
+    public reasonName: string;
+
+    /** SubwayStatusMessage priority. */
+    public priority: number;
 
     /**
      * Creates a new SubwayStatusMessage instance using the specified properties.

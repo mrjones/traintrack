@@ -90,7 +90,11 @@ message TrainArrivalHistory {
 
 message SubwayStatusMessage {
   optional string summary = 1;
-  repeated AffectedLineStatus affected_line = 2;
+  optional string long_description = 2;
+  repeated AffectedLineStatus affected_line = 3;
+  optional bool planned = 4;
+  optional string reason_name = 5;
+  optional int32 priority = 6;
 }
 
 message AffectedLineStatus {

@@ -3235,7 +3235,11 @@ $root.SubwayStatusMessage = (function() {
      * @exports ISubwayStatusMessage
      * @interface ISubwayStatusMessage
      * @property {string|null} [summary] SubwayStatusMessage summary
+     * @property {string|null} [longDescription] SubwayStatusMessage longDescription
      * @property {Array.<IAffectedLineStatus>|null} [affectedLine] SubwayStatusMessage affectedLine
+     * @property {boolean|null} [planned] SubwayStatusMessage planned
+     * @property {string|null} [reasonName] SubwayStatusMessage reasonName
+     * @property {number|null} [priority] SubwayStatusMessage priority
      */
 
     /**
@@ -3263,12 +3267,44 @@ $root.SubwayStatusMessage = (function() {
     SubwayStatusMessage.prototype.summary = "";
 
     /**
+     * SubwayStatusMessage longDescription.
+     * @member {string} longDescription
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.longDescription = "";
+
+    /**
      * SubwayStatusMessage affectedLine.
      * @member {Array.<IAffectedLineStatus>} affectedLine
      * @memberof SubwayStatusMessage
      * @instance
      */
     SubwayStatusMessage.prototype.affectedLine = $util.emptyArray;
+
+    /**
+     * SubwayStatusMessage planned.
+     * @member {boolean} planned
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.planned = false;
+
+    /**
+     * SubwayStatusMessage reasonName.
+     * @member {string} reasonName
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.reasonName = "";
+
+    /**
+     * SubwayStatusMessage priority.
+     * @member {number} priority
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.priority = 0;
 
     /**
      * Creates a new SubwayStatusMessage instance using the specified properties.
@@ -3296,9 +3332,17 @@ $root.SubwayStatusMessage = (function() {
             writer = $Writer.create();
         if (message.summary != null && message.hasOwnProperty("summary"))
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.summary);
+        if (message.longDescription != null && message.hasOwnProperty("longDescription"))
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.longDescription);
         if (message.affectedLine != null && message.affectedLine.length)
             for (var i = 0; i < message.affectedLine.length; ++i)
-                $root.AffectedLineStatus.encode(message.affectedLine[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.AffectedLineStatus.encode(message.affectedLine[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+        if (message.planned != null && message.hasOwnProperty("planned"))
+            writer.uint32(/* id 4, wireType 0 =*/32).bool(message.planned);
+        if (message.reasonName != null && message.hasOwnProperty("reasonName"))
+            writer.uint32(/* id 5, wireType 2 =*/42).string(message.reasonName);
+        if (message.priority != null && message.hasOwnProperty("priority"))
+            writer.uint32(/* id 6, wireType 0 =*/48).int32(message.priority);
         return writer;
     };
 
@@ -3337,9 +3381,21 @@ $root.SubwayStatusMessage = (function() {
                 message.summary = reader.string();
                 break;
             case 2:
+                message.longDescription = reader.string();
+                break;
+            case 3:
                 if (!(message.affectedLine && message.affectedLine.length))
                     message.affectedLine = [];
                 message.affectedLine.push($root.AffectedLineStatus.decode(reader, reader.uint32()));
+                break;
+            case 4:
+                message.planned = reader.bool();
+                break;
+            case 5:
+                message.reasonName = reader.string();
+                break;
+            case 6:
+                message.priority = reader.int32();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -3379,6 +3435,9 @@ $root.SubwayStatusMessage = (function() {
         if (message.summary != null && message.hasOwnProperty("summary"))
             if (!$util.isString(message.summary))
                 return "summary: string expected";
+        if (message.longDescription != null && message.hasOwnProperty("longDescription"))
+            if (!$util.isString(message.longDescription))
+                return "longDescription: string expected";
         if (message.affectedLine != null && message.hasOwnProperty("affectedLine")) {
             if (!Array.isArray(message.affectedLine))
                 return "affectedLine: array expected";
@@ -3388,6 +3447,15 @@ $root.SubwayStatusMessage = (function() {
                     return "affectedLine." + error;
             }
         }
+        if (message.planned != null && message.hasOwnProperty("planned"))
+            if (typeof message.planned !== "boolean")
+                return "planned: boolean expected";
+        if (message.reasonName != null && message.hasOwnProperty("reasonName"))
+            if (!$util.isString(message.reasonName))
+                return "reasonName: string expected";
+        if (message.priority != null && message.hasOwnProperty("priority"))
+            if (!$util.isInteger(message.priority))
+                return "priority: integer expected";
         return null;
     };
 
@@ -3405,6 +3473,8 @@ $root.SubwayStatusMessage = (function() {
         var message = new $root.SubwayStatusMessage();
         if (object.summary != null)
             message.summary = String(object.summary);
+        if (object.longDescription != null)
+            message.longDescription = String(object.longDescription);
         if (object.affectedLine) {
             if (!Array.isArray(object.affectedLine))
                 throw TypeError(".SubwayStatusMessage.affectedLine: array expected");
@@ -3415,6 +3485,12 @@ $root.SubwayStatusMessage = (function() {
                 message.affectedLine[i] = $root.AffectedLineStatus.fromObject(object.affectedLine[i]);
             }
         }
+        if (object.planned != null)
+            message.planned = Boolean(object.planned);
+        if (object.reasonName != null)
+            message.reasonName = String(object.reasonName);
+        if (object.priority != null)
+            message.priority = object.priority | 0;
         return message;
     };
 
@@ -3433,15 +3509,28 @@ $root.SubwayStatusMessage = (function() {
         var object = {};
         if (options.arrays || options.defaults)
             object.affectedLine = [];
-        if (options.defaults)
+        if (options.defaults) {
             object.summary = "";
+            object.longDescription = "";
+            object.planned = false;
+            object.reasonName = "";
+            object.priority = 0;
+        }
         if (message.summary != null && message.hasOwnProperty("summary"))
             object.summary = message.summary;
+        if (message.longDescription != null && message.hasOwnProperty("longDescription"))
+            object.longDescription = message.longDescription;
         if (message.affectedLine && message.affectedLine.length) {
             object.affectedLine = [];
             for (var j = 0; j < message.affectedLine.length; ++j)
                 object.affectedLine[j] = $root.AffectedLineStatus.toObject(message.affectedLine[j], options);
         }
+        if (message.planned != null && message.hasOwnProperty("planned"))
+            object.planned = message.planned;
+        if (message.reasonName != null && message.hasOwnProperty("reasonName"))
+            object.reasonName = message.reasonName;
+        if (message.priority != null && message.hasOwnProperty("priority"))
+            object.priority = message.priority;
         return object;
     };
 

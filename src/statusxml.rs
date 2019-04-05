@@ -78,8 +78,10 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
     for xml_sit in &parsed.service_delivery.situation.situations.elements {
         let mut proto_sit = feedproxy_api::Situation::new();
         proto_sit.set_summary(xml_sit.summary.clone());
+        proto_sit.set_long_description(xml_sit.long_description.clone());
         proto_sit.set_planned(xml_sit.planned);
         proto_sit.set_reason_name(xml_sit.reason_name.clone());
+        proto_sit.set_priority(xml_sit.message_priority);
         for xml_line in &xml_sit.affects.journeys.journeys {
             let mut proto_line = feedproxy_api::AffectedLine::new();
             proto_line.set_line(xml_line.line_ref.clone());
@@ -90,25 +92,4 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
     }
 
     return Ok(result);
-    /*
-    return Ok(feedproxy_api::SubwayStatus{
-        situations: parsed.service_delivery.situation.situations.elements.iter().map(
-            |e: &PtSituationElement| {
-                return Situation{
-                    summary: e.summary.clone(),
-                    description: e.description.clone(),
-                    long_description: e.long_description.clone(),
-                    planned: e.planned,
-                    reason_name: e.reason_name.clone(),
-                    priority: e.message_priority,
-                    affected_lines: e.affects.journeys.journeys.iter().map(
-                        |j: &VehicleJourney| {
-                            return AffectedLine{
-                                line: j.line_ref.clone(),
-                                direction: j.direction_ref,
-                            };
-                        }).collect(),
-                };
-        }).collect(),
-    });*/
 }

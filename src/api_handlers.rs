@@ -101,6 +101,11 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     for situation in status.get_situation() {
         let mut message = webclient_api::SubwayStatusMessage::new();
         message.set_summary(situation.get_summary().to_string());
+        // TODO(mrjones): This can have interesting info, but also HTML markup and ugh.
+//        message.set_long_description(situation.get_long_description().to_string());
+        message.set_planned(situation.get_planned());
+        message.set_reason_name(situation.get_reason_name().to_string());
+        message.set_priority(situation.get_priority());
         for line in situation.get_affected_line() {
             let mut affected_line = webclient_api::AffectedLineStatus::new();
             let line_letter = line.get_line().replace("MTA NYCT_", "");

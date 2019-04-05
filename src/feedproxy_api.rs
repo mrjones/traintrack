@@ -465,9 +465,11 @@ impl ::protobuf::reflect::ProtobufValue for SubwayStatus {
 pub struct Situation {
     // message fields
     summary: ::protobuf::SingularField<::std::string::String>,
+    long_description: ::protobuf::SingularField<::std::string::String>,
     planned: ::std::option::Option<bool>,
     reason_name: ::protobuf::SingularField<::std::string::String>,
     affected_line: ::protobuf::RepeatedField<AffectedLine>,
+    priority: ::std::option::Option<i32>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -514,7 +516,43 @@ impl Situation {
         }
     }
 
-    // optional bool planned = 2;
+    // optional string long_description = 2;
+
+    pub fn clear_long_description(&mut self) {
+        self.long_description.clear();
+    }
+
+    pub fn has_long_description(&self) -> bool {
+        self.long_description.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_long_description(&mut self, v: ::std::string::String) {
+        self.long_description = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_long_description(&mut self) -> &mut ::std::string::String {
+        if self.long_description.is_none() {
+            self.long_description.set_default();
+        }
+        self.long_description.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_long_description(&mut self) -> ::std::string::String {
+        self.long_description.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_long_description(&self) -> &str {
+        match self.long_description.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    // optional bool planned = 3;
 
     pub fn clear_planned(&mut self) {
         self.planned = ::std::option::Option::None;
@@ -533,7 +571,7 @@ impl Situation {
         self.planned.unwrap_or(false)
     }
 
-    // optional string reason_name = 3;
+    // optional string reason_name = 4;
 
     pub fn clear_reason_name(&mut self) {
         self.reason_name.clear();
@@ -569,7 +607,7 @@ impl Situation {
         }
     }
 
-    // repeated .AffectedLine affected_line = 4;
+    // repeated .AffectedLine affected_line = 5;
 
     pub fn clear_affected_line(&mut self) {
         self.affected_line.clear();
@@ -593,6 +631,25 @@ impl Situation {
     pub fn get_affected_line(&self) -> &[AffectedLine] {
         &self.affected_line
     }
+
+    // optional int32 priority = 6;
+
+    pub fn clear_priority(&mut self) {
+        self.priority = ::std::option::Option::None;
+    }
+
+    pub fn has_priority(&self) -> bool {
+        self.priority.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_priority(&mut self, v: i32) {
+        self.priority = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_priority(&self) -> i32 {
+        self.priority.unwrap_or(0)
+    }
 }
 
 impl ::protobuf::Message for Situation {
@@ -613,17 +670,27 @@ impl ::protobuf::Message for Situation {
                     ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.summary)?;
                 },
                 2 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.long_description)?;
+                },
+                3 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
                     let tmp = is.read_bool()?;
                     self.planned = ::std::option::Option::Some(tmp);
                 },
-                3 => {
+                4 => {
                     ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.reason_name)?;
                 },
-                4 => {
+                5 => {
                     ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.affected_line)?;
+                },
+                6 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_int32()?;
+                    self.priority = ::std::option::Option::Some(tmp);
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -640,16 +707,22 @@ impl ::protobuf::Message for Situation {
         if let Some(ref v) = self.summary.as_ref() {
             my_size += ::protobuf::rt::string_size(1, &v);
         }
+        if let Some(ref v) = self.long_description.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
         if let Some(v) = self.planned {
             my_size += 2;
         }
         if let Some(ref v) = self.reason_name.as_ref() {
-            my_size += ::protobuf::rt::string_size(3, &v);
+            my_size += ::protobuf::rt::string_size(4, &v);
         }
         for value in &self.affected_line {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
+        if let Some(v) = self.priority {
+            my_size += ::protobuf::rt::value_size(6, v, ::protobuf::wire_format::WireTypeVarint);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -659,17 +732,23 @@ impl ::protobuf::Message for Situation {
         if let Some(ref v) = self.summary.as_ref() {
             os.write_string(1, &v)?;
         }
+        if let Some(ref v) = self.long_description.as_ref() {
+            os.write_string(2, &v)?;
+        }
         if let Some(v) = self.planned {
-            os.write_bool(2, v)?;
+            os.write_bool(3, v)?;
         }
         if let Some(ref v) = self.reason_name.as_ref() {
-            os.write_string(3, &v)?;
+            os.write_string(4, &v)?;
         }
         for v in &self.affected_line {
-            os.write_tag(4, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_tag(5, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         };
+        if let Some(v) = self.priority {
+            os.write_int32(6, v)?;
+        }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
@@ -717,6 +796,11 @@ impl ::protobuf::Message for Situation {
                     |m: &Situation| { &m.summary },
                     |m: &mut Situation| { &mut m.summary },
                 ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "long_description",
+                    |m: &Situation| { &m.long_description },
+                    |m: &mut Situation| { &mut m.long_description },
+                ));
                 fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
                     "planned",
                     |m: &Situation| { &m.planned },
@@ -731,6 +815,11 @@ impl ::protobuf::Message for Situation {
                     "affected_line",
                     |m: &Situation| { &m.affected_line },
                     |m: &mut Situation| { &mut m.affected_line },
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
+                    "priority",
+                    |m: &Situation| { &m.priority },
+                    |m: &mut Situation| { &mut m.priority },
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<Situation>(
                     "Situation",
@@ -755,9 +844,11 @@ impl ::protobuf::Message for Situation {
 impl ::protobuf::Clear for Situation {
     fn clear(&mut self) {
         self.clear_summary();
+        self.clear_long_description();
         self.clear_planned();
         self.clear_reason_name();
         self.clear_affected_line();
+        self.clear_priority();
         self.unknown_fields.clear();
     }
 }
@@ -993,52 +1084,61 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     (\x03R\x16lastGoodFetchTimestamp\x12C\n\x1elast_attempted_fetch_timestam\
     p\x18\x03\x20\x01(\x03R\x1blastAttemptedFetchTimestamp\"8\n\x0cSubwaySta\
     tus\x12(\n\tsituation\x18\x01\x20\x03(\x0b2\n.SituationR\tsituation\"\
-    \x94\x01\n\tSituation\x12\x18\n\x07summary\x18\x01\x20\x01(\tR\x07summar\
-    y\x12\x18\n\x07planned\x18\x02\x20\x01(\x08R\x07planned\x12\x1f\n\x0brea\
-    son_name\x18\x03\x20\x01(\tR\nreasonName\x122\n\raffected_line\x18\x04\
-    \x20\x03(\x0b2\r.AffectedLineR\x0caffectedLine\"@\n\x0cAffectedLine\x12\
-    \x12\n\x04line\x18\x01\x20\x01(\tR\x04line\x12\x1c\n\tdirection\x18\x02\
-    \x20\x01(\x05R\tdirectionJ\xaf\x06\n\x06\x12\x04\0\0\x18\x01\n\x08\n\x01\
-    \x0c\x12\x03\0\0\x12\n\t\n\x02\x03\0\x12\x03\x02\x07\x1c\n\n\n\x02\x04\0\
-    \x12\x04\x04\0\x08\x01\n\n\n\x03\x04\0\x01\x12\x03\x04\x08\x19\n\x0b\n\
-    \x04\x04\0\x02\0\x12\x03\x05\x021\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\
-    \x05\x02\n\n\x0c\n\x05\x04\0\x02\0\x06\x12\x03\x05\x0b'\n\x0c\n\x05\x04\
-    \0\x02\0\x01\x12\x03\x05(,\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x05/0\n\
-    \x0b\n\x04\x04\0\x02\x01\x12\x03\x06\x02/\n\x0c\n\x05\x04\0\x02\x01\x04\
-    \x12\x03\x06\x02\n\n\x0c\n\x05\x04\0\x02\x01\x05\x12\x03\x06\x0b\x10\n\
-    \x0c\n\x05\x04\0\x02\x01\x01\x12\x03\x06\x11*\n\x0c\n\x05\x04\0\x02\x01\
-    \x03\x12\x03\x06-.\n\x0b\n\x04\x04\0\x02\x02\x12\x03\x07\x024\n\x0c\n\
-    \x05\x04\0\x02\x02\x04\x12\x03\x07\x02\n\n\x0c\n\x05\x04\0\x02\x02\x05\
-    \x12\x03\x07\x0b\x10\n\x0c\n\x05\x04\0\x02\x02\x01\x12\x03\x07\x11/\n\
-    \x0c\n\x05\x04\0\x02\x02\x03\x12\x03\x0723\n\n\n\x02\x04\x01\x12\x04\n\0\
-    \x0c\x01\n\n\n\x03\x04\x01\x01\x12\x03\n\x08\x14\n\x0b\n\x04\x04\x01\x02\
-    \0\x12\x03\x0b\x02#\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\x0b\x02\n\n\
-    \x0c\n\x05\x04\x01\x02\0\x06\x12\x03\x0b\x0b\x14\n\x0c\n\x05\x04\x01\x02\
-    \0\x01\x12\x03\x0b\x15\x1e\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x0b!\"\
-    \n\n\n\x02\x04\x02\x12\x04\x0e\0\x13\x01\n\n\n\x03\x04\x02\x01\x12\x03\
-    \x0e\x08\x11\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x0f\x02\x1e\n\x0c\n\x05\
-    \x04\x02\x02\0\x04\x12\x03\x0f\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\x12\
-    \x03\x0f\x0b\x11\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\x0f\x12\x19\n\x0c\
-    \n\x05\x04\x02\x02\0\x03\x12\x03\x0f\x1c\x1d\n\x0b\n\x04\x04\x02\x02\x01\
-    \x12\x03\x10\x02\x1c\n\x0c\n\x05\x04\x02\x02\x01\x04\x12\x03\x10\x02\n\n\
-    \x0c\n\x05\x04\x02\x02\x01\x05\x12\x03\x10\x0b\x0f\n\x0c\n\x05\x04\x02\
-    \x02\x01\x01\x12\x03\x10\x10\x17\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\
-    \x10\x1a\x1b\n\x0b\n\x04\x04\x02\x02\x02\x12\x03\x11\x02\"\n\x0c\n\x05\
-    \x04\x02\x02\x02\x04\x12\x03\x11\x02\n\n\x0c\n\x05\x04\x02\x02\x02\x05\
-    \x12\x03\x11\x0b\x11\n\x0c\n\x05\x04\x02\x02\x02\x01\x12\x03\x11\x12\x1d\
-    \n\x0c\n\x05\x04\x02\x02\x02\x03\x12\x03\x11\x20!\n\x0b\n\x04\x04\x02\
-    \x02\x03\x12\x03\x12\x02*\n\x0c\n\x05\x04\x02\x02\x03\x04\x12\x03\x12\
-    \x02\n\n\x0c\n\x05\x04\x02\x02\x03\x06\x12\x03\x12\x0b\x17\n\x0c\n\x05\
-    \x04\x02\x02\x03\x01\x12\x03\x12\x18%\n\x0c\n\x05\x04\x02\x02\x03\x03\
-    \x12\x03\x12()\n\n\n\x02\x04\x03\x12\x04\x15\0\x18\x01\n\n\n\x03\x04\x03\
-    \x01\x12\x03\x15\x08\x14\n\x0b\n\x04\x04\x03\x02\0\x12\x03\x16\x02\x1b\n\
-    \x0c\n\x05\x04\x03\x02\0\x04\x12\x03\x16\x02\n\n\x0c\n\x05\x04\x03\x02\0\
-    \x05\x12\x03\x16\x0b\x11\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x16\x12\
-    \x16\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x16\x19\x1a\n\x0b\n\x04\x04\
-    \x03\x02\x01\x12\x03\x17\x02\x1f\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\x03\
-    \x17\x02\n\n\x0c\n\x05\x04\x03\x02\x01\x05\x12\x03\x17\x0b\x10\n\x0c\n\
-    \x05\x04\x03\x02\x01\x01\x12\x03\x17\x11\x1a\n\x0c\n\x05\x04\x03\x02\x01\
-    \x03\x12\x03\x17\x1d\x1e\
+    \xdb\x01\n\tSituation\x12\x18\n\x07summary\x18\x01\x20\x01(\tR\x07summar\
+    y\x12)\n\x10long_description\x18\x02\x20\x01(\tR\x0flongDescription\x12\
+    \x18\n\x07planned\x18\x03\x20\x01(\x08R\x07planned\x12\x1f\n\x0breason_n\
+    ame\x18\x04\x20\x01(\tR\nreasonName\x122\n\raffected_line\x18\x05\x20\
+    \x03(\x0b2\r.AffectedLineR\x0caffectedLine\x12\x1a\n\x08priority\x18\x06\
+    \x20\x01(\x05R\x08priority\"@\n\x0cAffectedLine\x12\x12\n\x04line\x18\
+    \x01\x20\x01(\tR\x04line\x12\x1c\n\tdirection\x18\x02\x20\x01(\x05R\tdir\
+    ectionJ\xf9\x07\n\x06\x12\x04\0\0\x1b\x01\n\x08\n\x01\x0c\x12\x03\0\0\
+    \x12\n\t\n\x02\x03\0\x12\x03\x02\x07\x1c\n\n\n\x02\x04\0\x12\x04\x04\0\
+    \x08\x01\n\n\n\x03\x04\0\x01\x12\x03\x04\x08\x19\n\x0b\n\x04\x04\0\x02\0\
+    \x12\x03\x05\x021\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\x05\x02\n\n\x0c\n\
+    \x05\x04\0\x02\0\x06\x12\x03\x05\x0b'\n\x0c\n\x05\x04\0\x02\0\x01\x12\
+    \x03\x05(,\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x05/0\n\x0b\n\x04\x04\0\
+    \x02\x01\x12\x03\x06\x02/\n\x0c\n\x05\x04\0\x02\x01\x04\x12\x03\x06\x02\
+    \n\n\x0c\n\x05\x04\0\x02\x01\x05\x12\x03\x06\x0b\x10\n\x0c\n\x05\x04\0\
+    \x02\x01\x01\x12\x03\x06\x11*\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x06-\
+    .\n\x0b\n\x04\x04\0\x02\x02\x12\x03\x07\x024\n\x0c\n\x05\x04\0\x02\x02\
+    \x04\x12\x03\x07\x02\n\n\x0c\n\x05\x04\0\x02\x02\x05\x12\x03\x07\x0b\x10\
+    \n\x0c\n\x05\x04\0\x02\x02\x01\x12\x03\x07\x11/\n\x0c\n\x05\x04\0\x02\
+    \x02\x03\x12\x03\x0723\n\n\n\x02\x04\x01\x12\x04\n\0\x0c\x01\n\n\n\x03\
+    \x04\x01\x01\x12\x03\n\x08\x14\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0b\x02\
+    #\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\x0b\x02\n\n\x0c\n\x05\x04\x01\
+    \x02\0\x06\x12\x03\x0b\x0b\x14\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x0b\
+    \x15\x1e\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x0b!\"\nJ\n\x02\x04\x02\
+    \x12\x04\x0f\0\x16\x01\x1a>\x20TODO(mrjones):\x20merge\x20with\x20webcli\
+    ent_api::SubwayStatusMessage\n\n\n\n\x03\x04\x02\x01\x12\x03\x0f\x08\x11\
+    \n\x0b\n\x04\x04\x02\x02\0\x12\x03\x10\x02\x1e\n\x0c\n\x05\x04\x02\x02\0\
+    \x04\x12\x03\x10\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\x12\x03\x10\x0b\x11\
+    \n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\x10\x12\x19\n\x0c\n\x05\x04\x02\
+    \x02\0\x03\x12\x03\x10\x1c\x1d\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\x11\
+    \x02'\n\x0c\n\x05\x04\x02\x02\x01\x04\x12\x03\x11\x02\n\n\x0c\n\x05\x04\
+    \x02\x02\x01\x05\x12\x03\x11\x0b\x11\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\
+    \x03\x11\x12\"\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\x11%&\n\x0b\n\x04\
+    \x04\x02\x02\x02\x12\x03\x12\x02\x1c\n\x0c\n\x05\x04\x02\x02\x02\x04\x12\
+    \x03\x12\x02\n\n\x0c\n\x05\x04\x02\x02\x02\x05\x12\x03\x12\x0b\x0f\n\x0c\
+    \n\x05\x04\x02\x02\x02\x01\x12\x03\x12\x10\x17\n\x0c\n\x05\x04\x02\x02\
+    \x02\x03\x12\x03\x12\x1a\x1b\n\x0b\n\x04\x04\x02\x02\x03\x12\x03\x13\x02\
+    \"\n\x0c\n\x05\x04\x02\x02\x03\x04\x12\x03\x13\x02\n\n\x0c\n\x05\x04\x02\
+    \x02\x03\x05\x12\x03\x13\x0b\x11\n\x0c\n\x05\x04\x02\x02\x03\x01\x12\x03\
+    \x13\x12\x1d\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x13\x20!\n\x0b\n\
+    \x04\x04\x02\x02\x04\x12\x03\x14\x02*\n\x0c\n\x05\x04\x02\x02\x04\x04\
+    \x12\x03\x14\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\x03\x14\x0b\x17\n\
+    \x0c\n\x05\x04\x02\x02\x04\x01\x12\x03\x14\x18%\n\x0c\n\x05\x04\x02\x02\
+    \x04\x03\x12\x03\x14()\n\x0b\n\x04\x04\x02\x02\x05\x12\x03\x15\x02\x1e\n\
+    \x0c\n\x05\x04\x02\x02\x05\x04\x12\x03\x15\x02\n\n\x0c\n\x05\x04\x02\x02\
+    \x05\x05\x12\x03\x15\x0b\x10\n\x0c\n\x05\x04\x02\x02\x05\x01\x12\x03\x15\
+    \x11\x19\n\x0c\n\x05\x04\x02\x02\x05\x03\x12\x03\x15\x1c\x1d\n\n\n\x02\
+    \x04\x03\x12\x04\x18\0\x1b\x01\n\n\n\x03\x04\x03\x01\x12\x03\x18\x08\x14\
+    \n\x0b\n\x04\x04\x03\x02\0\x12\x03\x19\x02\x1b\n\x0c\n\x05\x04\x03\x02\0\
+    \x04\x12\x03\x19\x02\n\n\x0c\n\x05\x04\x03\x02\0\x05\x12\x03\x19\x0b\x11\
+    \n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x19\x12\x16\n\x0c\n\x05\x04\x03\
+    \x02\0\x03\x12\x03\x19\x19\x1a\n\x0b\n\x04\x04\x03\x02\x01\x12\x03\x1a\
+    \x02\x1f\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\x03\x1a\x02\n\n\x0c\n\x05\
+    \x04\x03\x02\x01\x05\x12\x03\x1a\x0b\x10\n\x0c\n\x05\x04\x03\x02\x01\x01\
+    \x12\x03\x1a\x11\x1a\n\x0c\n\x05\x04\x03\x02\x01\x03\x12\x03\x1a\x1d\x1e\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {
