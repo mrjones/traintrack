@@ -58,6 +58,8 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
         });
     }
 
+    let mut lines = std::collections::HashSet::new();
+
     let mut response = webclient_api::StationStatus::new();
     {
         let _build_proto_span = per_request_context.timer.span("build_proto");
@@ -72,6 +74,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
             for (direction, stop_times) in trains.iter() {
                 let mut line = webclient_api::LineArrivals::new();
                 line.set_line(route_id.clone());
+                lines.insert(route_id.clone());
                 line.set_direction(match direction {
                     &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
                     &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
@@ -92,6 +95,29 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
             }
         }
         response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
+    }
+
+    let status = tt_context.proxy_client.latest_status();
+    for situation in status.get_situation() {
+        let mut message = webclient_api::SubwayStatusMessage::new();
+        message.set_summary(situation.get_summary().to_string());
+        for line in situation.get_affected_line() {
+            let mut affected_line = webclient_api::AffectedLineStatus::new();
+            let line_letter = line.get_line().replace("MTA NYCT_", "");
+            if lines.contains(&line_letter) {
+                affected_line.set_line(line_letter);
+                affected_line.set_direction(
+                    match line.get_direction() {
+                        0 => webclient_api::Direction::UPTOWN,
+                        _ => webclient_api::Direction::DOWNTOWN,
+                    });
+                message.mut_affected_line().push(affected_line);
+            }
+        }
+
+        if message.get_affected_line().len() > 0 {
+            response.mut_status_message().push(message);
+        }
     }
 
     let result;

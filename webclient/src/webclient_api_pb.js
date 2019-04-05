@@ -1450,6 +1450,7 @@ $root.StationStatus = (function() {
      * @property {string|null} [id] StationStatus id
      * @property {Array.<ILineArrivals>|null} [line] StationStatus line
      * @property {number|Long|null} [dataTimestamp] StationStatus dataTimestamp
+     * @property {Array.<ISubwayStatusMessage>|null} [statusMessage] StationStatus statusMessage
      * @property {IDebugInfo|null} [debugInfo] StationStatus debugInfo
      */
 
@@ -1463,6 +1464,7 @@ $root.StationStatus = (function() {
      */
     function StationStatus(properties) {
         this.line = [];
+        this.statusMessage = [];
         if (properties)
             for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
@@ -1500,6 +1502,14 @@ $root.StationStatus = (function() {
      * @instance
      */
     StationStatus.prototype.dataTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+    /**
+     * StationStatus statusMessage.
+     * @member {Array.<ISubwayStatusMessage>} statusMessage
+     * @memberof StationStatus
+     * @instance
+     */
+    StationStatus.prototype.statusMessage = $util.emptyArray;
 
     /**
      * StationStatus debugInfo.
@@ -1544,6 +1554,9 @@ $root.StationStatus = (function() {
             $root.DebugInfo.encode(message.debugInfo, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
         if (message.id != null && message.hasOwnProperty("id"))
             writer.uint32(/* id 5, wireType 2 =*/42).string(message.id);
+        if (message.statusMessage != null && message.statusMessage.length)
+            for (var i = 0; i < message.statusMessage.length; ++i)
+                $root.SubwayStatusMessage.encode(message.statusMessage[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
         return writer;
     };
 
@@ -1591,6 +1604,11 @@ $root.StationStatus = (function() {
                 break;
             case 3:
                 message.dataTimestamp = reader.int64();
+                break;
+            case 6:
+                if (!(message.statusMessage && message.statusMessage.length))
+                    message.statusMessage = [];
+                message.statusMessage.push($root.SubwayStatusMessage.decode(reader, reader.uint32()));
                 break;
             case 4:
                 message.debugInfo = $root.DebugInfo.decode(reader, reader.uint32());
@@ -1648,6 +1666,15 @@ $root.StationStatus = (function() {
         if (message.dataTimestamp != null && message.hasOwnProperty("dataTimestamp"))
             if (!$util.isInteger(message.dataTimestamp) && !(message.dataTimestamp && $util.isInteger(message.dataTimestamp.low) && $util.isInteger(message.dataTimestamp.high)))
                 return "dataTimestamp: integer|Long expected";
+        if (message.statusMessage != null && message.hasOwnProperty("statusMessage")) {
+            if (!Array.isArray(message.statusMessage))
+                return "statusMessage: array expected";
+            for (var i = 0; i < message.statusMessage.length; ++i) {
+                var error = $root.SubwayStatusMessage.verify(message.statusMessage[i]);
+                if (error)
+                    return "statusMessage." + error;
+            }
+        }
         if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
             var error = $root.DebugInfo.verify(message.debugInfo);
             if (error)
@@ -1691,6 +1718,16 @@ $root.StationStatus = (function() {
                 message.dataTimestamp = object.dataTimestamp;
             else if (typeof object.dataTimestamp === "object")
                 message.dataTimestamp = new $util.LongBits(object.dataTimestamp.low >>> 0, object.dataTimestamp.high >>> 0).toNumber();
+        if (object.statusMessage) {
+            if (!Array.isArray(object.statusMessage))
+                throw TypeError(".StationStatus.statusMessage: array expected");
+            message.statusMessage = [];
+            for (var i = 0; i < object.statusMessage.length; ++i) {
+                if (typeof object.statusMessage[i] !== "object")
+                    throw TypeError(".StationStatus.statusMessage: object expected");
+                message.statusMessage[i] = $root.SubwayStatusMessage.fromObject(object.statusMessage[i]);
+            }
+        }
         if (object.debugInfo != null) {
             if (typeof object.debugInfo !== "object")
                 throw TypeError(".StationStatus.debugInfo: object expected");
@@ -1712,8 +1749,10 @@ $root.StationStatus = (function() {
         if (!options)
             options = {};
         var object = {};
-        if (options.arrays || options.defaults)
+        if (options.arrays || options.defaults) {
             object.line = [];
+            object.statusMessage = [];
+        }
         if (options.defaults) {
             object.name = "";
             if ($util.Long) {
@@ -1740,6 +1779,11 @@ $root.StationStatus = (function() {
             object.debugInfo = $root.DebugInfo.toObject(message.debugInfo, options);
         if (message.id != null && message.hasOwnProperty("id"))
             object.id = message.id;
+        if (message.statusMessage && message.statusMessage.length) {
+            object.statusMessage = [];
+            for (var j = 0; j < message.statusMessage.length; ++j)
+                object.statusMessage[j] = $root.SubwayStatusMessage.toObject(message.statusMessage[j], options);
+        }
         return object;
     };
 
@@ -3182,6 +3226,460 @@ $root.TrainArrivalHistory = (function() {
     };
 
     return TrainArrivalHistory;
+})();
+
+$root.SubwayStatusMessage = (function() {
+
+    /**
+     * Properties of a SubwayStatusMessage.
+     * @exports ISubwayStatusMessage
+     * @interface ISubwayStatusMessage
+     * @property {string|null} [summary] SubwayStatusMessage summary
+     * @property {Array.<IAffectedLineStatus>|null} [affectedLine] SubwayStatusMessage affectedLine
+     */
+
+    /**
+     * Constructs a new SubwayStatusMessage.
+     * @exports SubwayStatusMessage
+     * @classdesc Represents a SubwayStatusMessage.
+     * @implements ISubwayStatusMessage
+     * @constructor
+     * @param {ISubwayStatusMessage=} [properties] Properties to set
+     */
+    function SubwayStatusMessage(properties) {
+        this.affectedLine = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * SubwayStatusMessage summary.
+     * @member {string} summary
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.summary = "";
+
+    /**
+     * SubwayStatusMessage affectedLine.
+     * @member {Array.<IAffectedLineStatus>} affectedLine
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.affectedLine = $util.emptyArray;
+
+    /**
+     * Creates a new SubwayStatusMessage instance using the specified properties.
+     * @function create
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {ISubwayStatusMessage=} [properties] Properties to set
+     * @returns {SubwayStatusMessage} SubwayStatusMessage instance
+     */
+    SubwayStatusMessage.create = function create(properties) {
+        return new SubwayStatusMessage(properties);
+    };
+
+    /**
+     * Encodes the specified SubwayStatusMessage message. Does not implicitly {@link SubwayStatusMessage.verify|verify} messages.
+     * @function encode
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {ISubwayStatusMessage} message SubwayStatusMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    SubwayStatusMessage.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.summary != null && message.hasOwnProperty("summary"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.summary);
+        if (message.affectedLine != null && message.affectedLine.length)
+            for (var i = 0; i < message.affectedLine.length; ++i)
+                $root.AffectedLineStatus.encode(message.affectedLine[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified SubwayStatusMessage message, length delimited. Does not implicitly {@link SubwayStatusMessage.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {ISubwayStatusMessage} message SubwayStatusMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    SubwayStatusMessage.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a SubwayStatusMessage message from the specified reader or buffer.
+     * @function decode
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {SubwayStatusMessage} SubwayStatusMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    SubwayStatusMessage.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SubwayStatusMessage();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.summary = reader.string();
+                break;
+            case 2:
+                if (!(message.affectedLine && message.affectedLine.length))
+                    message.affectedLine = [];
+                message.affectedLine.push($root.AffectedLineStatus.decode(reader, reader.uint32()));
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a SubwayStatusMessage message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {SubwayStatusMessage} SubwayStatusMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    SubwayStatusMessage.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a SubwayStatusMessage message.
+     * @function verify
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    SubwayStatusMessage.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.summary != null && message.hasOwnProperty("summary"))
+            if (!$util.isString(message.summary))
+                return "summary: string expected";
+        if (message.affectedLine != null && message.hasOwnProperty("affectedLine")) {
+            if (!Array.isArray(message.affectedLine))
+                return "affectedLine: array expected";
+            for (var i = 0; i < message.affectedLine.length; ++i) {
+                var error = $root.AffectedLineStatus.verify(message.affectedLine[i]);
+                if (error)
+                    return "affectedLine." + error;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Creates a SubwayStatusMessage message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {SubwayStatusMessage} SubwayStatusMessage
+     */
+    SubwayStatusMessage.fromObject = function fromObject(object) {
+        if (object instanceof $root.SubwayStatusMessage)
+            return object;
+        var message = new $root.SubwayStatusMessage();
+        if (object.summary != null)
+            message.summary = String(object.summary);
+        if (object.affectedLine) {
+            if (!Array.isArray(object.affectedLine))
+                throw TypeError(".SubwayStatusMessage.affectedLine: array expected");
+            message.affectedLine = [];
+            for (var i = 0; i < object.affectedLine.length; ++i) {
+                if (typeof object.affectedLine[i] !== "object")
+                    throw TypeError(".SubwayStatusMessage.affectedLine: object expected");
+                message.affectedLine[i] = $root.AffectedLineStatus.fromObject(object.affectedLine[i]);
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a SubwayStatusMessage message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof SubwayStatusMessage
+     * @static
+     * @param {SubwayStatusMessage} message SubwayStatusMessage
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    SubwayStatusMessage.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.affectedLine = [];
+        if (options.defaults)
+            object.summary = "";
+        if (message.summary != null && message.hasOwnProperty("summary"))
+            object.summary = message.summary;
+        if (message.affectedLine && message.affectedLine.length) {
+            object.affectedLine = [];
+            for (var j = 0; j < message.affectedLine.length; ++j)
+                object.affectedLine[j] = $root.AffectedLineStatus.toObject(message.affectedLine[j], options);
+        }
+        return object;
+    };
+
+    /**
+     * Converts this SubwayStatusMessage to JSON.
+     * @function toJSON
+     * @memberof SubwayStatusMessage
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    SubwayStatusMessage.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return SubwayStatusMessage;
+})();
+
+$root.AffectedLineStatus = (function() {
+
+    /**
+     * Properties of an AffectedLineStatus.
+     * @exports IAffectedLineStatus
+     * @interface IAffectedLineStatus
+     * @property {string|null} [line] AffectedLineStatus line
+     * @property {Direction|null} [direction] AffectedLineStatus direction
+     */
+
+    /**
+     * Constructs a new AffectedLineStatus.
+     * @exports AffectedLineStatus
+     * @classdesc Represents an AffectedLineStatus.
+     * @implements IAffectedLineStatus
+     * @constructor
+     * @param {IAffectedLineStatus=} [properties] Properties to set
+     */
+    function AffectedLineStatus(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * AffectedLineStatus line.
+     * @member {string} line
+     * @memberof AffectedLineStatus
+     * @instance
+     */
+    AffectedLineStatus.prototype.line = "";
+
+    /**
+     * AffectedLineStatus direction.
+     * @member {Direction} direction
+     * @memberof AffectedLineStatus
+     * @instance
+     */
+    AffectedLineStatus.prototype.direction = 0;
+
+    /**
+     * Creates a new AffectedLineStatus instance using the specified properties.
+     * @function create
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {IAffectedLineStatus=} [properties] Properties to set
+     * @returns {AffectedLineStatus} AffectedLineStatus instance
+     */
+    AffectedLineStatus.create = function create(properties) {
+        return new AffectedLineStatus(properties);
+    };
+
+    /**
+     * Encodes the specified AffectedLineStatus message. Does not implicitly {@link AffectedLineStatus.verify|verify} messages.
+     * @function encode
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {IAffectedLineStatus} message AffectedLineStatus message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AffectedLineStatus.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.line != null && message.hasOwnProperty("line"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.line);
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            writer.uint32(/* id 2, wireType 0 =*/16).int32(message.direction);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified AffectedLineStatus message, length delimited. Does not implicitly {@link AffectedLineStatus.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {IAffectedLineStatus} message AffectedLineStatus message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    AffectedLineStatus.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes an AffectedLineStatus message from the specified reader or buffer.
+     * @function decode
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {AffectedLineStatus} AffectedLineStatus
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AffectedLineStatus.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.AffectedLineStatus();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.line = reader.string();
+                break;
+            case 2:
+                message.direction = reader.int32();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes an AffectedLineStatus message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {AffectedLineStatus} AffectedLineStatus
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    AffectedLineStatus.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies an AffectedLineStatus message.
+     * @function verify
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    AffectedLineStatus.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.line != null && message.hasOwnProperty("line"))
+            if (!$util.isString(message.line))
+                return "line: string expected";
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            switch (message.direction) {
+            default:
+                return "direction: enum value expected";
+            case 0:
+            case 1:
+                break;
+            }
+        return null;
+    };
+
+    /**
+     * Creates an AffectedLineStatus message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {AffectedLineStatus} AffectedLineStatus
+     */
+    AffectedLineStatus.fromObject = function fromObject(object) {
+        if (object instanceof $root.AffectedLineStatus)
+            return object;
+        var message = new $root.AffectedLineStatus();
+        if (object.line != null)
+            message.line = String(object.line);
+        switch (object.direction) {
+        case "UPTOWN":
+        case 0:
+            message.direction = 0;
+            break;
+        case "DOWNTOWN":
+        case 1:
+            message.direction = 1;
+            break;
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from an AffectedLineStatus message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof AffectedLineStatus
+     * @static
+     * @param {AffectedLineStatus} message AffectedLineStatus
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    AffectedLineStatus.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.line = "";
+            object.direction = options.enums === String ? "UPTOWN" : 0;
+        }
+        if (message.line != null && message.hasOwnProperty("line"))
+            object.line = message.line;
+        if (message.direction != null && message.hasOwnProperty("direction"))
+            object.direction = options.enums === String ? $root.Direction[message.direction] : message.direction;
+        return object;
+    };
+
+    /**
+     * Converts this AffectedLineStatus to JSON.
+     * @function toJSON
+     * @memberof AffectedLineStatus
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    AffectedLineStatus.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return AffectedLineStatus;
 })();
 
 module.exports = $root;

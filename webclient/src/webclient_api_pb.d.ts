@@ -568,6 +568,9 @@ export interface IStationStatus {
     /** StationStatus dataTimestamp */
     dataTimestamp?: (number|Long|null);
 
+    /** StationStatus statusMessage */
+    statusMessage?: (ISubwayStatusMessage[]|null);
+
     /** StationStatus debugInfo */
     debugInfo?: (IDebugInfo|null);
 }
@@ -592,6 +595,9 @@ export class StationStatus implements IStationStatus {
 
     /** StationStatus dataTimestamp. */
     public dataTimestamp: (number|Long);
+
+    /** StationStatus statusMessage. */
+    public statusMessage: ISubwayStatusMessage[];
 
     /** StationStatus debugInfo. */
     public debugInfo?: (IDebugInfo|null);
@@ -1250,6 +1256,198 @@ export class TrainArrivalHistory implements ITrainArrivalHistory {
 
     /**
      * Converts this TrainArrivalHistory to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
+
+/** Properties of a SubwayStatusMessage. */
+export interface ISubwayStatusMessage {
+
+    /** SubwayStatusMessage summary */
+    summary?: (string|null);
+
+    /** SubwayStatusMessage affectedLine */
+    affectedLine?: (IAffectedLineStatus[]|null);
+}
+
+/** Represents a SubwayStatusMessage. */
+export class SubwayStatusMessage implements ISubwayStatusMessage {
+
+    /**
+     * Constructs a new SubwayStatusMessage.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: ISubwayStatusMessage);
+
+    /** SubwayStatusMessage summary. */
+    public summary: string;
+
+    /** SubwayStatusMessage affectedLine. */
+    public affectedLine: IAffectedLineStatus[];
+
+    /**
+     * Creates a new SubwayStatusMessage instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns SubwayStatusMessage instance
+     */
+    public static create(properties?: ISubwayStatusMessage): SubwayStatusMessage;
+
+    /**
+     * Encodes the specified SubwayStatusMessage message. Does not implicitly {@link SubwayStatusMessage.verify|verify} messages.
+     * @param message SubwayStatusMessage message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: ISubwayStatusMessage, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified SubwayStatusMessage message, length delimited. Does not implicitly {@link SubwayStatusMessage.verify|verify} messages.
+     * @param message SubwayStatusMessage message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: ISubwayStatusMessage, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes a SubwayStatusMessage message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns SubwayStatusMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): SubwayStatusMessage;
+
+    /**
+     * Decodes a SubwayStatusMessage message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns SubwayStatusMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): SubwayStatusMessage;
+
+    /**
+     * Verifies a SubwayStatusMessage message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates a SubwayStatusMessage message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns SubwayStatusMessage
+     */
+    public static fromObject(object: { [k: string]: any }): SubwayStatusMessage;
+
+    /**
+     * Creates a plain object from a SubwayStatusMessage message. Also converts values to other types if specified.
+     * @param message SubwayStatusMessage
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: SubwayStatusMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this SubwayStatusMessage to JSON.
+     * @returns JSON object
+     */
+    public toJSON(): { [k: string]: any };
+}
+
+/** Properties of an AffectedLineStatus. */
+export interface IAffectedLineStatus {
+
+    /** AffectedLineStatus line */
+    line?: (string|null);
+
+    /** AffectedLineStatus direction */
+    direction?: (Direction|null);
+}
+
+/** Represents an AffectedLineStatus. */
+export class AffectedLineStatus implements IAffectedLineStatus {
+
+    /**
+     * Constructs a new AffectedLineStatus.
+     * @param [properties] Properties to set
+     */
+    constructor(properties?: IAffectedLineStatus);
+
+    /** AffectedLineStatus line. */
+    public line: string;
+
+    /** AffectedLineStatus direction. */
+    public direction: Direction;
+
+    /**
+     * Creates a new AffectedLineStatus instance using the specified properties.
+     * @param [properties] Properties to set
+     * @returns AffectedLineStatus instance
+     */
+    public static create(properties?: IAffectedLineStatus): AffectedLineStatus;
+
+    /**
+     * Encodes the specified AffectedLineStatus message. Does not implicitly {@link AffectedLineStatus.verify|verify} messages.
+     * @param message AffectedLineStatus message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encode(message: IAffectedLineStatus, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Encodes the specified AffectedLineStatus message, length delimited. Does not implicitly {@link AffectedLineStatus.verify|verify} messages.
+     * @param message AffectedLineStatus message or plain object to encode
+     * @param [writer] Writer to encode to
+     * @returns Writer
+     */
+    public static encodeDelimited(message: IAffectedLineStatus, writer?: $protobuf.Writer): $protobuf.Writer;
+
+    /**
+     * Decodes an AffectedLineStatus message from the specified reader or buffer.
+     * @param reader Reader or buffer to decode from
+     * @param [length] Message length if known beforehand
+     * @returns AffectedLineStatus
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): AffectedLineStatus;
+
+    /**
+     * Decodes an AffectedLineStatus message from the specified reader or buffer, length delimited.
+     * @param reader Reader or buffer to decode from
+     * @returns AffectedLineStatus
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): AffectedLineStatus;
+
+    /**
+     * Verifies an AffectedLineStatus message.
+     * @param message Plain object to verify
+     * @returns `null` if valid, otherwise the reason why it is not
+     */
+    public static verify(message: { [k: string]: any }): (string|null);
+
+    /**
+     * Creates an AffectedLineStatus message from a plain object. Also converts values to their respective internal types.
+     * @param object Plain object
+     * @returns AffectedLineStatus
+     */
+    public static fromObject(object: { [k: string]: any }): AffectedLineStatus;
+
+    /**
+     * Creates a plain object from an AffectedLineStatus message. Also converts values to other types if specified.
+     * @param message AffectedLineStatus
+     * @param [options] Conversion options
+     * @returns Plain object
+     */
+    public static toObject(message: AffectedLineStatus, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+    /**
+     * Converts this AffectedLineStatus to JSON.
      * @returns JSON object
      */
     public toJSON(): { [k: string]: any };
