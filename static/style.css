@@ -137,6 +137,10 @@ h2 {
     color: #999;
 }
 
+.serviceStatus {
+    font-size: 80%;
+}
+
 .stationLine ul {
     margin-top: 0;
 }

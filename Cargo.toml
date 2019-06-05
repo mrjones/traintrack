@@ -46,7 +46,3 @@ path = "src/main.rs"
 [[bin]]
 name = "feedproxy"
 path = "src/feedproxy_main.rs"
-
-[[bin]]
-name = "ttpredict"
-path = "ttpredict/src/main.rs"

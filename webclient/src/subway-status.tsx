@@ -23,20 +23,20 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return null;
     }
 
-    let description = this.props.status.length + " service status messages";
+    let toggleText = "Service status: " + this.props.status.length + " messages";
 
     if (!this.state.expanded) {
-      return <div className="pubTime"><a href="#" onClick={this.toggleExpanded.bind(this)}>{description}</a></div>;
+      return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a></div>;
     }
 
     let lis = this.props.status.map((msg: proto.ISubwayStatusMessage) => {
       let lines = msg.affectedLine.map((line: proto.AffectedLineStatus) => {
         return line.line + (line.direction == proto.Direction.UPTOWN ? "\u2191" : "\u2193");
       }).join(" ");
-      return <li><strong>{msg.reasonName}: {lines}</strong><br/>{msg.summary}</li>;
+      return <li><strong>{msg.reasonName}: {lines}</strong><br/>{msg.summary}  (priority={msg.priority})</li>;
     });
 
-    return <div className="pubTime"><a href="#" onClick={this.toggleExpanded.bind(this)}>{description}</a><ul>{lis}</ul></div>
+    return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><br/>[<strong>NOTE</strong> service status is still in development.]<ul>{lis}</ul></div>
   }
 
   private toggleExpanded() {
