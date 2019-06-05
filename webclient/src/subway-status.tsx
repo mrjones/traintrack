@@ -33,7 +33,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       let lines = msg.affectedLine.map((line: proto.AffectedLineStatus) => {
         return line.line + (line.direction == proto.Direction.UPTOWN ? "\u2191" : "\u2193");
       }).join(" ");
-      return <li><strong>{lines}</strong> {msg.summary}</li>;
+      return <li><strong>{msg.reasonName}: {lines}</strong><br/>{msg.summary}</li>;
     });
 
     return <div className="pubTime"><a href="#" onClick={this.toggleExpanded.bind(this)}>{description}</a><ul>{lis}</ul></div>
