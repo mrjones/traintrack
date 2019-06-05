@@ -135,7 +135,6 @@ h2 {
 .pubTime {
     font-size: 80%;
     color: #999;
-    margin-bottom: 10pt;
 }
 
 .stationLine ul {
@@ -289,6 +288,10 @@ ul.lineView{
 }
 
 .apiRequest .debugDetails {
+}
+
+.filterControl {
+    margin-top: 10pt;
 }
 
 .filterControl .toggleButton {
