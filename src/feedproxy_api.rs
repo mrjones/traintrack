@@ -294,7 +294,7 @@ impl ::protobuf::reflect::ProtobufValue for FeedProxyResponse {
 #[derive(PartialEq,Clone,Default)]
 pub struct SubwayStatus {
     // message fields
-    situation: ::protobuf::RepeatedField<Situation>,
+    status: ::protobuf::RepeatedField<super::webclient_api::SubwayStatusMessage>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -305,35 +305,35 @@ impl SubwayStatus {
         ::std::default::Default::default()
     }
 
-    // repeated .Situation situation = 1;
+    // repeated .SubwayStatusMessage status = 2;
 
-    pub fn clear_situation(&mut self) {
-        self.situation.clear();
+    pub fn clear_status(&mut self) {
+        self.status.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_situation(&mut self, v: ::protobuf::RepeatedField<Situation>) {
-        self.situation = v;
+    pub fn set_status(&mut self, v: ::protobuf::RepeatedField<super::webclient_api::SubwayStatusMessage>) {
+        self.status = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_situation(&mut self) -> &mut ::protobuf::RepeatedField<Situation> {
-        &mut self.situation
+    pub fn mut_status(&mut self) -> &mut ::protobuf::RepeatedField<super::webclient_api::SubwayStatusMessage> {
+        &mut self.status
     }
 
     // Take field
-    pub fn take_situation(&mut self) -> ::protobuf::RepeatedField<Situation> {
-        ::std::mem::replace(&mut self.situation, ::protobuf::RepeatedField::new())
+    pub fn take_status(&mut self) -> ::protobuf::RepeatedField<super::webclient_api::SubwayStatusMessage> {
+        ::std::mem::replace(&mut self.status, ::protobuf::RepeatedField::new())
     }
 
-    pub fn get_situation(&self) -> &[Situation] {
-        &self.situation
+    pub fn get_status(&self) -> &[super::webclient_api::SubwayStatusMessage] {
+        &self.status
     }
 }
 
 impl ::protobuf::Message for SubwayStatus {
     fn is_initialized(&self) -> bool {
-        for v in &self.situation {
+        for v in &self.status {
             if !v.is_initialized() {
                 return false;
             }
@@ -345,8 +345,8 @@ impl ::protobuf::Message for SubwayStatus {
         while !is.eof()? {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
-                1 => {
-                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.situation)?;
+                2 => {
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.status)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -360,7 +360,7 @@ impl ::protobuf::Message for SubwayStatus {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.situation {
+        for value in &self.status {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -370,8 +370,8 @@ impl ::protobuf::Message for SubwayStatus {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        for v in &self.situation {
-            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+        for v in &self.status {
+            os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         };
@@ -417,10 +417,10 @@ impl ::protobuf::Message for SubwayStatus {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Situation>>(
-                    "situation",
-                    |m: &SubwayStatus| { &m.situation },
-                    |m: &mut SubwayStatus| { &mut m.situation },
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::webclient_api::SubwayStatusMessage>>(
+                    "status",
+                    |m: &SubwayStatus| { &m.status },
+                    |m: &mut SubwayStatus| { &mut m.status },
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<SubwayStatus>(
                     "SubwayStatus",
@@ -444,7 +444,7 @@ impl ::protobuf::Message for SubwayStatus {
 
 impl ::protobuf::Clear for SubwayStatus {
     fn clear(&mut self) {
-        self.clear_situation();
+        self.clear_status();
         self.unknown_fields.clear();
     }
 }
@@ -461,728 +461,34 @@ impl ::protobuf::reflect::ProtobufValue for SubwayStatus {
     }
 }
 
-#[derive(PartialEq,Clone,Default)]
-pub struct Situation {
-    // message fields
-    summary: ::protobuf::SingularField<::std::string::String>,
-    long_description: ::protobuf::SingularField<::std::string::String>,
-    planned: ::std::option::Option<bool>,
-    reason_name: ::protobuf::SingularField<::std::string::String>,
-    affected_line: ::protobuf::RepeatedField<AffectedLine>,
-    priority: ::std::option::Option<i32>,
-    publish_timestamp: ::std::option::Option<i64>,
-    // special fields
-    unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::protobuf::CachedSize,
-}
-
-impl Situation {
-    pub fn new() -> Situation {
-        ::std::default::Default::default()
-    }
-
-    // optional string summary = 1;
-
-    pub fn clear_summary(&mut self) {
-        self.summary.clear();
-    }
-
-    pub fn has_summary(&self) -> bool {
-        self.summary.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_summary(&mut self, v: ::std::string::String) {
-        self.summary = ::protobuf::SingularField::some(v);
-    }
-
-    // Mutable pointer to the field.
-    // If field is not initialized, it is initialized with default value first.
-    pub fn mut_summary(&mut self) -> &mut ::std::string::String {
-        if self.summary.is_none() {
-            self.summary.set_default();
-        }
-        self.summary.as_mut().unwrap()
-    }
-
-    // Take field
-    pub fn take_summary(&mut self) -> ::std::string::String {
-        self.summary.take().unwrap_or_else(|| ::std::string::String::new())
-    }
-
-    pub fn get_summary(&self) -> &str {
-        match self.summary.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
-    }
-
-    // optional string long_description = 2;
-
-    pub fn clear_long_description(&mut self) {
-        self.long_description.clear();
-    }
-
-    pub fn has_long_description(&self) -> bool {
-        self.long_description.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_long_description(&mut self, v: ::std::string::String) {
-        self.long_description = ::protobuf::SingularField::some(v);
-    }
-
-    // Mutable pointer to the field.
-    // If field is not initialized, it is initialized with default value first.
-    pub fn mut_long_description(&mut self) -> &mut ::std::string::String {
-        if self.long_description.is_none() {
-            self.long_description.set_default();
-        }
-        self.long_description.as_mut().unwrap()
-    }
-
-    // Take field
-    pub fn take_long_description(&mut self) -> ::std::string::String {
-        self.long_description.take().unwrap_or_else(|| ::std::string::String::new())
-    }
-
-    pub fn get_long_description(&self) -> &str {
-        match self.long_description.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
-    }
-
-    // optional bool planned = 3;
-
-    pub fn clear_planned(&mut self) {
-        self.planned = ::std::option::Option::None;
-    }
-
-    pub fn has_planned(&self) -> bool {
-        self.planned.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_planned(&mut self, v: bool) {
-        self.planned = ::std::option::Option::Some(v);
-    }
-
-    pub fn get_planned(&self) -> bool {
-        self.planned.unwrap_or(false)
-    }
-
-    // optional string reason_name = 4;
-
-    pub fn clear_reason_name(&mut self) {
-        self.reason_name.clear();
-    }
-
-    pub fn has_reason_name(&self) -> bool {
-        self.reason_name.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_reason_name(&mut self, v: ::std::string::String) {
-        self.reason_name = ::protobuf::SingularField::some(v);
-    }
-
-    // Mutable pointer to the field.
-    // If field is not initialized, it is initialized with default value first.
-    pub fn mut_reason_name(&mut self) -> &mut ::std::string::String {
-        if self.reason_name.is_none() {
-            self.reason_name.set_default();
-        }
-        self.reason_name.as_mut().unwrap()
-    }
-
-    // Take field
-    pub fn take_reason_name(&mut self) -> ::std::string::String {
-        self.reason_name.take().unwrap_or_else(|| ::std::string::String::new())
-    }
-
-    pub fn get_reason_name(&self) -> &str {
-        match self.reason_name.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
-    }
-
-    // repeated .AffectedLine affected_line = 5;
-
-    pub fn clear_affected_line(&mut self) {
-        self.affected_line.clear();
-    }
-
-    // Param is passed by value, moved
-    pub fn set_affected_line(&mut self, v: ::protobuf::RepeatedField<AffectedLine>) {
-        self.affected_line = v;
-    }
-
-    // Mutable pointer to the field.
-    pub fn mut_affected_line(&mut self) -> &mut ::protobuf::RepeatedField<AffectedLine> {
-        &mut self.affected_line
-    }
-
-    // Take field
-    pub fn take_affected_line(&mut self) -> ::protobuf::RepeatedField<AffectedLine> {
-        ::std::mem::replace(&mut self.affected_line, ::protobuf::RepeatedField::new())
-    }
-
-    pub fn get_affected_line(&self) -> &[AffectedLine] {
-        &self.affected_line
-    }
-
-    // optional int32 priority = 6;
-
-    pub fn clear_priority(&mut self) {
-        self.priority = ::std::option::Option::None;
-    }
-
-    pub fn has_priority(&self) -> bool {
-        self.priority.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_priority(&mut self, v: i32) {
-        self.priority = ::std::option::Option::Some(v);
-    }
-
-    pub fn get_priority(&self) -> i32 {
-        self.priority.unwrap_or(0)
-    }
-
-    // optional int64 publish_timestamp = 7;
-
-    pub fn clear_publish_timestamp(&mut self) {
-        self.publish_timestamp = ::std::option::Option::None;
-    }
-
-    pub fn has_publish_timestamp(&self) -> bool {
-        self.publish_timestamp.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_publish_timestamp(&mut self, v: i64) {
-        self.publish_timestamp = ::std::option::Option::Some(v);
-    }
-
-    pub fn get_publish_timestamp(&self) -> i64 {
-        self.publish_timestamp.unwrap_or(0)
-    }
-}
-
-impl ::protobuf::Message for Situation {
-    fn is_initialized(&self) -> bool {
-        for v in &self.affected_line {
-            if !v.is_initialized() {
-                return false;
-            }
-        };
-        true
-    }
-
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !is.eof()? {
-            let (field_number, wire_type) = is.read_tag_unpack()?;
-            match field_number {
-                1 => {
-                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.summary)?;
-                },
-                2 => {
-                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.long_description)?;
-                },
-                3 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_bool()?;
-                    self.planned = ::std::option::Option::Some(tmp);
-                },
-                4 => {
-                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.reason_name)?;
-                },
-                5 => {
-                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.affected_line)?;
-                },
-                6 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int32()?;
-                    self.priority = ::std::option::Option::Some(tmp);
-                },
-                7 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int64()?;
-                    self.publish_timestamp = ::std::option::Option::Some(tmp);
-                },
-                _ => {
-                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
-                },
-            };
-        }
-        ::std::result::Result::Ok(())
-    }
-
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u32 {
-        let mut my_size = 0;
-        if let Some(ref v) = self.summary.as_ref() {
-            my_size += ::protobuf::rt::string_size(1, &v);
-        }
-        if let Some(ref v) = self.long_description.as_ref() {
-            my_size += ::protobuf::rt::string_size(2, &v);
-        }
-        if let Some(v) = self.planned {
-            my_size += 2;
-        }
-        if let Some(ref v) = self.reason_name.as_ref() {
-            my_size += ::protobuf::rt::string_size(4, &v);
-        }
-        for value in &self.affected_line {
-            let len = value.compute_size();
-            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
-        };
-        if let Some(v) = self.priority {
-            my_size += ::protobuf::rt::value_size(6, v, ::protobuf::wire_format::WireTypeVarint);
-        }
-        if let Some(v) = self.publish_timestamp {
-            my_size += ::protobuf::rt::value_size(7, v, ::protobuf::wire_format::WireTypeVarint);
-        }
-        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
-        self.cached_size.set(my_size);
-        my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(ref v) = self.summary.as_ref() {
-            os.write_string(1, &v)?;
-        }
-        if let Some(ref v) = self.long_description.as_ref() {
-            os.write_string(2, &v)?;
-        }
-        if let Some(v) = self.planned {
-            os.write_bool(3, v)?;
-        }
-        if let Some(ref v) = self.reason_name.as_ref() {
-            os.write_string(4, &v)?;
-        }
-        for v in &self.affected_line {
-            os.write_tag(5, ::protobuf::wire_format::WireTypeLengthDelimited)?;
-            os.write_raw_varint32(v.get_cached_size())?;
-            v.write_to_with_cached_sizes(os)?;
-        };
-        if let Some(v) = self.priority {
-            os.write_int32(6, v)?;
-        }
-        if let Some(v) = self.publish_timestamp {
-            os.write_int64(7, v)?;
-        }
-        os.write_unknown_fields(self.get_unknown_fields())?;
-        ::std::result::Result::Ok(())
-    }
-
-    fn get_cached_size(&self) -> u32 {
-        self.cached_size.get()
-    }
-
-    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
-        &self.unknown_fields
-    }
-
-    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
-        &mut self.unknown_fields
-    }
-
-    fn as_any(&self) -> &::std::any::Any {
-        self as &::std::any::Any
-    }
-    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
-        self as &mut ::std::any::Any
-    }
-    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
-        self
-    }
-
-    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
-        Self::descriptor_static()
-    }
-
-    fn new() -> Situation {
-        Situation::new()
-    }
-
-    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
-        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
-        };
-        unsafe {
-            descriptor.get(|| {
-                let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
-                    "summary",
-                    |m: &Situation| { &m.summary },
-                    |m: &mut Situation| { &mut m.summary },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
-                    "long_description",
-                    |m: &Situation| { &m.long_description },
-                    |m: &mut Situation| { &mut m.long_description },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
-                    "planned",
-                    |m: &Situation| { &m.planned },
-                    |m: &mut Situation| { &mut m.planned },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
-                    "reason_name",
-                    |m: &Situation| { &m.reason_name },
-                    |m: &mut Situation| { &mut m.reason_name },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<AffectedLine>>(
-                    "affected_line",
-                    |m: &Situation| { &m.affected_line },
-                    |m: &mut Situation| { &mut m.affected_line },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
-                    "priority",
-                    |m: &Situation| { &m.priority },
-                    |m: &mut Situation| { &mut m.priority },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
-                    "publish_timestamp",
-                    |m: &Situation| { &m.publish_timestamp },
-                    |m: &mut Situation| { &mut m.publish_timestamp },
-                ));
-                ::protobuf::reflect::MessageDescriptor::new::<Situation>(
-                    "Situation",
-                    fields,
-                    file_descriptor_proto()
-                )
-            })
-        }
-    }
-
-    fn default_instance() -> &'static Situation {
-        static mut instance: ::protobuf::lazy::Lazy<Situation> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const Situation,
-        };
-        unsafe {
-            instance.get(Situation::new)
-        }
-    }
-}
-
-impl ::protobuf::Clear for Situation {
-    fn clear(&mut self) {
-        self.clear_summary();
-        self.clear_long_description();
-        self.clear_planned();
-        self.clear_reason_name();
-        self.clear_affected_line();
-        self.clear_priority();
-        self.clear_publish_timestamp();
-        self.unknown_fields.clear();
-    }
-}
-
-impl ::std::fmt::Debug for Situation {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        ::protobuf::text_format::fmt(self, f)
-    }
-}
-
-impl ::protobuf::reflect::ProtobufValue for Situation {
-    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
-        ::protobuf::reflect::ProtobufValueRef::Message(self)
-    }
-}
-
-#[derive(PartialEq,Clone,Default)]
-pub struct AffectedLine {
-    // message fields
-    line: ::protobuf::SingularField<::std::string::String>,
-    direction: ::std::option::Option<i32>,
-    // special fields
-    unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::protobuf::CachedSize,
-}
-
-impl AffectedLine {
-    pub fn new() -> AffectedLine {
-        ::std::default::Default::default()
-    }
-
-    // optional string line = 1;
-
-    pub fn clear_line(&mut self) {
-        self.line.clear();
-    }
-
-    pub fn has_line(&self) -> bool {
-        self.line.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_line(&mut self, v: ::std::string::String) {
-        self.line = ::protobuf::SingularField::some(v);
-    }
-
-    // Mutable pointer to the field.
-    // If field is not initialized, it is initialized with default value first.
-    pub fn mut_line(&mut self) -> &mut ::std::string::String {
-        if self.line.is_none() {
-            self.line.set_default();
-        }
-        self.line.as_mut().unwrap()
-    }
-
-    // Take field
-    pub fn take_line(&mut self) -> ::std::string::String {
-        self.line.take().unwrap_or_else(|| ::std::string::String::new())
-    }
-
-    pub fn get_line(&self) -> &str {
-        match self.line.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
-    }
-
-    // optional int32 direction = 2;
-
-    pub fn clear_direction(&mut self) {
-        self.direction = ::std::option::Option::None;
-    }
-
-    pub fn has_direction(&self) -> bool {
-        self.direction.is_some()
-    }
-
-    // Param is passed by value, moved
-    pub fn set_direction(&mut self, v: i32) {
-        self.direction = ::std::option::Option::Some(v);
-    }
-
-    pub fn get_direction(&self) -> i32 {
-        self.direction.unwrap_or(0)
-    }
-}
-
-impl ::protobuf::Message for AffectedLine {
-    fn is_initialized(&self) -> bool {
-        true
-    }
-
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !is.eof()? {
-            let (field_number, wire_type) = is.read_tag_unpack()?;
-            match field_number {
-                1 => {
-                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line)?;
-                },
-                2 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int32()?;
-                    self.direction = ::std::option::Option::Some(tmp);
-                },
-                _ => {
-                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
-                },
-            };
-        }
-        ::std::result::Result::Ok(())
-    }
-
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u32 {
-        let mut my_size = 0;
-        if let Some(ref v) = self.line.as_ref() {
-            my_size += ::protobuf::rt::string_size(1, &v);
-        }
-        if let Some(v) = self.direction {
-            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
-        }
-        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
-        self.cached_size.set(my_size);
-        my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if let Some(ref v) = self.line.as_ref() {
-            os.write_string(1, &v)?;
-        }
-        if let Some(v) = self.direction {
-            os.write_int32(2, v)?;
-        }
-        os.write_unknown_fields(self.get_unknown_fields())?;
-        ::std::result::Result::Ok(())
-    }
-
-    fn get_cached_size(&self) -> u32 {
-        self.cached_size.get()
-    }
-
-    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
-        &self.unknown_fields
-    }
-
-    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
-        &mut self.unknown_fields
-    }
-
-    fn as_any(&self) -> &::std::any::Any {
-        self as &::std::any::Any
-    }
-    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
-        self as &mut ::std::any::Any
-    }
-    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
-        self
-    }
-
-    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
-        Self::descriptor_static()
-    }
-
-    fn new() -> AffectedLine {
-        AffectedLine::new()
-    }
-
-    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
-        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
-        };
-        unsafe {
-            descriptor.get(|| {
-                let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
-                    "line",
-                    |m: &AffectedLine| { &m.line },
-                    |m: &mut AffectedLine| { &mut m.line },
-                ));
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
-                    "direction",
-                    |m: &AffectedLine| { &m.direction },
-                    |m: &mut AffectedLine| { &mut m.direction },
-                ));
-                ::protobuf::reflect::MessageDescriptor::new::<AffectedLine>(
-                    "AffectedLine",
-                    fields,
-                    file_descriptor_proto()
-                )
-            })
-        }
-    }
-
-    fn default_instance() -> &'static AffectedLine {
-        static mut instance: ::protobuf::lazy::Lazy<AffectedLine> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const AffectedLine,
-        };
-        unsafe {
-            instance.get(AffectedLine::new)
-        }
-    }
-}
-
-impl ::protobuf::Clear for AffectedLine {
-    fn clear(&mut self) {
-        self.clear_line();
-        self.clear_direction();
-        self.unknown_fields.clear();
-    }
-}
-
-impl ::std::fmt::Debug for AffectedLine {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        ::protobuf::text_format::fmt(self, f)
-    }
-}
-
-impl ::protobuf::reflect::ProtobufValue for AffectedLine {
-    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
-        ::protobuf::reflect::ProtobufValueRef::Message(self)
-    }
-}
-
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x13feedproxy_api.proto\x1a\x13gtfs-realtime.proto\"\xc6\x01\n\x11Feed\
-    ProxyResponse\x121\n\x04feed\x18\x01\x20\x01(\x0b2\x1d.transit_realtime.\
-    FeedMessageR\x04feed\x129\n\x19last_good_fetch_timestamp\x18\x02\x20\x01\
-    (\x03R\x16lastGoodFetchTimestamp\x12C\n\x1elast_attempted_fetch_timestam\
-    p\x18\x03\x20\x01(\x03R\x1blastAttemptedFetchTimestamp\"8\n\x0cSubwaySta\
-    tus\x12(\n\tsituation\x18\x01\x20\x03(\x0b2\n.SituationR\tsituation\"\
-    \x88\x02\n\tSituation\x12\x18\n\x07summary\x18\x01\x20\x01(\tR\x07summar\
-    y\x12)\n\x10long_description\x18\x02\x20\x01(\tR\x0flongDescription\x12\
-    \x18\n\x07planned\x18\x03\x20\x01(\x08R\x07planned\x12\x1f\n\x0breason_n\
-    ame\x18\x04\x20\x01(\tR\nreasonName\x122\n\raffected_line\x18\x05\x20\
-    \x03(\x0b2\r.AffectedLineR\x0caffectedLine\x12\x1a\n\x08priority\x18\x06\
-    \x20\x01(\x05R\x08priority\x12+\n\x11publish_timestamp\x18\x07\x20\x01(\
-    \x03R\x10publishTimestamp\"@\n\x0cAffectedLine\x12\x12\n\x04line\x18\x01\
-    \x20\x01(\tR\x04line\x12\x1c\n\tdirection\x18\x02\x20\x01(\x05R\tdirecti\
-    onJ\xbe\x08\n\x06\x12\x04\0\0\x1c\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\
-    \t\n\x02\x03\0\x12\x03\x02\x07\x1c\n\n\n\x02\x04\0\x12\x04\x04\0\x08\x01\
-    \n\n\n\x03\x04\0\x01\x12\x03\x04\x08\x19\n\x0b\n\x04\x04\0\x02\0\x12\x03\
-    \x05\x021\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\x05\x02\n\n\x0c\n\x05\x04\
-    \0\x02\0\x06\x12\x03\x05\x0b'\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x05(,\
-    \n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x05/0\n\x0b\n\x04\x04\0\x02\x01\x12\
-    \x03\x06\x02/\n\x0c\n\x05\x04\0\x02\x01\x04\x12\x03\x06\x02\n\n\x0c\n\
-    \x05\x04\0\x02\x01\x05\x12\x03\x06\x0b\x10\n\x0c\n\x05\x04\0\x02\x01\x01\
-    \x12\x03\x06\x11*\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x06-.\n\x0b\n\
-    \x04\x04\0\x02\x02\x12\x03\x07\x024\n\x0c\n\x05\x04\0\x02\x02\x04\x12\
-    \x03\x07\x02\n\n\x0c\n\x05\x04\0\x02\x02\x05\x12\x03\x07\x0b\x10\n\x0c\n\
-    \x05\x04\0\x02\x02\x01\x12\x03\x07\x11/\n\x0c\n\x05\x04\0\x02\x02\x03\
-    \x12\x03\x0723\n\n\n\x02\x04\x01\x12\x04\n\0\x0c\x01\n\n\n\x03\x04\x01\
-    \x01\x12\x03\n\x08\x14\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0b\x02#\n\x0c\
-    \n\x05\x04\x01\x02\0\x04\x12\x03\x0b\x02\n\n\x0c\n\x05\x04\x01\x02\0\x06\
-    \x12\x03\x0b\x0b\x14\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x0b\x15\x1e\n\
-    \x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x0b!\"\nJ\n\x02\x04\x02\x12\x04\x0f\
-    \0\x17\x01\x1a>\x20TODO(mrjones):\x20merge\x20with\x20webclient_api::Sub\
-    wayStatusMessage\n\n\n\n\x03\x04\x02\x01\x12\x03\x0f\x08\x11\n\x0b\n\x04\
-    \x04\x02\x02\0\x12\x03\x10\x02\x1e\n\x0c\n\x05\x04\x02\x02\0\x04\x12\x03\
-    \x10\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\x12\x03\x10\x0b\x11\n\x0c\n\x05\
-    \x04\x02\x02\0\x01\x12\x03\x10\x12\x19\n\x0c\n\x05\x04\x02\x02\0\x03\x12\
-    \x03\x10\x1c\x1d\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\x11\x02'\n\x0c\n\
-    \x05\x04\x02\x02\x01\x04\x12\x03\x11\x02\n\n\x0c\n\x05\x04\x02\x02\x01\
-    \x05\x12\x03\x11\x0b\x11\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\x11\x12\
-    \"\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\x11%&\n\x0b\n\x04\x04\x02\x02\
-    \x02\x12\x03\x12\x02\x1c\n\x0c\n\x05\x04\x02\x02\x02\x04\x12\x03\x12\x02\
-    \n\n\x0c\n\x05\x04\x02\x02\x02\x05\x12\x03\x12\x0b\x0f\n\x0c\n\x05\x04\
-    \x02\x02\x02\x01\x12\x03\x12\x10\x17\n\x0c\n\x05\x04\x02\x02\x02\x03\x12\
-    \x03\x12\x1a\x1b\n\x0b\n\x04\x04\x02\x02\x03\x12\x03\x13\x02\"\n\x0c\n\
-    \x05\x04\x02\x02\x03\x04\x12\x03\x13\x02\n\n\x0c\n\x05\x04\x02\x02\x03\
-    \x05\x12\x03\x13\x0b\x11\n\x0c\n\x05\x04\x02\x02\x03\x01\x12\x03\x13\x12\
-    \x1d\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x13\x20!\n\x0b\n\x04\x04\
-    \x02\x02\x04\x12\x03\x14\x02*\n\x0c\n\x05\x04\x02\x02\x04\x04\x12\x03\
-    \x14\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\x03\x14\x0b\x17\n\x0c\n\
-    \x05\x04\x02\x02\x04\x01\x12\x03\x14\x18%\n\x0c\n\x05\x04\x02\x02\x04\
-    \x03\x12\x03\x14()\n\x0b\n\x04\x04\x02\x02\x05\x12\x03\x15\x02\x1e\n\x0c\
-    \n\x05\x04\x02\x02\x05\x04\x12\x03\x15\x02\n\n\x0c\n\x05\x04\x02\x02\x05\
-    \x05\x12\x03\x15\x0b\x10\n\x0c\n\x05\x04\x02\x02\x05\x01\x12\x03\x15\x11\
-    \x19\n\x0c\n\x05\x04\x02\x02\x05\x03\x12\x03\x15\x1c\x1d\n\x0b\n\x04\x04\
-    \x02\x02\x06\x12\x03\x16\x02'\n\x0c\n\x05\x04\x02\x02\x06\x04\x12\x03\
-    \x16\x02\n\n\x0c\n\x05\x04\x02\x02\x06\x05\x12\x03\x16\x0b\x10\n\x0c\n\
-    \x05\x04\x02\x02\x06\x01\x12\x03\x16\x11\"\n\x0c\n\x05\x04\x02\x02\x06\
-    \x03\x12\x03\x16%&\n\n\n\x02\x04\x03\x12\x04\x19\0\x1c\x01\n\n\n\x03\x04\
-    \x03\x01\x12\x03\x19\x08\x14\n\x0b\n\x04\x04\x03\x02\0\x12\x03\x1a\x02\
-    \x1b\n\x0c\n\x05\x04\x03\x02\0\x04\x12\x03\x1a\x02\n\n\x0c\n\x05\x04\x03\
-    \x02\0\x05\x12\x03\x1a\x0b\x11\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x1a\
-    \x12\x16\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x1a\x19\x1a\n\x0b\n\x04\
-    \x04\x03\x02\x01\x12\x03\x1b\x02\x1f\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\
-    \x03\x1b\x02\n\n\x0c\n\x05\x04\x03\x02\x01\x05\x12\x03\x1b\x0b\x10\n\x0c\
-    \n\x05\x04\x03\x02\x01\x01\x12\x03\x1b\x11\x1a\n\x0c\n\x05\x04\x03\x02\
-    \x01\x03\x12\x03\x1b\x1d\x1e\
+    \n\x13feedproxy_api.proto\x1a\x13gtfs-realtime.proto\x1a\x13webclient_ap\
+    i.proto\"\xc6\x01\n\x11FeedProxyResponse\x121\n\x04feed\x18\x01\x20\x01(\
+    \x0b2\x1d.transit_realtime.FeedMessageR\x04feed\x129\n\x19last_good_fetc\
+    h_timestamp\x18\x02\x20\x01(\x03R\x16lastGoodFetchTimestamp\x12C\n\x1ela\
+    st_attempted_fetch_timestamp\x18\x03\x20\x01(\x03R\x1blastAttemptedFetch\
+    Timestamp\"B\n\x0cSubwayStatus\x12,\n\x06status\x18\x02\x20\x03(\x0b2\
+    \x14.SubwayStatusMessageR\x06statusJ\x04\x08\x01\x10\x02J\xa1\x03\n\x06\
+    \x12\x04\0\0\x0e\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\t\n\x02\x03\0\x12\
+    \x03\x02\x07\x1c\n\t\n\x02\x03\x01\x12\x03\x03\x07\x1c\n\n\n\x02\x04\0\
+    \x12\x04\x05\0\t\x01\n\n\n\x03\x04\0\x01\x12\x03\x05\x08\x19\n\x0b\n\x04\
+    \x04\0\x02\0\x12\x03\x06\x021\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\x06\
+    \x02\n\n\x0c\n\x05\x04\0\x02\0\x06\x12\x03\x06\x0b'\n\x0c\n\x05\x04\0\
+    \x02\0\x01\x12\x03\x06(,\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x06/0\n\x0b\
+    \n\x04\x04\0\x02\x01\x12\x03\x07\x02/\n\x0c\n\x05\x04\0\x02\x01\x04\x12\
+    \x03\x07\x02\n\n\x0c\n\x05\x04\0\x02\x01\x05\x12\x03\x07\x0b\x10\n\x0c\n\
+    \x05\x04\0\x02\x01\x01\x12\x03\x07\x11*\n\x0c\n\x05\x04\0\x02\x01\x03\
+    \x12\x03\x07-.\n\x0b\n\x04\x04\0\x02\x02\x12\x03\x08\x024\n\x0c\n\x05\
+    \x04\0\x02\x02\x04\x12\x03\x08\x02\n\n\x0c\n\x05\x04\0\x02\x02\x05\x12\
+    \x03\x08\x0b\x10\n\x0c\n\x05\x04\0\x02\x02\x01\x12\x03\x08\x11/\n\x0c\n\
+    \x05\x04\0\x02\x02\x03\x12\x03\x0823\n\n\n\x02\x04\x01\x12\x04\x0b\0\x0e\
+    \x01\n\n\n\x03\x04\x01\x01\x12\x03\x0b\x08\x14\n\n\n\x03\x04\x01\t\x12\
+    \x03\x0c\x0b\r\n\x0b\n\x04\x04\x01\t\0\x12\x03\x0c\x0b\x0c\n\x0c\n\x05\
+    \x04\x01\t\0\x01\x12\x03\x0c\x0b\x0c\n\x0c\n\x05\x04\x01\t\0\x02\x12\x03\
+    \x0c\x0b\x0c\n\x0b\n\x04\x04\x01\x02\0\x12\x03\r\x02*\n\x0c\n\x05\x04\
+    \x01\x02\0\x04\x12\x03\r\x02\n\n\x0c\n\x05\x04\x01\x02\0\x06\x12\x03\r\
+    \x0b\x1e\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\r\x1f%\n\x0c\n\x05\x04\
+    \x01\x02\0\x03\x12\x03\r()\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

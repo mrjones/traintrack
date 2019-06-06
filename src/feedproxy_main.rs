@@ -33,6 +33,7 @@ mod feedproxy_api;
 mod gtfs_realtime;
 mod result;
 mod statusxml;
+mod webclient_api;
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;

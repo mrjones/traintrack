@@ -98,7 +98,19 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     }
 
     let status = tt_context.proxy_client.latest_status();
-    for situation in status.get_situation() {
+    for status in status.get_status() {
+        // TODO(mrjones): Filter affected lines!
+        let mut relevant = false;
+        for line in status.get_affected_line() {
+            if lines.contains(line.get_line()) {
+                relevant = true;
+                break;
+            }
+        }
+        if relevant {
+            response.mut_status_message().push(status.clone());
+        }
+        /*
         let mut message = webclient_api::SubwayStatusMessage::new();
         message.set_summary(situation.get_summary().to_string());
         // TODO(mrjones): This can have interesting info, but also HTML markup and ugh.
@@ -121,10 +133,10 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
                 message.mut_affected_line().push(affected_line);
             }
         }
-
-        if message.get_affected_line().len() > 0 {
-            response.mut_status_message().push(message);
-        }
+*/
+//        if message.get_affected_line().len() > 0 {
+//            response.mut_status_message().push(status);
+//        }
     }
 
     let result;

@@ -1,6 +1,7 @@
 syntax = "proto2";
 
 import "gtfs-realtime.proto";
+import "webclient_api.proto";
 
 message FeedProxyResponse {
   optional transit_realtime.FeedMessage feed = 1;
@@ -9,21 +10,6 @@ message FeedProxyResponse {
 }
 
 message SubwayStatus {
-  repeated Situation situation = 1;
-}
-
-// TODO(mrjones): merge with webclient_api::SubwayStatusMessage
-message Situation {
-  optional string summary = 1;
-  optional string long_description = 2;
-  optional bool planned = 3;
-  optional string reason_name = 4;
-  repeated AffectedLine affected_line = 5;
-  optional int32 priority = 6;
-  optional int64 publish_timestamp = 7;
-}
-
-message AffectedLine {
-  optional string line = 1;
-  optional int32 direction = 2;
+  reserved 1;
+  repeated SubwayStatusMessage status = 2;
 }
