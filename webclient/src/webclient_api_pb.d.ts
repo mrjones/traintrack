@@ -1281,6 +1281,9 @@ export interface ISubwayStatusMessage {
 
     /** SubwayStatusMessage priority */
     priority?: (number|null);
+
+    /** SubwayStatusMessage publishTimestamp */
+    publishTimestamp?: (number|Long|null);
 }
 
 /** Represents a SubwayStatusMessage. */
@@ -1309,6 +1312,9 @@ export class SubwayStatusMessage implements ISubwayStatusMessage {
 
     /** SubwayStatusMessage priority. */
     public priority: number;
+
+    /** SubwayStatusMessage publishTimestamp. */
+    public publishTimestamp: (number|Long);
 
     /**
      * Creates a new SubwayStatusMessage instance using the specified properties.

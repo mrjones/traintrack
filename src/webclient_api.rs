@@ -3376,6 +3376,7 @@ pub struct SubwayStatusMessage {
     planned: ::std::option::Option<bool>,
     reason_name: ::protobuf::SingularField<::std::string::String>,
     priority: ::std::option::Option<i32>,
+    publish_timestamp: ::std::option::Option<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -3556,6 +3557,25 @@ impl SubwayStatusMessage {
     pub fn get_priority(&self) -> i32 {
         self.priority.unwrap_or(0)
     }
+
+    // optional int64 publish_timestamp = 7;
+
+    pub fn clear_publish_timestamp(&mut self) {
+        self.publish_timestamp = ::std::option::Option::None;
+    }
+
+    pub fn has_publish_timestamp(&self) -> bool {
+        self.publish_timestamp.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_publish_timestamp(&mut self, v: i64) {
+        self.publish_timestamp = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_publish_timestamp(&self) -> i64 {
+        self.publish_timestamp.unwrap_or(0)
+    }
 }
 
 impl ::protobuf::Message for SubwayStatusMessage {
@@ -3598,6 +3618,13 @@ impl ::protobuf::Message for SubwayStatusMessage {
                     let tmp = is.read_int32()?;
                     self.priority = ::std::option::Option::Some(tmp);
                 },
+                7 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_int64()?;
+                    self.publish_timestamp = ::std::option::Option::Some(tmp);
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -3629,6 +3656,9 @@ impl ::protobuf::Message for SubwayStatusMessage {
         if let Some(v) = self.priority {
             my_size += ::protobuf::rt::value_size(6, v, ::protobuf::wire_format::WireTypeVarint);
         }
+        if let Some(v) = self.publish_timestamp {
+            my_size += ::protobuf::rt::value_size(7, v, ::protobuf::wire_format::WireTypeVarint);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -3654,6 +3684,9 @@ impl ::protobuf::Message for SubwayStatusMessage {
         }
         if let Some(v) = self.priority {
             os.write_int32(6, v)?;
+        }
+        if let Some(v) = self.publish_timestamp {
+            os.write_int64(7, v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -3727,6 +3760,11 @@ impl ::protobuf::Message for SubwayStatusMessage {
                     |m: &SubwayStatusMessage| { &m.priority },
                     |m: &mut SubwayStatusMessage| { &mut m.priority },
                 ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
+                    "publish_timestamp",
+                    |m: &SubwayStatusMessage| { &m.publish_timestamp },
+                    |m: &mut SubwayStatusMessage| { &mut m.publish_timestamp },
+                ));
                 ::protobuf::reflect::MessageDescriptor::new::<SubwayStatusMessage>(
                     "SubwayStatusMessage",
                     fields,
@@ -3755,6 +3793,7 @@ impl ::protobuf::Clear for SubwayStatusMessage {
         self.clear_planned();
         self.clear_reason_name();
         self.clear_priority();
+        self.clear_publish_timestamp();
         self.unknown_fields.clear();
     }
 }
@@ -4066,16 +4105,17 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     tamp\x12!\n\x0carrival_time\x18\x02\x20\x01(\x03R\x0barrivalTime\"u\n\
     \x13TrainArrivalHistory\x12)\n\ndebug_info\x18\x01\x20\x01(\x0b2\n.Debug\
     InfoR\tdebugInfo\x123\n\x07history\x18\x02\x20\x03(\x0b2\x19.TrainArriva\
-    lHistoryEntryR\x07history\"\xeb\x01\n\x13SubwayStatusMessage\x12\x18\n\
+    lHistoryEntryR\x07history\"\x98\x02\n\x13SubwayStatusMessage\x12\x18\n\
     \x07summary\x18\x01\x20\x01(\tR\x07summary\x12)\n\x10long_description\
     \x18\x02\x20\x01(\tR\x0flongDescription\x128\n\raffected_line\x18\x03\
     \x20\x03(\x0b2\x13.AffectedLineStatusR\x0caffectedLine\x12\x18\n\x07plan\
     ned\x18\x04\x20\x01(\x08R\x07planned\x12\x1f\n\x0breason_name\x18\x05\
     \x20\x01(\tR\nreasonName\x12\x1a\n\x08priority\x18\x06\x20\x01(\x05R\x08\
-    priority\"R\n\x12AffectedLineStatus\x12\x12\n\x04line\x18\x01\x20\x01(\t\
-    R\x04line\x12(\n\tdirection\x18\x02\x20\x01(\x0e2\n.DirectionR\tdirectio\
-    n*%\n\tDirection\x12\n\n\x06UPTOWN\x10\0\x12\x0c\n\x08DOWNTOWN\x10\x01J\
-    \xac\x1d\n\x06\x12\x04\0\0f\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\n\n\
+    priority\x12+\n\x11publish_timestamp\x18\x07\x20\x01(\x03R\x10publishTim\
+    estamp\"R\n\x12AffectedLineStatus\x12\x12\n\x04line\x18\x01\x20\x01(\tR\
+    \x04line\x12(\n\tdirection\x18\x02\x20\x01(\x0e2\n.DirectionR\tdirection\
+    *%\n\tDirection\x12\n\n\x06UPTOWN\x10\0\x12\x0c\n\x08DOWNTOWN\x10\x01J\
+    \xf1\x1d\n\x06\x12\x04\0\0g\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\n\n\
     \x02\x05\0\x12\x04\x02\0\x05\x01\n\n\n\x03\x05\0\x01\x12\x03\x02\x05\x0e\
     \n\x0b\n\x04\x05\0\x02\0\x12\x03\x03\x02\r\n\x0c\n\x05\x05\0\x02\0\x01\
     \x12\x03\x03\x02\x08\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x03\x0b\x0c\n\
@@ -4225,7 +4265,7 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x03W\x020\n\x0c\n\x05\x04\x0b\x02\x01\x04\x12\x03W\x02\n\n\x0c\n\x05\
     \x04\x0b\x02\x01\x06\x12\x03W\x0b#\n\x0c\n\x05\x04\x0b\x02\x01\x01\x12\
     \x03W$+\n\x0c\n\x05\x04\x0b\x02\x01\x03\x12\x03W./\n\n\n\x02\x04\x0c\x12\
-    \x04Z\0a\x01\n\n\n\x03\x04\x0c\x01\x12\x03Z\x08\x1b\n\x0b\n\x04\x04\x0c\
+    \x04Z\0b\x01\n\n\n\x03\x04\x0c\x01\x12\x03Z\x08\x1b\n\x0b\n\x04\x04\x0c\
     \x02\0\x12\x03[\x02\x1e\n\x0c\n\x05\x04\x0c\x02\0\x04\x12\x03[\x02\n\n\
     \x0c\n\x05\x04\x0c\x02\0\x05\x12\x03[\x0b\x11\n\x0c\n\x05\x04\x0c\x02\0\
     \x01\x12\x03[\x12\x19\n\x0c\n\x05\x04\x0c\x02\0\x03\x12\x03[\x1c\x1d\n\
@@ -4245,14 +4285,17 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x12\x03_\x20!\n\x0b\n\x04\x04\x0c\x02\x05\x12\x03`\x02\x1e\n\x0c\n\x05\
     \x04\x0c\x02\x05\x04\x12\x03`\x02\n\n\x0c\n\x05\x04\x0c\x02\x05\x05\x12\
     \x03`\x0b\x10\n\x0c\n\x05\x04\x0c\x02\x05\x01\x12\x03`\x11\x19\n\x0c\n\
-    \x05\x04\x0c\x02\x05\x03\x12\x03`\x1c\x1d\n\n\n\x02\x04\r\x12\x04c\0f\
-    \x01\n\n\n\x03\x04\r\x01\x12\x03c\x08\x1a\n\x0b\n\x04\x04\r\x02\0\x12\
-    \x03d\x02\x1b\n\x0c\n\x05\x04\r\x02\0\x04\x12\x03d\x02\n\n\x0c\n\x05\x04\
-    \r\x02\0\x05\x12\x03d\x0b\x11\n\x0c\n\x05\x04\r\x02\0\x01\x12\x03d\x12\
-    \x16\n\x0c\n\x05\x04\r\x02\0\x03\x12\x03d\x19\x1a\n\x0b\n\x04\x04\r\x02\
-    \x01\x12\x03e\x02#\n\x0c\n\x05\x04\r\x02\x01\x04\x12\x03e\x02\n\n\x0c\n\
-    \x05\x04\r\x02\x01\x06\x12\x03e\x0b\x14\n\x0c\n\x05\x04\r\x02\x01\x01\
-    \x12\x03e\x15\x1e\n\x0c\n\x05\x04\r\x02\x01\x03\x12\x03e!\"\
+    \x05\x04\x0c\x02\x05\x03\x12\x03`\x1c\x1d\n\x0b\n\x04\x04\x0c\x02\x06\
+    \x12\x03a\x02'\n\x0c\n\x05\x04\x0c\x02\x06\x04\x12\x03a\x02\n\n\x0c\n\
+    \x05\x04\x0c\x02\x06\x05\x12\x03a\x0b\x10\n\x0c\n\x05\x04\x0c\x02\x06\
+    \x01\x12\x03a\x11\"\n\x0c\n\x05\x04\x0c\x02\x06\x03\x12\x03a%&\n\n\n\x02\
+    \x04\r\x12\x04d\0g\x01\n\n\n\x03\x04\r\x01\x12\x03d\x08\x1a\n\x0b\n\x04\
+    \x04\r\x02\0\x12\x03e\x02\x1b\n\x0c\n\x05\x04\r\x02\0\x04\x12\x03e\x02\n\
+    \n\x0c\n\x05\x04\r\x02\0\x05\x12\x03e\x0b\x11\n\x0c\n\x05\x04\r\x02\0\
+    \x01\x12\x03e\x12\x16\n\x0c\n\x05\x04\r\x02\0\x03\x12\x03e\x19\x1a\n\x0b\
+    \n\x04\x04\r\x02\x01\x12\x03f\x02#\n\x0c\n\x05\x04\r\x02\x01\x04\x12\x03\
+    f\x02\n\n\x0c\n\x05\x04\r\x02\x01\x06\x12\x03f\x0b\x14\n\x0c\n\x05\x04\r\
+    \x02\x01\x01\x12\x03f\x15\x1e\n\x0c\n\x05\x04\r\x02\x01\x03\x12\x03f!\"\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

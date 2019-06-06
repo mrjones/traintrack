@@ -106,6 +106,8 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
         message.set_planned(situation.get_planned());
         message.set_reason_name(situation.get_reason_name().to_string());
         message.set_priority(situation.get_priority());
+        message.set_publish_timestamp(situation.get_publish_timestamp());
+
         for line in situation.get_affected_line() {
             let mut affected_line = webclient_api::AffectedLineStatus::new();
             let line_letter = line.get_line().replace("MTA NYCT_", "");

@@ -82,6 +82,10 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
         proto_sit.set_planned(xml_sit.planned);
         proto_sit.set_reason_name(xml_sit.reason_name.clone());
         proto_sit.set_priority(xml_sit.message_priority);
+        match chrono::DateTime::parse_from_rfc3339(&xml_sit.creation_time) {
+            Ok(date) => proto_sit.set_publish_timestamp(date.timestamp()),
+            _ => {},
+        };
         for xml_line in &xml_sit.affects.journeys.journeys {
             let mut proto_line = feedproxy_api::AffectedLine::new();
             proto_line.set_line(xml_line.line_ref.clone());

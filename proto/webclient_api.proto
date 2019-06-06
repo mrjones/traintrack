@@ -95,6 +95,7 @@ message SubwayStatusMessage {
   optional bool planned = 4;
   optional string reason_name = 5;
   optional int32 priority = 6;
+  optional int64 publish_timestamp = 7;
 }
 
 message AffectedLineStatus {

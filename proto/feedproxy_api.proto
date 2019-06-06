@@ -20,6 +20,7 @@ message Situation {
   optional string reason_name = 4;
   repeated AffectedLine affected_line = 5;
   optional int32 priority = 6;
+  optional int64 publish_timestamp = 7;
 }
 
 message AffectedLine {

@@ -1,5 +1,6 @@
-import * as React from "react"
+import * as moment from "moment";
 import * as proto from './webclient_api_pb';
+import * as React from "react"
 
 class SubwayStatusProps {
   public status: proto.ISubwayStatusMessage[];
@@ -33,7 +34,15 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       let lines = msg.affectedLine.map((line: proto.AffectedLineStatus) => {
         return line.line + (line.direction == proto.Direction.UPTOWN ? "\u2191" : "\u2193");
       }).join(" ");
-      return <li><strong>{msg.reasonName}: {lines}</strong><br/>{msg.summary}  (priority={msg.priority})</li>;
+
+      let publishText = "";
+      if (msg.publishTimestamp && msg.publishTimestamp > 0) {
+        const publishMoment = moment.unix(msg.publishTimestamp as number);
+
+        publishText = publishMoment.fromNow();
+      }
+
+      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{msg.summary}  (priority={msg.priority})</li>;
     });
 
     return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><br/>[<strong>NOTE</strong> service status is still in development.]<ul>{lis}</ul></div>
