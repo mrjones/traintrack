@@ -99,7 +99,6 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
 
     let status = tt_context.proxy_client.latest_status();
     for status in status.get_status() {
-        // TODO(mrjones): Filter affected lines!
         let mut relevant = false;
         for line in status.get_affected_line() {
             if lines.contains(line.get_line()) {
@@ -110,33 +109,6 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
         if relevant {
             response.mut_status_message().push(status.clone());
         }
-        /*
-        let mut message = webclient_api::SubwayStatusMessage::new();
-        message.set_summary(situation.get_summary().to_string());
-        // TODO(mrjones): This can have interesting info, but also HTML markup and ugh.
-//        message.set_long_description(situation.get_long_description().to_string());
-        message.set_planned(situation.get_planned());
-        message.set_reason_name(situation.get_reason_name().to_string());
-        message.set_priority(situation.get_priority());
-        message.set_publish_timestamp(situation.get_publish_timestamp());
-
-        for line in situation.get_affected_line() {
-            let mut affected_line = webclient_api::AffectedLineStatus::new();
-            let line_letter = line.get_line().replace("MTA NYCT_", "");
-            if lines.contains(&line_letter) {
-                affected_line.set_line(line_letter);
-                affected_line.set_direction(
-                    match line.get_direction() {
-                        0 => webclient_api::Direction::UPTOWN,
-                        _ => webclient_api::Direction::DOWNTOWN,
-                    });
-                message.mut_affected_line().push(affected_line);
-            }
-        }
-*/
-//        if message.get_affected_line().len() > 0 {
-//            response.mut_status_message().push(status);
-//        }
     }
 
     let result;
@@ -146,9 +118,9 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     }
 
     // TODO(mrjones): Consider not failing the whole request if this fails.
-    use std::borrow::Borrow;
-    let is_prefetch = rustful_context.query.get("prefetch")
-        .map(|x| String::from(x.borrow())) == Some("true".to_string());
+    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
+        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
+    let is_prefetch = prefetch_string == Some("true".to_string());
 
     if !is_prefetch {
         utils::add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
@@ -304,7 +276,7 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTCont
     }
 
     let format: Option<String> = rustful_context.query.get("format")
-        .map(|x| String::from(x.borrow()));
+        .map(|x| String::from(x));
 
     match format.as_ref().map(String::as_ref) {
         // TODO(mrjones): return proper MIME type

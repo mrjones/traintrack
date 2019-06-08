@@ -1284,6 +1284,9 @@ export interface ISubwayStatusMessage {
 
     /** SubwayStatusMessage publishTimestamp */
     publishTimestamp?: (number|Long|null);
+
+    /** SubwayStatusMessage id */
+    id?: (string|null);
 }
 
 /** Represents a SubwayStatusMessage. */
@@ -1315,6 +1318,9 @@ export class SubwayStatusMessage implements ISubwayStatusMessage {
 
     /** SubwayStatusMessage publishTimestamp. */
     public publishTimestamp: (number|Long);
+
+    /** SubwayStatusMessage id. */
+    public id: string;
 
     /**
      * Creates a new SubwayStatusMessage instance using the specified properties.

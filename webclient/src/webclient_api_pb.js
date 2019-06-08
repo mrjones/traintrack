@@ -3241,6 +3241,7 @@ $root.SubwayStatusMessage = (function() {
      * @property {string|null} [reasonName] SubwayStatusMessage reasonName
      * @property {number|null} [priority] SubwayStatusMessage priority
      * @property {number|Long|null} [publishTimestamp] SubwayStatusMessage publishTimestamp
+     * @property {string|null} [id] SubwayStatusMessage id
      */
 
     /**
@@ -3316,6 +3317,14 @@ $root.SubwayStatusMessage = (function() {
     SubwayStatusMessage.prototype.publishTimestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
+     * SubwayStatusMessage id.
+     * @member {string} id
+     * @memberof SubwayStatusMessage
+     * @instance
+     */
+    SubwayStatusMessage.prototype.id = "";
+
+    /**
      * Creates a new SubwayStatusMessage instance using the specified properties.
      * @function create
      * @memberof SubwayStatusMessage
@@ -3354,6 +3363,8 @@ $root.SubwayStatusMessage = (function() {
             writer.uint32(/* id 6, wireType 0 =*/48).int32(message.priority);
         if (message.publishTimestamp != null && message.hasOwnProperty("publishTimestamp"))
             writer.uint32(/* id 7, wireType 0 =*/56).int64(message.publishTimestamp);
+        if (message.id != null && message.hasOwnProperty("id"))
+            writer.uint32(/* id 8, wireType 2 =*/66).string(message.id);
         return writer;
     };
 
@@ -3410,6 +3421,9 @@ $root.SubwayStatusMessage = (function() {
                 break;
             case 7:
                 message.publishTimestamp = reader.int64();
+                break;
+            case 8:
+                message.id = reader.string();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -3473,6 +3487,9 @@ $root.SubwayStatusMessage = (function() {
         if (message.publishTimestamp != null && message.hasOwnProperty("publishTimestamp"))
             if (!$util.isInteger(message.publishTimestamp) && !(message.publishTimestamp && $util.isInteger(message.publishTimestamp.low) && $util.isInteger(message.publishTimestamp.high)))
                 return "publishTimestamp: integer|Long expected";
+        if (message.id != null && message.hasOwnProperty("id"))
+            if (!$util.isString(message.id))
+                return "id: string expected";
         return null;
     };
 
@@ -3517,6 +3534,8 @@ $root.SubwayStatusMessage = (function() {
                 message.publishTimestamp = object.publishTimestamp;
             else if (typeof object.publishTimestamp === "object")
                 message.publishTimestamp = new $util.LongBits(object.publishTimestamp.low >>> 0, object.publishTimestamp.high >>> 0).toNumber();
+        if (object.id != null)
+            message.id = String(object.id);
         return message;
     };
 
@@ -3546,6 +3565,7 @@ $root.SubwayStatusMessage = (function() {
                 object.publishTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
             } else
                 object.publishTimestamp = options.longs === String ? "0" : 0;
+            object.id = "";
         }
         if (message.summary != null && message.hasOwnProperty("summary"))
             object.summary = message.summary;
@@ -3567,6 +3587,8 @@ $root.SubwayStatusMessage = (function() {
                 object.publishTimestamp = options.longs === String ? String(message.publishTimestamp) : message.publishTimestamp;
             else
                 object.publishTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.publishTimestamp) : options.longs === Number ? new $util.LongBits(message.publishTimestamp.low >>> 0, message.publishTimestamp.high >>> 0).toNumber() : message.publishTimestamp;
+        if (message.id != null && message.hasOwnProperty("id"))
+            object.id = message.id;
         return object;
     };
 

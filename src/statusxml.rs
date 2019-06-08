@@ -126,10 +126,10 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
         let mut proto_sit = webclient_api::SubwayStatusMessage::new();
         proto_sit.set_summary(xml_sit.summary.clone());
         proto_sit.set_long_description(strip_xml(&xml_sit.long_description));
-//        proto_sit.set_long_description(xml_sit.long_description.clone());
         proto_sit.set_planned(xml_sit.planned);
         proto_sit.set_reason_name(xml_sit.reason_name.clone());
         proto_sit.set_priority(xml_sit.message_priority);
+        proto_sit.set_id(xml_sit.situation_number.clone());  // Take a hash maybe?
         match chrono::DateTime::parse_from_rfc3339(&xml_sit.creation_time) {
             Ok(date) => proto_sit.set_publish_timestamp(date.timestamp()),
             _ => {},
