@@ -24,7 +24,9 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 extern crate serde_xml_rs;
+extern crate tendril;
 extern crate tiny_http;
+extern crate xml5ever;
 
 mod auth;
 mod archive;

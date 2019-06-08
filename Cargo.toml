@@ -33,8 +33,10 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 serde-xml-rs = "*"
+tendril = "*"
 time = "*"
 tiny_http = "*"
+xml5ever = "*"
 
 [build-dependencies]
 built = "*"
