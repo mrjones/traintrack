@@ -97,7 +97,6 @@ impl <'a> xml5ever::tokenizer::TokenSink for XmlStripper<'a>  {
 }
 
 fn strip_xml(input: &str) -> String {
-    println!("STRIPPING: {}", input);
     let mut result = String::new();
     {
         let mut stripper = XmlStripper::new(&mut result);
@@ -115,7 +114,6 @@ fn strip_xml(input: &str) -> String {
         tok.end();
     }
 
-    println!("Result: {}", result);
     return result;
 }
 
