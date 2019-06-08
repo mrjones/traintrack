@@ -1,3 +1,4 @@
+import * as Immutable from 'immutable';
 import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 import * as React from "react"
@@ -8,6 +9,7 @@ class SubwayStatusProps {
 
 class SubwayStatusState {
   public expanded: boolean;
+  public longSituations: Immutable.Set<string>;
 };
 
 export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatusState> {
@@ -16,6 +18,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
 
     this.state = {
       expanded: false,
+      longSituations: Immutable.Set.of(),
     };
   }
 
@@ -42,7 +45,10 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
         publishText = publishMoment.fromNow();
       }
 
-      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{msg.summary}  (priority={msg.priority})</li>;
+      let bodyText = this.state.longSituations.contains(msg.id) ? msg.longDescription : msg.summary;
+      let toggleText = this.state.longSituations.contains(msg.id) ? "Less" : "More";
+
+      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{bodyText}  (priority={msg.priority}) [<a href="#" onClick={this.toggleSituation.bind(this, msg.id)}>{toggleText}</a>]</li>;
     });
 
     return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><br/>[<strong>NOTE</strong> service status is still in development.]<ul>{lis}</ul></div>
@@ -50,5 +56,13 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
 
   private toggleExpanded() {
     this.setState({expanded: !this.state.expanded});
+  }
+
+  private toggleSituation(id: string) {
+    if (this.state.longSituations.includes(id)) {
+      this.setState({longSituations: this.state.longSituations.remove(id)});
+    } else {
+      this.setState({longSituations: this.state.longSituations.add(id)});
+    }
   }
 }
