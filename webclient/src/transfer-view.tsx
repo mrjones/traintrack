@@ -27,6 +27,7 @@ import { DebuggableResult } from './datafetcher';
 import { PubInfo } from './pub-info';
 import { TTState } from './state-machine';
 import { loadMultipleStationDetails } from './state-actions';
+import { SubwayStatus } from './subway-status';
 import { TTThunkDispatch } from './thunk-types';
 
 class TransferSpec {
@@ -236,12 +237,22 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
           return Math.min(minSoFar, candidate.data.dataTimestamp as number);
         }, Number.MAX_SAFE_INTEGER);
 
+      let allStatusMessages: proto.ISubwayStatusMessage[] = this.props.stationDatas.reduce(
+        (situationsById: Immutable.Map<string, proto.ISubwayStatusMessage>, nextStation: DebuggableResult<proto.StationStatus>) => {
+          for (let situation of nextStation.data.statusMessage) {
+            situationsById = situationsById.set(situation.id, situation);
+          }
+
+          return situationsById;
+        }, Immutable.Map.of()).valueSeq().toArray();
+
       const rootStation = this.props.stationDatas[
         this.props.stationIndex.get(rootSpecForProps(this.props).stationId)].data;
 
       component = <div className="transferView">
         <h2>{rootStation.name}</h2>
         <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.forceFetchData.bind(this)} isLoading={this.props.loadingAnyData}/>
+        <SubwayStatus status={allStatusMessages} />
         <ul className="transferTree">{lis}</ul>
       </div>;
     }
