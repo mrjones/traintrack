@@ -27,13 +27,24 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return null;
     }
 
+    // TODO(mrjones): Do this without a copy and re-sort every time.
+    let statusCopy = [...this.props.status];
+    statusCopy.sort((a: proto.ISubwayStatusMessage, b: proto.ISubwayStatusMessage) => {
+      if (a.priority != b.priority) {
+        return (b.priority as number) - (a.priority as number);
+      }
+
+      return (b.publishTimestamp as number) - (a.publishTimestamp as number);
+    });
+
+
     let toggleText = "Service status: " + this.props.status.length + " messages";
 
     if (!this.state.expanded) {
       return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a></div>;
     }
 
-    let lis = this.props.status.map((msg: proto.ISubwayStatusMessage) => {
+    let lis = statusCopy.map((msg: proto.ISubwayStatusMessage) => {
       let lines = msg.affectedLine.map((line: proto.AffectedLineStatus) => {
         return line.line + (line.direction == proto.Direction.UPTOWN ? "\u2191" : "\u2193");
       }).join(" ");
