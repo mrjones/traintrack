@@ -3,6 +3,9 @@ import * as moment from "moment";
 import * as proto from './webclient_api_pb';
 import * as React from "react"
 
+let UP_ARROW = "\u2191";
+let DOWN_ARROW = "\u2193";
+
 class SubwayStatusProps {
   public status: proto.ISubwayStatusMessage[];
 }
@@ -10,6 +13,11 @@ class SubwayStatusProps {
 class SubwayStatusState {
   public expanded: boolean;
   public longSituations: Immutable.Set<string>;
+};
+
+class Directions {
+  public uptown: boolean;
+  public downtown: boolean;
 };
 
 export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatusState> {
@@ -20,6 +28,40 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       expanded: false,
       longSituations: Immutable.Set.of(),
     };
+  }
+
+  private summarizeLines(lines: proto.IAffectedLineStatus[][]): string {
+    return this.directionMapToString(this.extractDirectionMap(lines));
+  }
+
+  private extractDirectionMap(lines: proto.IAffectedLineStatus[][]): Map<string, Directions> {
+    let lineBits: Map<string, Directions> = new Map();
+
+    for (let lineSet of lines) {
+      for (let line of lineSet) {
+        let existing = lineBits.get(line.line);
+        if (!existing) {
+          existing = new Directions();
+
+        }
+
+        if (line.direction == proto.Direction.UPTOWN) {
+          existing.uptown = true;
+        } else if(line.direction == proto.Direction.DOWNTOWN) {
+          existing.downtown = true;
+        }
+
+        lineBits.set(line.line, existing);
+      }
+    }
+
+    return lineBits;
+  }
+
+  private directionMapToString(directionMap: Map<string, Directions>): string {
+    return  Array.from(directionMap, ([line, directions]) => {
+      return line + " " + (directions.uptown ? UP_ARROW : "") + (directions.downtown ? DOWN_ARROW : "");
+    }).join(" ");
   }
 
   public render(): JSX.Element {
@@ -37,17 +79,17 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return (b.publishTimestamp as number) - (a.publishTimestamp as number);
     });
 
-
-    let toggleText = "Service status: " + this.props.status.length + " messages";
+    let overallSummary = this.summarizeLines(this.props.status.map((fullMessage: proto.ISubwayStatusMessage) => {
+      return fullMessage.affectedLine;
+    }));
+    let toggleText = "Service status: " + overallSummary;
 
     if (!this.state.expanded) {
       return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a></div>;
     }
 
     let lis = statusCopy.map((msg: proto.ISubwayStatusMessage) => {
-      let lines = msg.affectedLine.map((line: proto.AffectedLineStatus) => {
-        return line.line + (line.direction == proto.Direction.UPTOWN ? "\u2191" : "\u2193");
-      }).join(" ");
+      let lines = this.summarizeLines([msg.affectedLine]);
 
       let publishText = "";
       if (msg.publishTimestamp && msg.publishTimestamp > 0) {
