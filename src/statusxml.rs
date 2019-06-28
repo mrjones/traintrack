@@ -123,9 +123,13 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
     let mut result = feedproxy_api::SubwayStatus::new();
 
     for xml_sit in &parsed.service_delivery.situation.situations.elements {
+        let long_desc = strip_xml(&xml_sit.long_description);
+
         let mut proto_sit = webclient_api::SubwayStatusMessage::new();
         proto_sit.set_summary(xml_sit.summary.clone());
-        proto_sit.set_long_description(strip_xml(&xml_sit.long_description));
+        if long_desc.replace(" ", "") != xml_sit.summary.replace(" ", "") {
+            proto_sit.set_long_description(long_desc);
+        }
         proto_sit.set_planned(xml_sit.planned);
         proto_sit.set_reason_name(xml_sit.reason_name.clone());
         proto_sit.set_priority(xml_sit.message_priority);

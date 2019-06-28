@@ -60,7 +60,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
 
   private directionMapToString(directionMap: Map<string, Directions>): string {
     return  Array.from(directionMap, ([line, directions]) => {
-      return line + " " + (directions.uptown ? UP_ARROW : "") + (directions.downtown ? DOWN_ARROW : "");
+      return line + (directions.uptown ? UP_ARROW : "") + (directions.downtown ? DOWN_ARROW : "");
     }).join(" ");
   }
 
@@ -82,7 +82,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
     let overallSummary = this.summarizeLines(this.props.status.map((fullMessage: proto.ISubwayStatusMessage) => {
       return fullMessage.affectedLine;
     }));
-    let toggleText = "Service status: " + overallSummary;
+    let toggleText = "Affected Service: " + overallSummary;
 
     if (!this.state.expanded) {
       return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a></div>;
@@ -100,11 +100,12 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
 
       let bodyText = this.state.longSituations.contains(msg.id) ? msg.longDescription : msg.summary;
       let toggleText = this.state.longSituations.contains(msg.id) ? "Less" : "More";
+      let toggleLink = msg.longDescription ? <span>[<a href="#" onClick={this.toggleSituation.bind(this, msg.id)}>{toggleText}</a>]</span> : "";
 
-      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{bodyText}  (priority={msg.priority}) [<a href="#" onClick={this.toggleSituation.bind(this, msg.id)}>{toggleText}</a>]</li>;
+      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{bodyText} {toggleLink}</li>;
     });
 
-    return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><br/>[<strong>NOTE</strong> service status is still in development.]<ul>{lis}</ul></div>
+    return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><ul>{lis}</ul></div>
   }
 
   private toggleExpanded() {
