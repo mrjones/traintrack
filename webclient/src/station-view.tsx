@@ -259,7 +259,7 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     return (<div className="stationInfo">
             <h2>{this.props.stationName}</h2>
             <PubInfo reloadFn={this.fetchData.bind(this)} pubTimestamp={dataTs} isLoading={this.props.loading}/>
-            <SubwayStatus status={this.props.data.data.statusMessage} />
+            <SubwayStatus status={this.props.data.data.statusMessage} priorityLines={Immutable.Set()}/>
             <ConnectedFilterControl stationId={this.props.stationId} visibilityState={this.props.visibilityState} queryParamsToPropagate={this.props.queryParamsToPropagate}/>
             {lineSet}
             <ApiDebugger datasFetched={[this.props.data]}/>

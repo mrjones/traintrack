@@ -8,6 +8,7 @@ let DOWN_ARROW = "\u2193";
 
 class SubwayStatusProps {
   public status: proto.ISubwayStatusMessage[];
+  public priorityLines: Immutable.Set<string>;
 }
 
 class SubwayStatusState {

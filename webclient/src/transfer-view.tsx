@@ -249,10 +249,12 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       const rootStation = this.props.stationDatas[
         this.props.stationIndex.get(rootSpecForProps(this.props).stationId)].data;
 
+      console.log("AFFECTED LINES: " + this.affectedLines());
+
       component = <div className="transferView">
         <h2>{rootStation.name}</h2>
         <PubInfo pubTimestamp={moment.unix(minPubTs)} reloadFn={this.forceFetchData.bind(this)} isLoading={this.props.loadingAnyData}/>
-        <SubwayStatus status={allStatusMessages} />
+        <SubwayStatus status={allStatusMessages} priorityLines={this.affectedLines()}/>
         <ul className="transferTree">{lis}</ul>
       </div>;
     }
@@ -417,6 +419,16 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
       return undefined;
     }
+
+  private affectedLines(): Immutable.Set<string> {
+    let root: TransferSpec = rootSpecForProps(this.props);
+    let transfers: TransferSpec[] = transferSpecsForProps(this.props);
+
+    let rootLines: Immutable.Set<string> = root.lines;
+    transfers.forEach((t: TransferSpec) => rootLines = rootLines.union(t.lines));
+
+    return rootLines;
+  }
 }
 
 export let ConnectedTransferPage = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(TransferPage);
