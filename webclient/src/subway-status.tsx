@@ -40,19 +40,21 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
 
     for (let lineSet of lines) {
       for (let line of lineSet) {
-        let existing = lineBits.get(line.line);
-        if (!existing) {
-          existing = new Directions();
+        if (this.props.priorityLines.isEmpty() ||
+            this.props.priorityLines.contains(line.line)) {
+          let existing = lineBits.get(line.line);
+          if (!existing) {
+            existing = new Directions();
+          }
 
+          if (line.direction == proto.Direction.UPTOWN) {
+            existing.uptown = true;
+          } else if(line.direction == proto.Direction.DOWNTOWN) {
+            existing.downtown = true;
+          }
+
+          lineBits.set(line.line, existing);
         }
-
-        if (line.direction == proto.Direction.UPTOWN) {
-          existing.uptown = true;
-        } else if(line.direction == proto.Direction.DOWNTOWN) {
-          existing.downtown = true;
-        }
-
-        lineBits.set(line.line, existing);
       }
     }
 
@@ -70,8 +72,16 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return null;
     }
 
+
+
     // TODO(mrjones): Do this without a copy and re-sort every time.
-    let statusCopy = [...this.props.status];
+    //    let statusCopy = [...this.props.status];
+    let statusCopy = this.props.status.filter((msg: proto.ISubwayStatusMessage) => {
+      return !msg.affectedLine || msg.affectedLine.map((line: proto.IAffectedLineStatus) => {
+        return this.props.priorityLines.contains(line.line);
+      }).reduce((acc: boolean, next: boolean) => acc || next);
+    });
+
     statusCopy.sort((a: proto.ISubwayStatusMessage, b: proto.ISubwayStatusMessage) => {
       if (a.priority != b.priority) {
         return (b.priority as number) - (a.priority as number);
