@@ -163,7 +163,7 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
       });
 
     return (<div className="stationPicker">
-  <input type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
+  <input autoFocus type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
     <ul>{stationLis}</ul>
     </div>);
   }

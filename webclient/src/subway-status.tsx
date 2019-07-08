@@ -72,13 +72,9 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return null;
     }
 
-
-
-    // TODO(mrjones): Do this without a copy and re-sort every time.
-    //    let statusCopy = [...this.props.status];
     let statusCopy = this.props.status.filter((msg: proto.ISubwayStatusMessage) => {
       return !msg.affectedLine || msg.affectedLine.map((line: proto.IAffectedLineStatus) => {
-        return this.props.priorityLines.contains(line.line);
+        return this.props.priorityLines.isEmpty() || this.props.priorityLines.contains(line.line);
       }).reduce((acc: boolean, next: boolean) => acc || next);
     });
 
@@ -113,7 +109,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       let toggleText = this.state.longSituations.contains(msg.id) ? "Less" : "More";
       let toggleLink = msg.longDescription ? <span>[<a href="#" onClick={this.toggleSituation.bind(this, msg.id)}>{toggleText}</a>]</span> : "";
 
-      return <li><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{bodyText} {toggleLink}</li>;
+      return <li key={msg.id}><strong>{msg.reasonName}: {lines}</strong> <span className="publishTimestamp">{publishText}</span><br/>{bodyText} {toggleLink}</li>;
     });
 
     return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a><ul>{lis}</ul></div>
