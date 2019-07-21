@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traintrack-production-ssl-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: traintrack-production-external-ip
+    networking.gke.io/managed-certificates: traintrack-production-ssl-certificate
+spec:
+  backend:
+    serviceName: traintrack
+    servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traintrack-staging-ssl-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: traintrack-sslstaging-external-ip
+    networking.gke.io/managed-certificates: traintrack-staging-ssl-certificate
+spec:
+  backend:
+    serviceName: traintrack
+    servicePort: 80

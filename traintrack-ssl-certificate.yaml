@@ -1,0 +1,15 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: traintrack-production-ssl-certificate
+spec:
+  domains:
+    - traintrack.nyc
+---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: traintrack-staging-ssl-certificate
+spec:
+  domains:
+    - sslstaging.traintrack.nyc
