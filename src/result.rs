@@ -91,7 +91,7 @@ impl std::error::Error for TTError {
         }
     }
 
-    fn cause(&self) -> Option<&std::error::Error> {
+    fn cause(&self) -> Option<&dyn std::error::Error> {
         return None
     }
 }

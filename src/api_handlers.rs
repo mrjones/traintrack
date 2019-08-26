@@ -259,8 +259,6 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
 fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
-    use std::borrow::Borrow;
-
     match debug_getter {
         Some(f) => {
             let debug_info = f(data);

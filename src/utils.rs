@@ -169,7 +169,7 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
                 for stop_time_update in trip_update.get_stop_time_update() {
                     if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
                         min_relevant_ts = std::cmp::min(min_relevant_ts, feed.get_header().get_timestamp());
-                        let mut direction = match maybe_nyct_extension {
+                        let direction = match maybe_nyct_extension {
                             Some(ref nyct) => infer_direction_from_nyct_descriptor(nyct),
                             None => infer_direction_for_trip_id(trip.get_trip_id()),
                         };
