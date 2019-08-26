@@ -190,7 +190,7 @@ fn main() {
 
     let build_timestamp = chrono::DateTime::from_utc(
         chrono::NaiveDateTime::from_timestamp(
-            built::util::strptime(built_info::BUILT_TIME_UTC).to_timespec().sec, 0),
+            built::util::strptime(built_info::BUILT_TIME_UTC).timestamp(), 0),
             chrono::Utc);
     println!("BUILD_TIMESTAMP={}", build_timestamp.to_rfc2822());
     let tt_version = option_env!("TRAINTRACK_VERSION").unwrap_or("<not set>");
