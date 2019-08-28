@@ -14,7 +14,6 @@
 
 extern crate chrono;
 extern crate log;
-extern crate protobuf;
 extern crate reqwest;
 extern crate std;
 extern crate time;
@@ -24,7 +23,7 @@ use std::io::Write;
 
 use archive;
 use feedproxy_api;
-use gtfs_realtime;
+use transit_realtime;
 use result;
 use statusxml;
 
@@ -32,7 +31,7 @@ static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36, 51];
 
 #[derive(Clone)]
 pub struct FetchResult {
-    pub feed: gtfs_realtime::FeedMessage,
+    pub feed: transit_realtime::FeedMessage,
     pub timestamp: chrono::DateTime<chrono::Utc>,
     pub last_good_fetch: Option<chrono::DateTime<chrono::Utc>>,
     pub last_any_fetch: Option<chrono::DateTime<chrono::Utc>>,
@@ -57,7 +56,7 @@ impl MtaFeedClient {
         return MtaFeedClient{
             mta_api_key: mta_api_key.to_string(),
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::new()),
+            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::default()),
             archive: archive,
         };
     }
@@ -106,7 +105,7 @@ impl MtaFeedClient {
                         FetchResult{
                             feed: new_feed.clone(),
                             timestamp: chrono::Utc.timestamp(
-                                new_feed.get_header().get_timestamp() as i64, 0),
+                                new_feed.header.timestamp() as i64, 0),
                             // TODO(mrjones): This timestamp business is gross.
                             // TODO(mrjones): Use the cached file's timestamp when using it
                             last_good_fetch: Some(chrono::Utc::now()),
@@ -124,14 +123,15 @@ impl MtaFeedClient {
     }
 
     // TODO(mrjones): What the heck is this doing?
-    fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn feed_from_file(&self, filename: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> result::TTResult<transit_realtime::FeedMessage> {
+        use prost::Message;
         let mut file = std::fs::File::open(filename)?;
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
         trace!("About to parse {} bytes", data.len());
 
-        let feed = protobuf::parse_from_bytes::<gtfs_realtime::FeedMessage>(&data)?;
-        trace!("Parsed: {:?}", feed.get_header());
+        let feed = transit_realtime::FeedMessage::decode(&data)?;
+        trace!("Parsed: {:?}", feed.header);
 
         /*
         use chrono::TimeZone;
@@ -148,7 +148,7 @@ impl MtaFeedClient {
         return Ok(feed);
     }
 
-    fn fetch_one_feed(&self, feed_id: i32) -> result::TTResult<gtfs_realtime::FeedMessage> {
+    fn fetch_one_feed(&self, feed_id: i32) -> result::TTResult<transit_realtime::FeedMessage> {
         let last_successful_fetch = match self.latest_values.read().unwrap().get(&feed_id) {
             None => None,
             Some(ref result) => result.last_good_fetch,
@@ -209,7 +209,7 @@ impl ProxyClient {
         info!("Using remote feedproxy at {}", proxy_url);
         return ProxyClient{
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
-            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::new()),
+            latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::default()),
             archive: archive,
             proxy_url: proxy_url.to_string(),
         }
@@ -230,7 +230,7 @@ impl ProxyClient {
     }
 
     #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn archived_value(&self, feed_id: i32, key: u64) -> Option<gtfs_realtime::FeedMessage> {
+    pub fn archived_value(&self, feed_id: i32, key: u64) -> Option<transit_realtime::FeedMessage> {
         return self.archive.local_get(feed_id, key);
     }
 
@@ -276,6 +276,8 @@ impl ProxyClient {
     }
 
     fn fetch_status(&self, proxy_url: &str) -> result::TTResult<feedproxy_api::SubwayStatus> {
+        use prost::Message;
+
         let mut status_url = proxy_url.to_string();
         if !status_url.ends_with("/") {
             status_url.push_str("/");
@@ -289,11 +291,12 @@ impl ProxyClient {
 
         let mut response_body = vec![];
         response.read_to_end(&mut response_body)?;
-        return Ok(protobuf::parse_from_bytes::<feedproxy_api::SubwayStatus>(
-            &response_body)?);
+        return Ok(feedproxy_api::SubwayStatus::decode(&response_body)?);
     }
 
     fn fetch_once_remote(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
+        use prost::Message;
+
         let mut feed_url = proxy_url.to_string();
         if !feed_url.ends_with("/") {
             feed_url.push_str("/");
@@ -307,18 +310,17 @@ impl ProxyClient {
 
         let mut response_body = vec![];
         response.read_to_end(&mut response_body)?;
-        let proxy_response = protobuf::parse_from_bytes::<feedproxy_api::FeedProxyResponse>(
-            &response_body)?;
+        let proxy_response = feedproxy_api::FeedProxyResponse::decode(&response_body)?;
 
         use chrono::TimeZone;
         return Ok(FetchResult{
-            feed: proxy_response.get_feed().clone(),
+            feed: proxy_response.feed.clone().unwrap(),
             timestamp: chrono::Utc.timestamp(
-                proxy_response.get_feed().get_header().get_timestamp() as i64, 0),
+                proxy_response.feed.as_ref().unwrap().header.timestamp() as i64, 0),
             last_good_fetch: Some(chrono::Utc.timestamp(
-                proxy_response.get_last_good_fetch_timestamp(), 0)),
+                proxy_response.last_good_fetch_timestamp(), 0)),
             last_any_fetch: Some(chrono::Utc.timestamp(
-                proxy_response.get_last_attempted_fetch_timestamp(), 0)),
+                proxy_response.last_attempted_fetch_timestamp(), 0)),
         });
     }
 }

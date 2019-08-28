@@ -120,35 +120,35 @@ fn strip_xml(input: &str) -> String {
 pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
     let parsed: SubwayStatusXml = serde_xml_rs::from_reader(xml)?;
 
-    let mut result = feedproxy_api::SubwayStatus::new();
+    let mut result = feedproxy_api::SubwayStatus::default();
 
     for xml_sit in &parsed.service_delivery.situation.situations.elements {
         let long_desc = strip_xml(&xml_sit.long_description);
 
-        let mut proto_sit = webclient_api::SubwayStatusMessage::new();
-        proto_sit.set_summary(xml_sit.summary.clone());
+        let mut proto_sit = webclient_api::SubwayStatusMessage::default();
+        proto_sit.summary = Some(xml_sit.summary.clone());
         if long_desc.replace(" ", "") != xml_sit.summary.replace(" ", "") {
-            proto_sit.set_long_description(long_desc);
+            proto_sit.long_description = Some(long_desc);
         }
-        proto_sit.set_planned(xml_sit.planned);
-        proto_sit.set_reason_name(xml_sit.reason_name.clone());
-        proto_sit.set_priority(xml_sit.message_priority);
-        proto_sit.set_id(xml_sit.situation_number.clone());  // Take a hash maybe?
+        proto_sit.planned = Some(xml_sit.planned);
+        proto_sit.reason_name = Some(xml_sit.reason_name.clone());
+        proto_sit.priority = Some(xml_sit.message_priority);
+        proto_sit.id = Some(xml_sit.situation_number.clone());  // Take a hash maybe?
         match chrono::DateTime::parse_from_rfc3339(&xml_sit.creation_time) {
-            Ok(date) => proto_sit.set_publish_timestamp(date.timestamp()),
+            Ok(date) => proto_sit.publish_timestamp = Some(date.timestamp()),
             _ => {},
         };
         for xml_line in &xml_sit.affects.journeys.journeys {
-            let mut proto_line = webclient_api::AffectedLineStatus::new();
-            proto_line.set_line(xml_line.line_ref.clone().replace("MTA NYCT_", ""));
+            let mut proto_line = webclient_api::AffectedLineStatus::default();
+            proto_line.line = Some(xml_line.line_ref.clone().replace("MTA NYCT_", ""));
             proto_line.set_direction(
                 match xml_line.direction_ref {
-                    0 => webclient_api::Direction::UPTOWN,
-                    _ => webclient_api::Direction::DOWNTOWN,
+                    0 => webclient_api::Direction::Uptown,
+                    _ => webclient_api::Direction::Downtown,
                 });
-            proto_sit.mut_affected_line().push(proto_line);
+            proto_sit.affected_line.push(proto_line);
         }
-        result.mut_status().push(proto_sit);
+        result.status.push(proto_sit);
     }
 
     return Ok(result);

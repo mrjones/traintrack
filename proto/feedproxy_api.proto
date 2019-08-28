@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+package feedproxy_api;
+
 import "gtfs-realtime.proto";
 import "webclient_api.proto";
 
@@ -11,5 +13,5 @@ message FeedProxyResponse {
 
 message SubwayStatus {
   reserved 1;
-  repeated SubwayStatusMessage status = 2;
+  repeated webclient_api.SubwayStatusMessage status = 2;
 }

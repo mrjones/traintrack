@@ -14,7 +14,7 @@
 
 extern crate csv;
 extern crate frank_jwt;
-extern crate protobuf;
+extern crate prost;
 extern crate reqwest;
 extern crate serde_json;
 extern crate serde_xml_rs;
@@ -27,7 +27,8 @@ pub enum TTError {
     CSVError(csv::Error),
     IOError(std::io::Error),
     JWTError(frank_jwt::Error),
-    ProtobufError(protobuf::ProtobufError),
+    ProstDecodeError(prost::DecodeError),
+    ProstEncodeError(prost::EncodeError),
     SerializationError(serde_json::Error),
     ParseIntError(std::num::ParseIntError),
     HttpClientError(reqwest::Error),
@@ -52,8 +53,11 @@ impl std::fmt::Display for TTError {
             TTError::JWTError(ref err) => {
                 return write!(f, "JWT Error: {:?}", err);
             },
-            TTError::ProtobufError(ref err) => {
-                return write!(f, "Protobuf Error: {}", err);
+            TTError::ProstDecodeError(ref err) => {
+                return write!(f, "ProstDecode Error: {}", err);
+            },
+            TTError::ProstEncodeError(ref err) => {
+                return write!(f, "ProstEncode Error: {}", err);
             },
             TTError::SerializationError(ref err) => {
                 return write!(f, "Serialization Error: {}", err);
@@ -81,7 +85,8 @@ impl std::error::Error for TTError {
             TTError::CSVError(_) => "CSVError",
             TTError::IOError(_) => "IOError",
             TTError::JWTError(_) => "JWTError",
-            TTError::ProtobufError(_) => "ProtobufError",
+            TTError::ProstDecodeError(_) => "ProstDecodeError",
+            TTError::ProstEncodeError(_) => "ProstEncodeError",
             TTError::SerializationError(_) => "SerializationError",
             TTError::ParseIntError(_) => "ParseIntError",
             TTError::HttpClientError(_) => "HttpClientError",
@@ -108,9 +113,15 @@ impl From<csv::Error> for TTError {
     }
 }
 
-impl From<protobuf::ProtobufError> for TTError {
-    fn from(err: protobuf::ProtobufError) -> TTError {
-        return TTError::ProtobufError(err);
+impl From<prost::DecodeError> for TTError {
+    fn from(err: prost::DecodeError) -> TTError {
+        return TTError::ProstDecodeError(err);
+    }
+}
+
+impl From<prost::EncodeError> for TTError {
+    fn from(err: prost::EncodeError) -> TTError {
+        return TTError::ProstEncodeError(err);
     }
 }
 

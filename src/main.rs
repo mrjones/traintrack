@@ -22,8 +22,7 @@ extern crate log;
 extern crate log4rs;
 #[macro_use]
 extern crate maplit;
-extern crate protobuf;
-extern crate protobuf_json;
+extern crate prost;
 extern crate rustc_serialize;
 extern crate rustful;
 #[macro_use]
@@ -38,21 +37,30 @@ mod auth;
 mod context;
 mod debug_handlers;
 mod feedfetcher;
-mod feedproxy_api;
-mod gtfs_realtime;
-mod nyct_subway;
 mod prefs;
 mod result;
 mod server;
 mod stops;
 mod statusxml;
 mod utils;
-mod webclient_api;
 
 pub mod built_info {
     // The file has been placed there by the build script.
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
+pub mod feedproxy_api {
+    include!(concat!(env!("OUT_DIR"), "/feedproxy_api.rs"));
+}
+pub mod transit_realtime {
+    include!(concat!(env!("OUT_DIR"), "/transit_realtime.rs"));
+}
+pub mod nyct_subway {
+    include!(concat!(env!("OUT_DIR"), "/nyct_subway.rs"));
+}
+pub mod webclient_api {
+    include!(concat!(env!("OUT_DIR"), "/webclient_api.rs"));
+}
+
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;

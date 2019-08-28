@@ -13,14 +13,14 @@
 // limitations under the License.
 
 extern crate chrono;
-extern crate protobuf;
+extern crate prost;
 extern crate std;
 
 use chrono::TimeZone;
 
 use context;
 use feedfetcher;
-use gtfs_realtime;
+use transit_realtime;
 use nyct_subway;
 use result;
 use rustful;
@@ -36,9 +36,11 @@ pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::
     let mut active_lines = std::collections::HashSet::new();
 
     for ref feed in feeds {
-        for entity in feed.feed.get_entity() {
-            if entity.has_trip_update() {
-                active_lines.insert(entity.get_trip_update().get_trip().get_route_id().to_string());
+        for entity in &feed.feed.entity {
+            if let Some(ref trip_update) = entity.trip_update {
+                active_lines.insert(trip_update.trip.route_id().to_string());
+            } else {
+                warn!("Missing trip_update in active_lines.");
             }
         }
     }
@@ -47,11 +49,11 @@ pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::
 }
 
 fn infer_direction_from_nyct_descriptor(nyct: &nyct_subway::NyctTripDescriptor) -> Direction {
-    match nyct.get_direction() {
-        nyct_subway::NyctTripDescriptor_Direction::NORTH => return Direction::UPTOWN,
-        nyct_subway::NyctTripDescriptor_Direction::SOUTH => return Direction::DOWNTOWN,
+    match nyct.direction() {
+        nyct_subway::nyct_trip_descriptor::Direction::North => return Direction::UPTOWN,
+        nyct_subway::nyct_trip_descriptor::Direction::South => return Direction::DOWNTOWN,
         _ => {
-            error!("Unsupported NYCT direction: {:?}", nyct.get_direction());
+            error!("Unsupported NYCT direction: {:?}", nyct.direction());
             return Direction::DOWNTOWN;
         }
     }
@@ -113,25 +115,29 @@ pub struct UpcomingTrainsResult {
     pub underlying_data_timestamp: chrono::DateTime<chrono::Utc>,
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &gtfs_realtime::FeedMessage, stops: &stops::Stops) -> UpcomingTrainsResult {
+pub fn all_upcoming_trains(stop_id: &str, feed: &transit_realtime::FeedMessage, stops: &stops::Stops) -> UpcomingTrainsResult {
     return all_upcoming_trains_vec(stop_id, &vec![feed.clone()], stops);
 }
 
-pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
-    let ref_vec: Vec<&gtfs_realtime::FeedMessage> = feeds.iter().map(|v| v).collect();
+pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<transit_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
+    let ref_vec: Vec<&transit_realtime::FeedMessage> = feeds.iter().map(|v| v).collect();
     return all_upcoming_trains_vec_ref(stop_id, &ref_vec, stops);
 }
 
+/*
 fn extract_field_with_id(unknown_fields: &std::collections::HashMap<u32, protobuf::UnknownValues>, id: u32) -> Option<Vec<Vec<u8>>> {
     return unknown_fields.get(&id).map(|unknown_values| {
         return unknown_values.length_delimited.clone();
     });
 }
+*/
 
 // Extracts the NyctTripDescriptor extension. This is ugly, but it works!
 // We should probably try to add native proto extension support to the protobuf library.
-pub fn get_nyct_extension(generic_trip: &gtfs_realtime::TripDescriptor) -> Option<nyct_subway::NyctTripDescriptor> {
-    use protobuf::Message;
+/*
+pub fn get_nyct_extension(generic_trip: &transit_realtime::TripDescriptor) -> Option<nyct_subway::NyctTripDescriptor> {
+    use prost::Message;
+
     let nyct_bytes_vec: Vec<Vec<u8>> =
         match generic_trip.get_unknown_fields().fields {
             Some(ref fields) => extract_field_with_id(fields.as_ref(), 1001).unwrap_or(vec![]),
@@ -153,37 +159,41 @@ pub fn get_nyct_extension(generic_trip: &gtfs_realtime::TripDescriptor) -> Optio
         Err(_) => return None,  // TODO: Log err
     }
 }
+*/
 
-pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
+pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>> = std::collections::BTreeMap::new();
 
     let mut min_relevant_ts = chrono::Utc::now().timestamp() as u64;
 
     for feed in feeds {
-        for entity in feed.get_entity() {
-            if entity.has_trip_update() {
-                let trip_update = entity.get_trip_update();
-                let trip = trip_update.get_trip();
+        for entity in &feed.entity {
+            if let Some(ref trip_update) = entity.trip_update {
+                let trip = &trip_update.trip;
 
-                let maybe_nyct_extension = get_nyct_extension(trip);
-                for stop_time_update in trip_update.get_stop_time_update() {
-                    if stop_matches(stop_time_update.get_stop_id(), stop_id, stops) {
-                        min_relevant_ts = std::cmp::min(min_relevant_ts, feed.get_header().get_timestamp());
+                //                let maybe_nyct_extension = get_nyct_extension(trip);
+                let maybe_nyct_extension = None;
+                for stop_time_update in &trip_update.stop_time_update {
+                    if stop_matches(stop_time_update.stop_id(), stop_id, stops) {
+                        min_relevant_ts = std::cmp::min(min_relevant_ts, feed.header.timestamp());
                         let direction = match maybe_nyct_extension {
                             Some(ref nyct) => infer_direction_from_nyct_descriptor(nyct),
-                            None => infer_direction_for_trip_id(trip.get_trip_id()),
+                            None => infer_direction_for_trip_id(trip.trip_id()),
                         };
 
                         let timestamp = chrono::Utc.timestamp(
-                            stop_time_update.get_arrival().get_time(), 0);
+                            match stop_time_update.arrival {
+                                Some(ref arrival) => arrival.time(),
+                                None => 0
+                            }, 0);
 
-                        if !upcoming.contains_key(trip.get_route_id()) {
-                            upcoming.insert(trip.get_route_id().to_string(), btreemap![]);
+                        if !upcoming.contains_key(trip.route_id()) {
+                            upcoming.insert(trip.route_id().to_string(), btreemap![]);
                         }
-                        let route_trains = upcoming.get_mut(trip.get_route_id()).unwrap();
+                        let route_trains = upcoming.get_mut(trip.route_id()).unwrap();
 
                         let nyct_train_id_or_empty = match maybe_nyct_extension {
-                            Some(ref nyct) => nyct.get_train_id().to_string(),
+                            Some(ref nyct) => nyct.train_id().to_string(),
                             None => String::new(),
                         };
                         info!("NYCT id: {}", nyct_train_id_or_empty);
@@ -191,13 +201,13 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&gtfs_realtime::Fe
                             route_trains.get_mut(&direction).unwrap().push(
                                 Arrival::new(
                                     timestamp,
-                                    trip.get_trip_id(),
+                                    trip.trip_id(),
                                     stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref()));
                         } else {
                             route_trains.insert(direction, vec![
                                 Arrival::new(
                                     timestamp,
-                                    trip.get_trip_id(),
+                                    trip.trip_id(),
                                     stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref())]);
                         }
                     }

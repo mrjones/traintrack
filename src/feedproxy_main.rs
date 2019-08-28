@@ -18,7 +18,7 @@ extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
-extern crate protobuf;
+extern crate prost;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -31,11 +31,18 @@ extern crate xml5ever;
 mod auth;
 mod archive;
 mod feedfetcher;
-mod feedproxy_api;
-mod gtfs_realtime;
 mod result;
 mod statusxml;
-mod webclient_api;
+
+pub mod feedproxy_api {
+    include!(concat!(env!("OUT_DIR"), "/feedproxy_api.rs"));
+}
+pub mod transit_realtime {
+    include!(concat!(env!("OUT_DIR"), "/transit_realtime.rs"));
+}
+pub mod webclient_api {
+    include!(concat!(env!("OUT_DIR"), "/webclient_api.rs"));
+}
 
 fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
     use log4rs::append::console::ConsoleAppender;
@@ -66,17 +73,17 @@ fn log4rs_config(log_dir: &str) -> log4rs::config::Config {
 
 fn handle(feed_id_str: &str, fetcher: &feedfetcher::MtaFeedClient) -> result::TTResult<feedproxy_api::FeedProxyResponse> {
     let feed_id = feed_id_str.parse::<i32>()?;
-    let mut reply_data = feedproxy_api::FeedProxyResponse::new();
+    let mut reply_data = feedproxy_api::FeedProxyResponse::default();
     match fetcher.latest_value(feed_id) {
         Some(data) => {
             info!("Returning feed {}", feed_id);
-            reply_data.set_feed(data.feed);
+            reply_data.feed = Some(data.feed);
             if data.last_good_fetch.is_some() {
-                reply_data.set_last_good_fetch_timestamp(
+                reply_data.last_good_fetch_timestamp = Some(
                     data.last_good_fetch.unwrap().timestamp());
             }
             if data.last_any_fetch.is_some() {
-                reply_data.set_last_attempted_fetch_timestamp(
+                reply_data.last_attempted_fetch_timestamp = Some(
                     data.last_any_fetch.unwrap().timestamp());
             }
 
@@ -161,17 +168,19 @@ fn main() {
         let url_parts: Vec<&str> = url_clone.split('/').collect();
 
         if url_parts.len() == 2 && url_parts[1] == "status" {
-            use protobuf::Message;
+            use prost::Message;
             let status_proto = mta_client.latest_status();
-            let reply_bytes = status_proto.write_to_bytes().unwrap();
+            let mut reply_bytes = vec![];
+            status_proto.encode(&mut reply_bytes).unwrap();
             let response = tiny_http::Response::from_data(reply_bytes);
             request.respond(response).unwrap();
         } else if url_parts.len() == 3 && url_parts[1] == "feed" {
             // New style url /status
             match handle(url_parts[2], &mta_client) {
                 Ok(reply_proto) => {
-                    use protobuf::Message;
-                    let reply_bytes = reply_proto.write_to_bytes().unwrap();
+                    use prost::Message;
+                    let mut reply_bytes = vec![];
+                    reply_proto.encode(&mut reply_bytes).unwrap();
                     let response = tiny_http::Response::from_data(reply_bytes);
                     request.respond(response).unwrap();
                 },
@@ -184,16 +193,16 @@ fn main() {
         } else {
             let current_data = mta_client.latest_value(16);
             // Legacy handler
-            let mut reply_data = feedproxy_api::FeedProxyResponse::new();
+            let mut reply_data = feedproxy_api::FeedProxyResponse::default();
             match current_data {
                 Some(data) => {
-                    reply_data.set_feed(data.feed);
+                    reply_data.feed = Some(data.feed);
                     if data.last_good_fetch.is_some() {
-                        reply_data.set_last_good_fetch_timestamp(
+                        reply_data.last_good_fetch_timestamp = Some(
                             data.last_good_fetch.unwrap().timestamp());
                     }
                     if data.last_any_fetch.is_some() {
-                        reply_data.set_last_attempted_fetch_timestamp(
+                        reply_data.last_attempted_fetch_timestamp = Some(
                             data.last_any_fetch.unwrap().timestamp());
                     }
                 },
@@ -201,8 +210,9 @@ fn main() {
             }
             info!("REPLYING!");
 
-            use protobuf::Message;
-            let reply_bytes = reply_data.write_to_bytes().unwrap();
+            use prost::Message;
+            let mut reply_bytes = vec![];
+            reply_data.encode(&mut reply_bytes).unwrap();
             let response = tiny_http::Response::from_data(reply_bytes);
             request.respond(response).unwrap();
         }

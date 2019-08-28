@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate protobuf;
 extern crate reqwest;
 extern crate std;
 
 use auth;
-use gtfs_realtime;
+use transit_realtime;
 use result;
 
 pub struct GcsArchiveOptions {
@@ -26,7 +25,7 @@ pub struct GcsArchiveOptions {
 }
 pub struct FeedArchive {
     gcs_options: Option<GcsArchiveOptions>,
-    local_archive: std::sync::RwLock<std::collections::HashMap<i32, std::collections::BTreeMap<u64, gtfs_realtime::FeedMessage>>>,
+    local_archive: std::sync::RwLock<std::collections::HashMap<i32, std::collections::BTreeMap<u64, transit_realtime::FeedMessage>>>,
 }
 
 impl FeedArchive {
@@ -41,7 +40,7 @@ impl FeedArchive {
         }
     }
 
-    pub fn save(&self, feed_id: i32, message: &gtfs_realtime::FeedMessage) -> result::TTResult<()> {
+    pub fn save(&self, feed_id: i32, message: &transit_realtime::FeedMessage) -> result::TTResult<()> {
         self.local_save(feed_id, message)?;
         if let Some(ref gcs_options) = self.gcs_options {
             self.gcs_save(feed_id, message, gcs_options)?;
@@ -58,13 +57,13 @@ impl FeedArchive {
     }
 
     #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn local_get(&self, feed_id: i32, key: u64) -> Option<gtfs_realtime::FeedMessage> {
+    pub fn local_get(&self, feed_id: i32, key: u64) -> Option<transit_realtime::FeedMessage> {
         return self.local_archive.read().unwrap().get(&feed_id).and_then(|archives| archives.get(&key).map(|a| a.clone()));
     }
 
     // TODO(mrjones): Do asynchronously on background thread
     // TODO(mrjones): Don't re-post feed if it hasn't changed? It might be incurring ops, which aren't free on GCS.
-    fn gcs_save(&self, feed_id: i32, message: &gtfs_realtime::FeedMessage, gcs_options: &GcsArchiveOptions) -> result::TTResult<()> {
+    fn gcs_save(&self, feed_id: i32, message: &transit_realtime::FeedMessage, gcs_options: &GcsArchiveOptions) -> result::TTResult<()> {
         // TODO(mrjones): Cache and reuse
         let token = auth::generate_google_bearer_token(
             &gcs_options.service_account_key_path,
@@ -72,11 +71,11 @@ impl FeedArchive {
 
         let url = format!(
             "https://www.googleapis.com/upload/storage/v1/b/{}/o?uploadType=media&name=ttfeed-{}-{}",
-            gcs_options.bucket_name, feed_id, message.get_header().get_timestamp());
+            gcs_options.bucket_name, feed_id, message.header.timestamp());
 
-        use protobuf::Message;
         let mut buf = vec![];
-        message.write_to_vec(&mut buf)?;
+        use prost::Message;
+        message.encode(&mut buf)?;
 
         let client = reqwest::Client::new();
         let mut response = client.post(&url)
@@ -90,12 +89,12 @@ impl FeedArchive {
         return Ok(());
     }
 
-    fn local_save(&self, feed_id: i32, message: &gtfs_realtime::FeedMessage) -> result::TTResult<()> {
+    fn local_save(&self, feed_id: i32, message: &transit_realtime::FeedMessage) -> result::TTResult<()> {
         let mut local_archive = self.local_archive.write().unwrap();
         let archive_for_feed = local_archive.entry(feed_id).or_insert(
             std::collections::BTreeMap::new());
 
-        archive_for_feed.insert(message.get_header().get_timestamp(), message.clone());
+        archive_for_feed.insert(message.header.timestamp(), message.clone());
         if archive_for_feed.len() > 10 {
             let oldest_key;
             {

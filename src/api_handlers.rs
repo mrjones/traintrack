@@ -1,28 +1,41 @@
 use chrono;
 use context;
 use feedfetcher;
-use gtfs_realtime;
-use protobuf;
-//use protobuf_json;
+use transit_realtime;
+use prost;
 use result;
 use rustful;
 use std;
 use utils;
 use webclient_api;
 
+fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient_api::DebugInfo {
+    if info.is_none() {
+        *info = Some(webclient_api::DebugInfo::default());
+    }
+    return info.as_mut().unwrap();
+}
+
 pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let active_lines = utils::active_lines(&tt_context.all_feeds()?);
 
-    let mut response = webclient_api::LineList::new();
+    let mut response = webclient_api::LineList::default();
     for &ref line in tt_context.stops.lines().iter() {
-        let mut line_proto = webclient_api::Line::new();
-        line_proto.set_name(line.id.clone());
-        line_proto.set_color_hex(line.color.clone());
-        line_proto.set_active(active_lines.contains(&line.id));
-        response.mut_line().push(line_proto);
+        let mut line_proto = webclient_api::Line::default();
+        line_proto.name = Some(line.id.clone());
+        line_proto.color_hex = Some(line.color.clone());
+        line_proto.active = Some(active_lines.contains(&line.id));
+        response.line.push(line_proto);
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::LineList::mut_debug_info));
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+
+//    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| {
+//        if pb.debug_info.is_none() {
+//            pb.debug_info = Some(webclient_api::DebugInfo::default());
+//        }
+//        pb.debug_info.as_mut().unwrap()
+//    }));
 }
 
 pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -52,7 +65,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     {
         let _get_feed_span = per_request_context.timer.span("get_feed_and_compute");
         upcoming = tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
-            let just_messages: Vec<&gtfs_realtime::FeedMessage> = feeds.iter().map(|f| &f.feed).collect();
+            let just_messages: Vec<&transit_realtime::FeedMessage> = feeds.iter().map(|f| &f.feed).collect();
             let _compute_span = per_request_context.timer.span("compute");
             return utils::all_upcoming_trains_vec_ref(&station_id, &just_messages, &tt_context.stops);
         });
@@ -60,7 +73,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
 
     let mut lines = std::collections::HashSet::new();
 
-    let mut response = webclient_api::StationStatus::new();
+    let mut response = webclient_api::StationStatus::default();
     {
         let _build_proto_span = per_request_context.timer.span("build_proto");
         let mut colors_by_route = std::collections::HashMap::new();
@@ -68,53 +81,53 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
             colors_by_route.insert(route.id.clone(), route.color.clone());
         }
 
-        response.set_name(station.name.clone());
-        response.set_id(station.complex_id.clone());
+        response.name = Some(station.name.clone());
+        response.id = Some(station.complex_id.clone());
         for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
             for (direction, stop_times) in trains.iter() {
-                let mut line = webclient_api::LineArrivals::new();
-                line.set_line(route_id.clone());
+                let mut line = webclient_api::LineArrivals::default();
+                line.line = Some(route_id.clone());
                 lines.insert(route_id.clone());
                 line.set_direction(match direction {
-                    &utils::Direction::UPTOWN => webclient_api::Direction::UPTOWN,
-                    &utils::Direction::DOWNTOWN => webclient_api::Direction::DOWNTOWN,
+                    &utils::Direction::UPTOWN => webclient_api::Direction::Uptown,
+                    &utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown,
                 });
-                line.set_arrivals(stop_times.iter().map(|a| {
-                    let mut r = webclient_api::LineArrival::new();
-                    r.set_timestamp(a.timestamp.timestamp());
-                    r.set_trip_id(a.trip_id.clone());
+                line.arrivals = stop_times.iter().map(|a| {
+                    let mut r = webclient_api::LineArrival::default();
+                    r.timestamp = Some(a.timestamp.timestamp());
+                    r.trip_id = Some(a.trip_id.clone());
 //                    r.set_headsign(a.headsign.clone());
                     return r;
-                }).collect());
+                }).collect();
 
                 if let Some(color) = colors_by_route.get(route_id) {
-                    line.set_line_color_hex(color.to_string());
+                    line.line_color_hex = Some(color.to_string());
                 }
 
-                response.mut_line().push(line);
+                response.line.push(line);
             }
         }
-        response.set_data_timestamp(upcoming.underlying_data_timestamp.timestamp());
+        response.data_timestamp = Some(upcoming.underlying_data_timestamp.timestamp());
     }
 
     let status = tt_context.proxy_client.latest_status();
-    for status in status.get_status() {
+    for status in status.status {
         let mut relevant = false;
-        for line in status.get_affected_line() {
-            if lines.contains(line.get_line()) {
+        for line in &status.affected_line {
+            if lines.contains(line.line()) {
                 relevant = true;
                 break;
             }
         }
         if relevant {
-            response.mut_status_message().push(status.clone());
+            response.status_message.push(status.clone());
         }
     }
 
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
-        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationStatus::mut_debug_info));
+        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
     }
 
     // TODO(mrjones): Consider not failing the whole request if this fails.
@@ -134,13 +147,13 @@ pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: ru
 
     let mut priority_responses = std::collections::BTreeMap::new();
 
-    let mut response = webclient_api::StationList::new();
+    let mut response = webclient_api::StationList::default();
     for &ref stop in tt_context.stops.complexes_iter() {
-        let mut station = webclient_api::Station::new();
-        station.set_name(stop.name.clone());
-        station.set_id(stop.complex_id.clone());
+        let mut station = webclient_api::Station::default();
+        station.name = Some(stop.name.clone());
+        station.id = Some(stop.complex_id.clone());
         for x in &stop.lines {
-            station.mut_lines().push(x.to_string());
+            station.lines.push(x.to_string());
         }
         // TODO(mrjones): recent_stations should be short-ish
         // But it's not ideal to linear search it repeatedly.
@@ -149,17 +162,17 @@ pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: ru
                 priority_responses.insert(pos, station);
             },
             None => {
-                response.mut_station().push(station);
+                response.station.push(station);
             }
         }
     }
 
     // TODO(mrjones): This gets the order right but is not as clear as it could be.
     for (_, station) in priority_responses {
-        response.mut_station().insert(0, station);
+        response.station.insert(0, station);
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationList::mut_debug_info));
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -167,63 +180,65 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
 
-    let mut response = webclient_api::StationList::new();
+    let mut response = webclient_api::StationList::default();
     for &ref stop in tt_context.stops.stops_for_route(&desired_line)? {
-        let mut station = webclient_api::Station::new();
-        station.set_name(stop.name.clone());
-        station.set_id(stop.complex_id.clone());
-        response.mut_station().push(station);
+        let mut station = webclient_api::Station::default();
+        station.name = Some(stop.name.clone());
+        station.id = Some(stop.complex_id.clone());
+        response.station.push(station);
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::StationList::mut_debug_info));
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let mut response = webclient_api::TrainItinerary::new();
+    let mut response = webclient_api::TrainItinerary::default();
     let desired_train = rustful_context.variables.get("train_id")
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
 
     for feed in tt_context.all_feeds()? {
-        for entity in feed.feed.get_entity() {
-            if entity.has_trip_update() {
-                let trip_update = entity.get_trip_update();
-                if trip_update.get_trip().get_trip_id() == desired_train {
-                    response.set_data_timestamp(feed.timestamp.timestamp());
-                    let line = trip_update.get_trip().get_route_id().to_string();
+        for entity in feed.feed.entity {
+            if entity.trip_update.is_some() {
+                let trip_update = entity.trip_update.clone().unwrap();
+                if trip_update.trip.trip_id() == desired_train {
+                    response.data_timestamp = Some(feed.timestamp.timestamp());
+                    let line = trip_update.trip.route_id().to_string();
                     for ref route in tt_context.stops.lines() {
                         if route.id == line {
-                            response.set_line_color_hex(route.color.clone());
+                            response.line_color_hex = Some(route.color.clone());
                         }
                     }
-                    response.set_line(line);
+                    response.line = Some(line);
                     // TODO(mrjones): direction
-                    response.set_arrival(trip_update.get_stop_time_update().iter().filter_map(|stu| {
-                        if !stu.has_arrival() {
+                    response.arrival = trip_update.stop_time_update.iter().filter_map(|stu| {
+                        if stu.arrival.is_none() {
                             return None;
                         }
 
-                        let mut arr_proto = webclient_api::TrainItineraryArrival::new();
-                        arr_proto.set_timestamp(stu.get_arrival().get_time());
+                        let mut arr_proto = webclient_api::TrainItineraryArrival::default();
+                        // XXX
+                        arr_proto.timestamp = Some(stu.arrival.as_ref().unwrap().time());
 
-                        for candidate in utils::possible_stop_ids(stu.get_stop_id()) {
+                        for candidate in utils::possible_stop_ids(stu.stop_id()) {
                             if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
                                 if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
-                                    let station = arr_proto.mut_station();
-                                    station.set_id(complex_id.to_string());
-                                    station.set_name(info.name.clone());
+                                    // xxx
+                                    let station = arr_proto.station.as_mut().unwrap();
+                                    station.id = Some(complex_id.to_string());
+                                    station.name = Some(info.name.clone());
                                 }
                             }
                         }
 
                         return Some(arr_proto);
-                    }).collect());
+                    }).collect();
                 }
             }
         }
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::TrainItinerary::mut_debug_info));
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -232,19 +247,22 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
     let train_id_str = rustful_context.variables.get("train_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
 
-    let mut response = webclient_api::TrainArrivalHistory::new();
+    let mut response = webclient_api::TrainArrivalHistory::default();
 
     for feed_id in tt_context.proxy_client.known_feed_ids() {
         for archive_id in tt_context.proxy_client.archive_keys(feed_id) {
             let feed = tt_context.proxy_client.archived_value(feed_id, archive_id).unwrap();
-            for entity in feed.get_entity() {
-                if entity.has_trip_update() && entity.get_trip_update().get_trip().get_trip_id() == train_id_str {
-                    for station in entity.get_trip_update().get_stop_time_update() {
-                        if utils::stop_matches(station.get_stop_id(), &station_id_str, &tt_context.stops) {
-                            let mut history_entry = webclient_api::TrainArrivalHistoryEntry::new();
-                            history_entry.set_data_timestamp(feed.get_header().get_timestamp() as i64);
-                            history_entry.set_arrival_time(station.get_arrival().get_time());
-                            response.mut_history().push(history_entry);
+            for entity in &feed.entity {
+                if let Some(ref trip_update) = entity.trip_update {
+                    if trip_update.trip.trip_id() == train_id_str {
+                        for station in &trip_update.stop_time_update {
+                            if utils::stop_matches(station.stop_id(), &station_id_str, &tt_context.stops) {
+                                let mut history_entry = webclient_api::TrainArrivalHistoryEntry::default();
+                                history_entry.data_timestamp = Some(feed.header.timestamp() as i64);
+                                // xxx
+                                history_entry.arrival_time = Some(station.arrival.as_ref().unwrap().time());
+                                response.history.push(history_entry);
+                            }
                         }
                     }
                 }
@@ -253,12 +271,12 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
     }
 
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(webclient_api::TrainArrivalHistory::mut_debug_info));
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
-fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
+fn api_response<M: prost::Message>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     match debug_getter {
         Some(f) => {
             let debug_info = f(data);
@@ -266,9 +284,9 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTCont
             let start_ms = timer.start_time.timestamp() * 1000 + timer.start_time.timestamp_subsec_millis() as i64;
             let now_ms = now.timestamp() * 1000 + now.timestamp_subsec_millis() as i64;
 
-            debug_info.set_processing_time_ms(now_ms - start_ms);
-            debug_info.set_build_version(tt_context.build_info.version.clone());
-            debug_info.set_build_timestamp(tt_context.build_info.timestamp.timestamp());
+            debug_info.processing_time_ms = Some(now_ms - start_ms);
+            debug_info.build_version = Some(tt_context.build_info.version.clone());
+            debug_info.build_timestamp = Some(tt_context.build_info.timestamp.timestamp());
         },
         None => {},
     }
@@ -286,8 +304,10 @@ fn api_response<M: protobuf::Message>(data: &mut M, tt_context: &context::TTCont
 //            return Ok(json.to_string().as_bytes().to_vec());
         },
         _ => {
-            let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
-            return r;
+            let mut result_bytes = vec![];
+            data.encode(&mut result_bytes)?;
+//            let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
+            return Ok(result_bytes);
         }
     }
 }

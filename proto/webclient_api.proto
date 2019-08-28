@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+package webclient_api;
+
 enum Direction {
   UPTOWN = 0;
   DOWNTOWN = 1;

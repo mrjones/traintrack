@@ -7,6 +7,7 @@ build = "build.rs"
 [dependencies]
 base64 = "*"
 built = "*"
+bytes = "*"
 chrono = "*"
 chrono-tz = "*"
 csv = "*"
@@ -15,8 +16,9 @@ getopts = "*"
 log = "*"
 log4rs = "*"
 maplit = "*"
-protobuf = "*"
-protobuf-json = "*"
+prost = "*"
+# protobuf = "*"
+# protobuf-json = "*"
 regex = "*"
 reqwest = "*"
 rustc-serialize = "*"
@@ -40,6 +42,7 @@ xml5ever = "*"
 
 [build-dependencies]
 built = "*"
+prost-build = "*"
 
 [[bin]]
 name = "traintrack"
