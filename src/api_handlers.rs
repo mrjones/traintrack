@@ -1,3 +1,5 @@
+extern crate serde_json;
+
 use chrono;
 use context;
 use feedfetcher;
@@ -267,7 +269,7 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
-fn api_response<M: prost::Message>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
+fn api_response<M: prost::Message + serde::Serialize>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     match debug_getter {
         Some(f) => {
             let debug_info = f(data);
@@ -289,15 +291,11 @@ fn api_response<M: prost::Message>(data: &mut M, tt_context: &context::TTContext
         // TODO(mrjones): return proper MIME type
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => {
-            return Err(result::quick_err("JSON encoding is broken"));
-//            let json = protobuf_json::proto_to_json(data);
-//            println!("JSON: {}", json);
-//            return Ok(json.to_string().as_bytes().to_vec());
+            return Ok(serde_json::to_vec(data).expect("json encode"));
         },
         _ => {
             let mut result_bytes = vec![];
             data.encode(&mut result_bytes)?;
-//            let r = data.write_to_bytes().map_err(|e| result::TTError::ProtobufError(e)); //.map(|bytes| base64::encode(&bytes).as_bytes().to_vec()),
             return Ok(result_bytes);
         }
     }

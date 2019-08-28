@@ -19,7 +19,10 @@ fn main() {
 
     built::write_built_file().expect("Failed to acquire build-time information");
 
-    prost_build::compile_protos(&["proto/feedproxy_api.proto",
+    let mut config = prost_build::Config::new();
+    config.type_attribute(".", "#[derive(Serialize)]");
+    config.type_attribute(".", "#[serde(rename_all = \"camelCase\")]");
+    config.compile_protos(&["proto/feedproxy_api.proto",
                                   "proto/gtfs-realtime.proto",
                                   "proto/nyct-subway.proto",
                                   "proto/webclient_api.proto"],
