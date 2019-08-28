@@ -29,13 +29,6 @@ pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustf
     }
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
-
-//    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| {
-//        if pb.debug_info.is_none() {
-//            pb.debug_info = Some(webclient_api::DebugInfo::default());
-//        }
-//        pb.debug_info.as_mut().unwrap()
-//    }));
 }
 
 pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -198,9 +191,8 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
         .map(|x| x.to_string())?;
 
     for feed in tt_context.all_feeds()? {
-        for entity in feed.feed.entity {
-            if entity.trip_update.is_some() {
-                let trip_update = entity.trip_update.clone().unwrap();
+        for entity in &feed.feed.entity {
+            if let Some(ref trip_update) = entity.trip_update {
                 if trip_update.trip.trip_id() == desired_train {
                     response.data_timestamp = Some(feed.timestamp.timestamp());
                     let line = trip_update.trip.route_id().to_string();
@@ -212,26 +204,26 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
                     response.line = Some(line);
                     // TODO(mrjones): direction
                     response.arrival = trip_update.stop_time_update.iter().filter_map(|stu| {
-                        if stu.arrival.is_none() {
-                            return None;
-                        }
+                        match stu.arrival {
+                            None => return None,
+                            Some(ref arrival) => {
+                                let mut arr_proto = webclient_api::TrainItineraryArrival::default();
+                                arr_proto.timestamp = Some(arrival.time());
 
-                        let mut arr_proto = webclient_api::TrainItineraryArrival::default();
-                        // XXX
-                        arr_proto.timestamp = Some(stu.arrival.as_ref().unwrap().time());
-
-                        for candidate in utils::possible_stop_ids(stu.stop_id()) {
-                            if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
-                                if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
-                                    // xxx
-                                    let station = arr_proto.station.as_mut().unwrap();
-                                    station.id = Some(complex_id.to_string());
-                                    station.name = Some(info.name.clone());
+                                for candidate in utils::possible_stop_ids(stu.stop_id()) {
+                                    if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
+                                        if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
+                                            arr_proto.station = Some(webclient_api::Station{
+                                                id: Some(complex_id.to_string()),
+                                                name: Some(info.name.clone()),
+                                                .. Default::default()
+                                            });
+                                        }
+                                    }
                                 }
+                                return Some(arr_proto);
                             }
                         }
-
-                        return Some(arr_proto);
                     }).collect();
                 }
             }
@@ -257,11 +249,10 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
                     if trip_update.trip.trip_id() == train_id_str {
                         for station in &trip_update.stop_time_update {
                             if utils::stop_matches(station.stop_id(), &station_id_str, &tt_context.stops) {
-                                let mut history_entry = webclient_api::TrainArrivalHistoryEntry::default();
-                                history_entry.data_timestamp = Some(feed.header.timestamp() as i64);
-                                // xxx
-                                history_entry.arrival_time = Some(station.arrival.as_ref().unwrap().time());
-                                response.history.push(history_entry);
+                                response.history.push(webclient_api::TrainArrivalHistoryEntry{
+                                    data_timestamp: Some(feed.header.timestamp() as i64),
+                                    arrival_time: Some(station.arrival.as_ref().unwrap().time()),
+                                });
                             }
                         }
                     }
