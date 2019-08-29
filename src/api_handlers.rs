@@ -70,55 +70,49 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
 
     let mut lines = std::collections::HashSet::new();
 
-    let mut response = webclient_api::StationStatus::default();
+    let colors_by_route = tt_context.stops.lines().iter()
+        .map(|route| (route.id.clone(), route.color.clone()))
+        .collect::<std::collections::HashMap<String, String>>();
+
+    let mut response;
     {
         let _build_proto_span = per_request_context.timer.span("build_proto");
-        let mut colors_by_route = std::collections::HashMap::new();
-        for ref route in tt_context.stops.lines() {
-            colors_by_route.insert(route.id.clone(), route.color.clone());
-        }
-
-        response.name = Some(station.name.clone());
-        response.id = Some(station.complex_id.clone());
-        for (route_id, trains) in upcoming.trains_by_route_and_direction.iter() {
-            for (direction, stop_times) in trains.iter() {
-                let mut line = webclient_api::LineArrivals::default();
-                line.line = Some(route_id.clone());
-                lines.insert(route_id.clone());
-                line.set_direction(match direction {
-                    &utils::Direction::UPTOWN => webclient_api::Direction::Uptown,
-                    &utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown,
-                });
-                line.arrivals = stop_times.iter().map(|a| {
-                    let mut r = webclient_api::LineArrival::default();
-                    r.timestamp = Some(a.timestamp.timestamp());
-                    r.trip_id = Some(a.trip_id.clone());
-//                    r.set_headsign(a.headsign.clone());
-                    return r;
-                }).collect();
-
-                if let Some(color) = colors_by_route.get(route_id) {
-                    line.line_color_hex = Some(color.to_string());
+        response = webclient_api::StationStatus{
+            name: Some(station.name.clone()),
+            id: Some(station.complex_id.clone()),
+            line: upcoming.trains_by_route_and_direction.iter().flat_map(|(route_id, trains)| {
+                return trains.iter().map(|(ref direction, ref stop_times)| {
+                    // TODO(mrjones): handle differently to remove side-effect
+                    lines.insert(route_id.clone());
+                    return webclient_api::LineArrivals{
+                        line: Some(route_id.clone()),
+                        direction: Some(match direction {
+                            utils::Direction::UPTOWN => webclient_api::Direction::Uptown as i32,
+                            utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown as i32,
+                        }),
+                        arrivals: stop_times.iter().map(|stored_arrival| {
+                            webclient_api::LineArrival{
+                                timestamp: Some(a.timestamp.timestamp()),
+                                trip_id: Some(a.trip_id.clone()),
+                                headsign: None, // TODO: a.headsign.clone()?
+                            }
+                        }).collect(),
+                        line_color_hex: colors_by_route.get(route_id).map(|id| id.to_string()),
+                        ..Default::default()
+                    };
+                }).collect::<Vec<webclient_api::LineArrivals>>().into_iter();
+            }).collect(),
+            data_timestamp: Some(upcoming.underlying_data_timestamp.timestamp()),
+            status_message: tt_context.proxy_client.latest_status().status.iter().filter_map(|status| {
+                for line in &status.affected_line {
+                    if lines.contains(line.line()) {
+                        return Some(status.clone());
+                    }
                 }
-
-                response.line.push(line);
-            }
-        }
-        response.data_timestamp = Some(upcoming.underlying_data_timestamp.timestamp());
-    }
-
-    let status = tt_context.proxy_client.latest_status();
-    for status in status.status {
-        let mut relevant = false;
-        for line in &status.affected_line {
-            if lines.contains(line.line()) {
-                relevant = true;
-                break;
-            }
-        }
-        if relevant {
-            response.status_message.push(status.clone());
-        }
+                return None;
+            }).collect(),
+            debug_info: None,
+        };
     }
 
     let result;
