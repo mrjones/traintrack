@@ -29,7 +29,7 @@ pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustf
                 active: Some(active_lines.contains(&line.id)),
             }
         }).collect(),
-        ..Default::default()
+        debug_info: None,
     };
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
@@ -98,7 +98,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
                             }
                         }).collect(),
                         line_color_hex: colors_by_route.get(route_id).map(|id| id.to_string()),
-                        ..Default::default()
+                        debug_info: None,
                     };
                 }).collect::<Vec<webclient_api::LineArrivals>>().into_iter();
             }).collect(),
@@ -213,7 +213,7 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
                                                 return Some(webclient_api::Station{
                                                     id: Some(complex_id.to_string()),
                                                     name: Some(info.name.clone()),
-                                                    .. Default::default()
+                                                    lines: vec![], // Not used here
                                                 });
                                             }
                                         }
