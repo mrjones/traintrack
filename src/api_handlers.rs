@@ -90,7 +90,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
                             utils::Direction::UPTOWN => webclient_api::Direction::Uptown as i32,
                             utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown as i32,
                         }),
-                        arrivals: stop_times.iter().map(|stored_arrival| {
+                        arrivals: stop_times.iter().map(|a| {
                             webclient_api::LineArrival{
                                 timestamp: Some(a.timestamp.timestamp()),
                                 trip_id: Some(a.trip_id.clone()),
@@ -186,50 +186,49 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
 }
 
 pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let mut response = webclient_api::TrainItinerary::default();
     let desired_train = rustful_context.variables.get("train_id")
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
 
-    for feed in tt_context.all_feeds()? {
-        for entity in &feed.feed.entity {
-            if let Some(ref trip_update) = entity.trip_update {
-                if trip_update.trip.trip_id() == desired_train {
-                    response.data_timestamp = Some(feed.timestamp.timestamp());
-                    let line = trip_update.trip.route_id().to_string();
-                    for ref route in tt_context.stops.lines() {
-                        if route.id == line {
-                            response.line_color_hex = Some(route.color.clone());
-                        }
-                    }
-                    response.line = Some(line);
-                    // TODO(mrjones): direction
-                    response.arrival = trip_update.stop_time_update.iter().filter_map(|stu| {
-                        match stu.arrival {
-                            None => return None,
-                            Some(ref arrival) => {
-                                let mut arr_proto = webclient_api::TrainItineraryArrival::default();
-                                arr_proto.timestamp = Some(arrival.time());
-
-                                for candidate in utils::possible_stop_ids(stu.stop_id()) {
-                                    if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
-                                        if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
-                                            arr_proto.station = Some(webclient_api::Station{
-                                                id: Some(complex_id.to_string()),
-                                                name: Some(info.name.clone()),
-                                                .. Default::default()
-                                            });
+    let mut response = tt_context.all_feeds()?.iter().flat_map(|feed| {
+        return feed.feed.entity.iter().filter_map(|ref entity| {
+            return entity.trip_update.as_ref().and_then(|ref trip_update| {
+                if trip_update.trip.trip_id() != desired_train {
+                    return None;
+                } else {
+                    return Some(webclient_api::TrainItinerary{
+                        data_timestamp: Some(feed.timestamp.timestamp()),
+                        line: Some(trip_update.trip.route_id().to_string()),
+                        line_color_hex: tt_context.stops.lines().iter()
+                            .filter(|route_info| route_info.id == trip_update.trip.route_id())
+                            .nth(0)
+                            .map(|route_info| route_info.color.clone()),
+                        arrival: trip_update.stop_time_update.iter().filter_map(|stu| {
+                            return stu.arrival.as_ref().map(|arrival| {
+                                return webclient_api::TrainItineraryArrival {
+                                    timestamp: Some(arrival.time()),
+                                    station: utils::possible_stop_ids(stu.stop_id()).iter().filter_map(|candidate| {
+                                        if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
+                                            if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
+                                                return Some(webclient_api::Station{
+                                                    id: Some(complex_id.to_string()),
+                                                    name: Some(info.name.clone()),
+                                                    .. Default::default()
+                                                });
+                                            }
                                         }
-                                    }
-                                }
-                                return Some(arr_proto);
-                            }
-                        }
-                    }).collect();
+                                        return None;
+                                    }).nth(0),
+                                };
+                            });
+                        }).collect(),
+                        direction: None, // TODO(mrjones): fill in
+                        debug_info: None,
+                    });
                 }
-            }
-        }
-    }
+            });
+        }).collect::<Vec<webclient_api::TrainItinerary>>().into_iter();
+    }).nth(0).ok_or(result::quick_err("No matching train."))?;
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
