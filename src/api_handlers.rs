@@ -21,14 +21,16 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
 pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let active_lines = utils::active_lines(&tt_context.all_feeds()?);
 
-    let mut response = webclient_api::LineList::default();
-    for &ref line in tt_context.stops.lines().iter() {
-        let mut line_proto = webclient_api::Line::default();
-        line_proto.name = Some(line.id.clone());
-        line_proto.color_hex = Some(line.color.clone());
-        line_proto.active = Some(active_lines.contains(&line.id));
-        response.line.push(line_proto);
-    }
+    let mut response = webclient_api::LineList{
+        line: tt_context.stops.lines().iter().map(|line| {
+            webclient_api::Line{
+                name: Some(line.id.clone()),
+                color_hex: Some(line.color.clone()),
+                active: Some(active_lines.contains(&line.id)),
+            }
+        }).collect(),
+        ..Default::default()
+    };
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
@@ -242,6 +244,7 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
 
     let mut response = webclient_api::TrainArrivalHistory::default();
+
 
     for feed_id in tt_context.proxy_client.known_feed_ids() {
         for archive_id in tt_context.proxy_client.archive_keys(feed_id) {
