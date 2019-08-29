@@ -171,13 +171,16 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
 
-    let mut response = webclient_api::StationList::default();
-    for &ref stop in tt_context.stops.stops_for_route(&desired_line)? {
-        let mut station = webclient_api::Station::default();
-        station.name = Some(stop.name.clone());
-        station.id = Some(stop.complex_id.clone());
-        response.station.push(station);
-    }
+    let mut response = webclient_api::StationList{
+        station: tt_context.stops.stops_for_route(&desired_line)?.iter().map(|stop| {
+            webclient_api::Station{
+                name: Some(stop.name.clone()),
+                id: Some(stop.complex_id.clone()),
+                lines: vec![],  // Unused here
+            }
+        }).collect(),
+        debug_info: None,
+    };
 
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
