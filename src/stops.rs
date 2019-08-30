@@ -197,189 +197,101 @@ impl Stops {
         return Ok(stops_for_this_route);
     }
 
-    pub fn new_from_csvs(filename: &str) -> result::TTResult<Stops> {
-        #[derive(Eq, PartialEq)]
-        enum StopsLogic { GTFS, MTA };
-        let logic = StopsLogic::MTA;
+    pub fn new_from_csvs(gtfs_directory: &str) -> result::TTResult<Stops> {
+        let gtfs_directory = std::path::PathBuf::from(gtfs_directory.to_string());
 
-        let gtfs_directory = std::path::PathBuf::from(filename.to_string());
-        info!("Parsing routes.txt");
         let mut routes_file_name = gtfs_directory.clone();
         routes_file_name.push("routes.txt");
+        let routes_file = std::fs::File::open(routes_file_name)?;
+        let mut routes_reader = csv::Reader::from_reader(routes_file);
+
+        let mut stations_file_name = gtfs_directory.clone();
+        stations_file_name.push("Stations.csv");
+        let stations_file = std::fs::File::open(stations_file_name)?;
+        let mut stations_reader = csv::Reader::from_reader(stations_file);
+
+        let mut trips_file_name = gtfs_directory.clone();
+        trips_file_name.push("trips.txt");
+        let trips_file = std::fs::File::open(trips_file_name)?;
+        let mut trips_reader = csv::Reader::from_reader(trips_file);
+
+        return Stops::new_from_csv_readers(&mut routes_reader, &mut stations_reader, &mut trips_reader);
+    }
+
+    pub fn new_from_csv_readers<R: std::io::Read>(routes_reader: &mut csv::Reader<R>, stations_reader: &mut csv::Reader<R>, trips_reader: &mut csv::Reader<R>) -> result::TTResult<Stops> {
+        info!("Parsing routes.txt");
         let mut routes = Vec::new();
-        {
-            let routes_file = std::fs::File::open(routes_file_name)?;
-            let mut reader = csv::Reader::from_reader(routes_file);
-            for record in reader.deserialize() {
-                let record: RouteCsvRecord = record?;
-                routes.push(Route{
-                    id: record.route_id,
-                    color: record.route_color,
-                });
-            }
+        for record in routes_reader.deserialize() {
+            let record: RouteCsvRecord = record?;
+            routes.push(Route{
+                id: record.route_id,
+                color: record.route_color,
+            });
         }
 
-        if logic == StopsLogic::MTA {
-            info!("Parsing MTA's Stations.csv");
-            let mut routes_file_name = gtfs_directory.clone();
-            routes_file_name.push("Stations.csv");
-            let mut stops = std::collections::HashMap::new();
-            let mut complexes = std::collections::HashMap::new();
-            let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
-            {
-                let routes_file = std::fs::File::open(routes_file_name)?;
-                let mut reader = csv::Reader::from_reader(routes_file);
-                for record in reader.deserialize() {
-                    let record: StationCsvRecord = record?;
-                    let stop = Stop{
-                        id: record.gtfs_stop_id.clone(),
-                        parent_id: None,
-                        name: record.name,
-                        complex_id: record.complex_id.clone(),
-                        lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
-                    };
-
-                    stops.insert(record.gtfs_stop_id.clone(), stop.clone());
-
-                    if !complexes.contains_key(&record.complex_id) {
-                        complexes.insert(record.complex_id, stop.clone());
-                    } else {
-                        let existing = complexes.get_mut(&record.complex_id).unwrap();
-                        existing.lines = existing.lines.union(&stop.lines).cloned().collect();
-                    }
-
-                    for route in record.daytime_routes.split(" ") {
-                        if stops_by_route.contains_key(route) {
-                            stops_by_route.get_mut(route).unwrap().push(
-                                stop.clone());
-                        } else {
-                            stops_by_route.insert(
-                                route.to_string(),
-                                vec![stop.clone()]);
-                        }
-                    }
-                }
-            }
-
-            // Fix missing w4st entry?
-            stops.insert("D20".to_string(), Stop{
-                id: "D20".to_string(),
+        info!("Parsing MTA's Stations.csv");
+        let mut stops = std::collections::HashMap::new();
+        let mut complexes = std::collections::HashMap::new();
+        let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
+        for record in stations_reader.deserialize() {
+            let record: StationCsvRecord = record?;
+            let stop = Stop{
+                id: record.gtfs_stop_id.clone(),
                 parent_id: None,
-                name: "W 4 St".to_string(),
-                complex_id: "167".to_string(),
-                lines: std::collections::BTreeSet::new(), // TODO
-            });
+                name: record.name,
+                complex_id: record.complex_id.clone(),
+                lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
+            };
 
-            info!("Parsing trips.txt");
-            let mut trips_file_name = gtfs_directory.clone();
-            trips_file_name.push("trips.txt");
-            let mut trips_by_id = std::collections::HashMap::new();
-            {
-                let trips_file = std::fs::File::open(trips_file_name)?;
-                let mut reader = csv::Reader::from_reader(trips_file);
-                for record in reader.deserialize() {
-                    let record: TripCsvRecord = record?;
-                    // TODO: Use trip_id and parse it according to page 5
-                    // http://datamine.mta.info/sites/all/files/pdfs/GTFS-Realtime-NYC-Subway%20version%201%20dated%207%20Sep.pdf
-                    // Also don't forget to do so below
-                    trips_by_id.insert(
-                        record.service_id.clone(), record.clone());
+            stops.insert(record.gtfs_stop_id.clone(), stop.clone());
+
+            if !complexes.contains_key(&record.complex_id) {
+                complexes.insert(record.complex_id, stop.clone());
+            } else {
+                let existing = complexes.get_mut(&record.complex_id).unwrap();
+                existing.lines = existing.lines.union(&stop.lines).cloned().collect();
+            }
+
+            for route in record.daytime_routes.split(" ") {
+                if stops_by_route.contains_key(route) {
+                    stops_by_route.get_mut(route).unwrap().push(
+                        stop.clone());
+                } else {
+                    stops_by_route.insert(
+                        route.to_string(),
+                        vec![stop.clone()]);
                 }
             }
-
-            return Ok(Stops{
-                stops: stops,
-//                trip_ids_by_route: std::collections::HashMap::new(),
-//                stop_ids_by_trip: std::collections::HashMap::new(),
-                stops_by_route: stops_by_route,
-                routes: routes,
-                complexes: complexes,
-                trips_by_id: trips_by_id,
-            });
-        } else if logic == StopsLogic::GTFS {
-            info!("Parsing stops.txt");
-            let mut stops_file_name = gtfs_directory.clone();
-            stops_file_name.push("stops.txt");
-            let mut stops = std::collections::HashMap::new();
-            {
-                let stops_file = std::fs::File::open(stops_file_name)?;
-                let mut reader = csv::Reader::from_reader(stops_file);
-                for record in reader.deserialize() {
-                    let record: StopCsvRecord = record?;
-                    stops.insert(record.stop_id.clone(), Stop{
-                        id: record.stop_id.clone(),
-                        parent_id: record.parent_station.clone(),
-                        name: record.stop_name.clone(),
-                        complex_id: record.stop_id.clone(), // TODO
-                        lines: std::collections::BTreeSet::new(), // TODO()
-                    });
-                }
-            }
-
-            info!("Parsing trips.txt");
-            let mut trips_file_name = gtfs_directory.clone();
-            trips_file_name.push("trips.txt");
-            let mut trips_by_id = std::collections::HashMap::new();
-            let mut trip_ids_by_route: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
-            {
-                let trips_file = std::fs::File::open(trips_file_name)?;
-                let mut reader = csv::Reader::from_reader(trips_file);
-                for record in reader.deserialize() {
-                    let record: TripCsvRecord = record?;
-                    trips_by_id.insert(
-                        record.service_id.clone(), record.clone());
-                    if trip_ids_by_route.contains_key(&record.route_id) {
-                        trip_ids_by_route.get_mut(&record.route_id).unwrap().push(
-                            record.trip_id);
-                    } else {
-                        trip_ids_by_route.insert(
-                            record.route_id, vec![record.trip_id]);
-                    }
-                }
-            }
-
-            info!("Parsing stop_times.txt");
-            let mut trip_stops_file_name = gtfs_directory.clone();
-            trip_stops_file_name.push("stop_times.txt");
-            let mut stop_ids_by_trip: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
-            {
-                let trip_stops_file = std::fs::File::open(trip_stops_file_name)?;
-                let mut reader = csv::Reader::from_reader(trip_stops_file);
-                for record in reader.deserialize() {
-                    let record: StopTimeCsvRecord = record?;
-                    if stop_ids_by_trip.contains_key(&record.trip_id) {
-                        stop_ids_by_trip.get_mut(&record.trip_id).unwrap().push(
-                            record.stop_id);
-                    } else {
-                        stop_ids_by_trip.insert(
-                            record.trip_id, vec![record.stop_id]);
-                    }
-                }
-            }
-
-            info!("Computing stops per route");
-            let mut stops_by_route = std::collections::HashMap::new();
-            for route in &routes {
-                stops_by_route.insert(
-                    route.id.to_string(), Stops::compute_stops_for_route(
-                        &trip_ids_by_route,
-                        &stop_ids_by_trip,
-                        &stops,
-                        route.id.as_ref())?);
-            }
-
-            info!("Done partsing GTFS files");
-            return Ok(Stops{
-                stops: stops,
-//                trip_ids_by_route: trip_ids_by_route,
-//                stop_ids_by_trip: stop_ids_by_trip,
-                stops_by_route: stops_by_route,
-                routes: routes,
-                complexes: std::collections::HashMap::new(), // TODO
-                trips_by_id: trips_by_id,
-            });
-        } else {
-            return Err(result::quick_err("Uknown stops logic"));
         }
+
+        // Fix missing w4st entry?
+        stops.insert("D20".to_string(), Stop{
+            id: "D20".to_string(),
+            parent_id: None,
+            name: "W 4 St".to_string(),
+            complex_id: "167".to_string(),
+            lines: std::collections::BTreeSet::new(), // TODO
+        });
+
+        info!("Parsing trips.txt");
+        let mut trips_by_id = std::collections::HashMap::new();
+        for record in trips_reader.deserialize() {
+            let record: TripCsvRecord = record?;
+            // TODO: Use trip_id and parse it according to page 5
+            // http://datamine.mta.info/sites/all/files/pdfs/GTFS-Realtime-NYC-Subway%20version%201%20dated%207%20Sep.pdf
+            // Also don't forget to do so below
+            trips_by_id.insert(
+                record.service_id.clone(), record.clone());
+        }
+
+        return Ok(Stops{
+            stops: stops,
+            //                trip_ids_by_route: std::collections::HashMap::new(),
+            //                stop_ids_by_trip: std::collections::HashMap::new(),
+            stops_by_route: stops_by_route,
+            routes: routes,
+            complexes: complexes,
+            trips_by_id: trips_by_id,
+        });
     }
 }
