@@ -40,6 +40,9 @@ time = "*"
 tiny_http = "*"
 xml5ever = "*"
 
+[dev-dependencies]
+stringreader = "*"
+
 [build-dependencies]
 built = "*"
 prost-build = "*"

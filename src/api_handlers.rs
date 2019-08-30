@@ -307,40 +307,45 @@ fn api_response<M: prost::Message + serde::Serialize>(data: &mut M, tt_context: 
 
 #[cfg(test)]
 mod tests {
-    use stops;
+    extern crate stringreader;
 
-    /*
+    use stops;
+    use webclient_api;
+
     #[test]
     fn line_list_handler_test() {
+        // TODO(mrjones): Include some trains so that some lines will be active.
         let all_feeds = vec![];
-        // TODO(mrjones): Write out CSVs instead?
-        let stop1 = stops::Stop{
-            id: "001".to_string(),
-            parent_id: None,
-            name: "Stop 1".to_string(),
-            complex_id: "001".to_string(),
-            lines: btreeset!{"A".to_string(), "B".to_string(), "X".to_string()},
-        };
 
-        let stops = stops::Stops{
-            stops: hashmap!{
-                "001".to_string() => stop1.clone(),
-            },
-            stops_by_route: hashmap!{
-                "A".to_string() => vec![stop1.clone()],
-                "B".to_string() => vec![stop1.clone()],
-                "X".to_string() => vec![stop1.clone()],
-            },
-            routes: vec![
-                stops::Route{id: "A".to_string(), color: "blue".to_string()},
-                stops::Route{id: "B".to_string(), color: "red".to_string()},
-                stops::Route{id: "X".to_string(), color: "green".to_string()},
-            ],
-            complexes: hashmap!{},
-            trips_by_id: hashmap!{},
-        };
-        let bytes = super::line_list_handler_guts(&all_feeds, &stops)
+        let mut routes_csv = csv::Reader::from_reader(stringreader::StringReader::new("route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+1,MTA NYCT,1,Skipped route_long_name,Skipped route_desc,1,Skipped route_url,EE352E,\n
+2,MTA NYCT,2,Skipped route_long_name,Skipped route_desc,2,Skipped route_url,EE352E,\n"));
+
+        let mut trips_csv = csv::Reader::from_reader(stringreader::StringReader::new(""));
+        let mut stations_csv = csv::Reader::from_reader(stringreader::StringReader::new(""));
+
+        let stops = stops::Stops::new_from_csv_readers(
+            &mut routes_csv, &mut stations_csv, &mut trips_csv)
+            .expect("parsing stops data");
+
+        let line_list = super::line_list_handler_guts(&all_feeds, &stops)
             .expect("Calling handler");
+
+        assert_eq!(
+            webclient_api::LineList{
+                line: vec![
+                    webclient_api::Line{
+                        name: Some("1".to_string()),
+                        color_hex: Some("EE352E".to_string()),
+                        active: Some(false),
+                    }, webclient_api::Line{
+                        name: Some("2".to_string()),
+                        color_hex: Some("EE352E".to_string()),
+                        active: Some(false),
+                    },
+                ],
+                debug_info: None,
+            },
+            line_list);
     }
-     */
 }

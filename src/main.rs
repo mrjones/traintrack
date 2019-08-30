@@ -30,6 +30,8 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 extern crate serde_xml_rs;
+#[cfg(test)]
+extern crate stringreader;
 
 mod api_handlers;
 mod archive;
