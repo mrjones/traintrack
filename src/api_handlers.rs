@@ -8,6 +8,7 @@ use prost;
 use result;
 use rustful;
 use std;
+use stops;
 use utils;
 use webclient_api;
 
@@ -19,10 +20,16 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
 }
 
 pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let active_lines = utils::active_lines(&tt_context.all_feeds()?);
+    let mut response = line_list_handler_guts(
+        &tt_context.all_feeds()?, &tt_context.stops)?;
+    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+}
 
-    let mut response = webclient_api::LineList{
-        line: tt_context.stops.lines().iter().map(|line| {
+fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &stops::Stops) -> result::TTResult<webclient_api::LineList> {
+    let active_lines = utils::active_lines(all_feeds);
+
+    return Ok(webclient_api::LineList{
+        line: stops.lines().iter().map(|line| {
             webclient_api::Line{
                 name: Some(line.id.clone()),
                 color_hex: Some(line.color.clone()),
@@ -30,9 +37,7 @@ pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustf
             }
         }).collect(),
         debug_info: None,
-    };
-
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    });
 }
 
 pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -298,4 +303,44 @@ fn api_response<M: prost::Message + serde::Serialize>(data: &mut M, tt_context: 
             return Ok(result_bytes);
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use stops;
+
+    /*
+    #[test]
+    fn line_list_handler_test() {
+        let all_feeds = vec![];
+        // TODO(mrjones): Write out CSVs instead?
+        let stop1 = stops::Stop{
+            id: "001".to_string(),
+            parent_id: None,
+            name: "Stop 1".to_string(),
+            complex_id: "001".to_string(),
+            lines: btreeset!{"A".to_string(), "B".to_string(), "X".to_string()},
+        };
+
+        let stops = stops::Stops{
+            stops: hashmap!{
+                "001".to_string() => stop1.clone(),
+            },
+            stops_by_route: hashmap!{
+                "A".to_string() => vec![stop1.clone()],
+                "B".to_string() => vec![stop1.clone()],
+                "X".to_string() => vec![stop1.clone()],
+            },
+            routes: vec![
+                stops::Route{id: "A".to_string(), color: "blue".to_string()},
+                stops::Route{id: "B".to_string(), color: "red".to_string()},
+                stops::Route{id: "X".to_string(), color: "green".to_string()},
+            ],
+            complexes: hashmap!{},
+            trips_by_id: hashmap!{},
+        };
+        let bytes = super::line_list_handler_guts(&all_feeds, &stops)
+            .expect("Calling handler");
+    }
+     */
 }
