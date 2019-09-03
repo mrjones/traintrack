@@ -3,6 +3,7 @@ extern crate serde_json;
 use chrono;
 use context;
 use feedfetcher;
+use feedproxy_api;
 use transit_realtime;
 use prost;
 use result;
@@ -40,13 +41,34 @@ fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &sto
     });
 }
 
-pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let _all_span = per_request_context.timer.span("station_detail_api");
+pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
+    let (mut response, station_id) = station_detail_handler_guts(tt_context, &tt_context.stops, tt_context.proxy_client.latest_status(), &rustful_context, &mut per_request_context.timer)?;
+    let result;
+    {
+        let _build_response_span = per_request_context.timer.span("build_response");
+        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    }
+
+    // TODO(mrjones): Consider not failing the whole request if this fails.
+    // TODO(mrjones): Move this down into _guts so it's testable
+    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
+        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
+    let is_prefetch = prefetch_string == Some("true".to_string());
+
+    if !is_prefetch {
+        utils::add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
+    }
+
+    return result;
+}
+
+pub fn station_detail_handler_guts(tt_context: &context::TTContext, stops: &stops::Stops, system_status: feedproxy_api::SubwayStatus, rustful_context: &rustful::Context, timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
+    let _all_span = timer.span("station_detail_api");
 
     let station_id: String;
     let station;
     {
-        let _parse_query_span = per_request_context.timer.span("parse_query");
+        let _parse_query_span = timer.span("parse_query");
         let station_id_str = rustful_context.variables.get("station_id").ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
         if station_id_str == "default" {
@@ -58,84 +80,64 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
         } else {
             station_id = station_id_str.into_owned();
         }
-        station = tt_context.stops.lookup_by_id(&station_id).ok_or(
+        station = stops.lookup_by_id(&station_id).ok_or(
             result::TTError::Uncategorized(
                 format!("No station with ID {}", station_id)))?;
     }
 
     let upcoming;
     {
-        let _get_feed_span = per_request_context.timer.span("get_feed_and_compute");
+        let _get_feed_span = timer.span("get_feed_and_compute");
         upcoming = tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
             let just_messages: Vec<&transit_realtime::FeedMessage> = feeds.iter().map(|f| &f.feed).collect();
-            let _compute_span = per_request_context.timer.span("compute");
-            return utils::all_upcoming_trains_vec_ref(&station_id, &just_messages, &tt_context.stops);
+            let _compute_span = timer.span("compute");
+            return utils::all_upcoming_trains_vec_ref(&station_id, &just_messages, &stops);
         });
     }
 
     let mut lines = std::collections::HashSet::new();
 
-    let colors_by_route = tt_context.stops.lines().iter()
+    let colors_by_route = stops.lines().iter()
         .map(|route| (route.id.clone(), route.color.clone()))
         .collect::<std::collections::HashMap<String, String>>();
 
-    let mut response;
-    {
-        let _build_proto_span = per_request_context.timer.span("build_proto");
-        response = webclient_api::StationStatus{
-            name: Some(station.name.clone()),
-            id: Some(station.complex_id.clone()),
-            line: upcoming.trains_by_route_and_direction.iter().flat_map(|(route_id, trains)| {
-                return trains.iter().map(|(ref direction, ref stop_times)| {
-                    // TODO(mrjones): handle differently to remove side-effect
-                    lines.insert(route_id.clone());
-                    return webclient_api::LineArrivals{
-                        line: Some(route_id.clone()),
-                        direction: Some(match direction {
-                            utils::Direction::UPTOWN => webclient_api::Direction::Uptown as i32,
-                            utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown as i32,
-                        }),
-                        arrivals: stop_times.iter().map(|a| {
-                            webclient_api::LineArrival{
-                                timestamp: Some(a.timestamp.timestamp()),
-                                trip_id: Some(a.trip_id.clone()),
-                                headsign: None, // TODO: a.headsign.clone()?
-                            }
-                        }).collect(),
-                        line_color_hex: colors_by_route.get(route_id).map(|id| id.to_string()),
-                        debug_info: None,
-                    };
-                }).collect::<Vec<webclient_api::LineArrivals>>().into_iter();
-            }).collect(),
-            data_timestamp: Some(upcoming.underlying_data_timestamp.timestamp()),
-            status_message: tt_context.proxy_client.latest_status().status.iter().filter_map(|status| {
-                for line in &status.affected_line {
-                    if lines.contains(line.line()) {
-                        return Some(status.clone());
-                    }
+    let _build_proto_span = timer.span("build_proto");
+    return Ok((webclient_api::StationStatus{
+        name: Some(station.name.clone()),
+        id: Some(station.complex_id.clone()),
+        line: upcoming.trains_by_route_and_direction.iter().flat_map(|(route_id, trains)| {
+            return trains.iter().map(|(ref direction, ref stop_times)| {
+                // TODO(mrjones): handle differently to remove side-effect
+                lines.insert(route_id.clone());
+                return webclient_api::LineArrivals{
+                    line: Some(route_id.clone()),
+                    direction: Some(match direction {
+                        utils::Direction::UPTOWN => webclient_api::Direction::Uptown as i32,
+                        utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown as i32,
+                    }),
+                    arrivals: stop_times.iter().map(|a| {
+                        webclient_api::LineArrival{
+                            timestamp: Some(a.timestamp.timestamp()),
+                            trip_id: Some(a.trip_id.clone()),
+                            headsign: None, // TODO: a.headsign.clone()?
+                        }
+                    }).collect(),
+                    line_color_hex: colors_by_route.get(route_id).map(|id| id.to_string()),
+                    debug_info: None,
+                };
+            }).collect::<Vec<webclient_api::LineArrivals>>().into_iter();
+        }).collect(),
+        data_timestamp: Some(upcoming.underlying_data_timestamp.timestamp()),
+        status_message: system_status.status.iter().filter_map(|status| {
+            for line in &status.affected_line {
+                if lines.contains(line.line()) {
+                    return Some(status.clone());
                 }
-                return None;
-            }).collect(),
-            debug_info: None,
-        };
-    }
-
-    let result;
-    {
-        let _build_response_span = per_request_context.timer.span("build_response");
-        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
-    }
-
-    // TODO(mrjones): Consider not failing the whole request if this fails.
-    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
-        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
-    let is_prefetch = prefetch_string == Some("true".to_string());
-
-    if !is_prefetch {
-        utils::add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
-    }
-
-    return result;
+            }
+            return None;
+        }).collect(),
+        debug_info: None,
+    }, station_id));
 }
 
 pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
