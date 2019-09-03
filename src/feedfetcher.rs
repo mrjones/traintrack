@@ -65,6 +65,7 @@ impl MtaFeedClient {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
+    #[allow(dead_code)]  // Used in proxy, but not server.
     pub fn latest_status(&self) -> feedproxy_api::SubwayStatus {
         return self.latest_status.read().unwrap().clone();
     }
