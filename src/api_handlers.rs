@@ -313,12 +313,12 @@ mod tests {
     use webclient_api;
 
     // TODO(mrjones): Decide whether filtered prod data or synthetic data is better
-    fn routes_csv_data_from_prod() -> String {
+    fn routes_csv_data_from_prod(desired_routes: Vec<&str>) -> String {
         let prod_data = include_str!("../data/routes.txt");
 
         return prod_data.lines().filter(|line| {
-            return line.starts_with("route_id")  ||// the header
-                line.starts_with("1,") || line.starts_with("2,");
+            return line.starts_with("route_id")  || // the header
+                desired_routes.iter().any(|r| line.starts_with(&format!("{},", r)));
         }).collect::<Vec<&str>>().join("\n").to_string();
     }
 
@@ -333,7 +333,7 @@ mod tests {
         // TODO(mrjones): Include some trains so that some lines will be active.
         let all_feeds = vec![];
 
-        let routes_csv_data = routes_csv_data_from_prod();
+        let routes_csv_data = routes_csv_data_from_prod(vec!["1", "2"]);
         let mut routes_csv = csv::Reader::from_reader(stringreader::StringReader::new(&routes_csv_data));
 
         let mut trips_csv = csv::Reader::from_reader(stringreader::StringReader::new(""));
