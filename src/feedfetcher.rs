@@ -37,8 +37,12 @@ pub struct FetchResult {
     pub last_any_fetch: Option<chrono::DateTime<chrono::Utc>>,
 }
 
+pub struct LockedFeeds {
+    feeds: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+}
+
 pub struct ProxyClient {
-    latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
+    latest_values: LockedFeeds,
     latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
     archive: archive::FeedArchive,
     proxy_url: String,
@@ -49,6 +53,26 @@ pub struct MtaFeedClient {
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
     latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
     archive: archive::FeedArchive,
+}
+
+impl LockedFeeds {
+    pub fn new() -> LockedFeeds {
+        return LockedFeeds{
+            feeds: std::sync::RwLock::new(std::collections::HashMap::new()),
+        };
+    }
+
+    pub fn under_read_lock<F, R>(&self, mut handler: F) -> R
+    where F: FnMut(&std::collections::HashMap<i32, FetchResult>) -> R {
+        use std::ops::Deref;
+
+        let feeds = self.feeds.read().unwrap();
+        return handler(feeds.deref());
+    }
+
+    pub fn update(&self, feed_id: i32, feed: &FetchResult) {
+        self.feeds.write().unwrap().insert(feed_id, feed.clone());
+    }
 }
 
 impl MtaFeedClient {
@@ -209,20 +233,26 @@ impl ProxyClient {
     pub fn new_proxy_client(proxy_url: &str, archive: archive::FeedArchive) -> ProxyClient {
         info!("Using remote feedproxy at {}", proxy_url);
         return ProxyClient{
-            latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
+            latest_values: LockedFeeds::new(),
             latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::default()),
             archive: archive,
             proxy_url: proxy_url.to_string(),
         }
     }
 
+    pub fn feeds(&self) -> &LockedFeeds {
+        return &self.latest_values;
+    }
+
     #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn known_feed_ids(&self) -> Vec<i32> {
-        return self.latest_values.read().unwrap().keys().map(|i| *i).collect();
+        return self.latest_values.under_read_lock(
+            |feeds| feeds.keys().cloned().collect());
     }
 
     pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
-        return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
+        return self.latest_values.under_read_lock(
+            |feeds| feeds.get(&feed_id).cloned());
     }
 
     // TODO(mrjones): with_status?
@@ -242,15 +272,15 @@ impl ProxyClient {
 
     #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn all_feeds(&self) -> Vec<FetchResult> {
-        return self.latest_values.read().unwrap().values().map(|v| v.clone()).collect();
+        return self.latest_values.under_read_lock(
+            |feeds| feeds.values().cloned().collect());
     }
 
     #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn with_feeds<F, R>(&self, mut handler: F) -> R
-        where F: FnMut(Vec<&FetchResult>) -> R{
-        let feeds = self.latest_values.read().unwrap();
-        let feeds_ref: Vec<&FetchResult> = feeds.values().collect();
-        return handler(feeds_ref);
+    where F: FnMut(Vec<&FetchResult>) -> R {
+        return self.latest_values.under_read_lock(
+            |feeds| handler(feeds.values().collect()));
     }
 
     pub fn fetch_once(&self) {
@@ -259,8 +289,7 @@ impl ProxyClient {
             let feed_id = *feed_id;
             match self.fetch_once_remote(&self.proxy_url, feed_id) {
                 Ok(new_result) => {
-                    self.latest_values.write().unwrap().insert(
-                        feed_id, new_result.clone());
+                    self.latest_values.update(feed_id, &new_result);
                     self.archive.save(feed_id, &new_result.feed).unwrap();
                 }
                 Err(err) => { error!("Error fetching feed {} from proxy: {}", feed_id, err); },

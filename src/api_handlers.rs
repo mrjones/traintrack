@@ -42,7 +42,7 @@ fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &sto
 }
 
 pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
-    let (mut response, station_id) = station_detail_handler_guts(tt_context, &tt_context.stops, tt_context.proxy_client.latest_status(), &rustful_context, &mut per_request_context.timer)?;
+    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.proxy_client.feeds(), &rustful_context, &mut per_request_context.timer)?;
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
@@ -62,7 +62,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     return result;
 }
 
-pub fn station_detail_handler_guts(tt_context: &context::TTContext, stops: &stops::Stops, system_status: feedproxy_api::SubwayStatus, rustful_context: &rustful::Context, timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
+pub fn station_detail_handler_guts(stops: &stops::Stops, system_status: feedproxy_api::SubwayStatus, feeds: &feedfetcher::LockedFeeds, rustful_context: &rustful::Context, timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
     let _all_span = timer.span("station_detail_api");
 
     let station_id: String;
@@ -88,8 +88,8 @@ pub fn station_detail_handler_guts(tt_context: &context::TTContext, stops: &stop
     let upcoming;
     {
         let _get_feed_span = timer.span("get_feed_and_compute");
-        upcoming = tt_context.with_feeds(|feeds: Vec<&feedfetcher::FetchResult>| {
-            let just_messages: Vec<&transit_realtime::FeedMessage> = feeds.iter().map(|f| &f.feed).collect();
+        upcoming = feeds.under_read_lock(|feeds| {
+            let just_messages: Vec<&transit_realtime::FeedMessage> = feeds.values().map(|f| &f.feed).collect();
             let _compute_span = timer.span("compute");
             return utils::all_upcoming_trains_vec_ref(&station_id, &just_messages, &stops);
         });
