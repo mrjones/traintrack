@@ -228,8 +228,52 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
     }
 }
 
+// TODO(mrjones): Move to cookies mod?
+
+pub struct Cookies<'h /*, 'p */> {
+    request_headers: &'h rustful::header::Headers,
+//    per_request_context: &'p mut context::PerRequestContext,
+}
+
+impl <'h /*, 'p */> Cookies<'h /*, 'p */> {
+    pub fn new(
+        request_headers: &'h rustful::header::Headers) -> Cookies<'h /*, 'p */> {
+//        per_request_context: &'p mut context::PerRequestContext
+        return Cookies{
+            request_headers: request_headers,
+//            per_request_context: per_request_context,
+        };
+    }
+
+    pub fn get_cookie(&self, key: &str) -> Vec<String> {
+        return extract_cookie_values(self.request_headers, key);
+    }
+
+    /*
+    pub fn set_cookie(&mut self, key: &str, value: &str) {
+        let key = key.to_string();
+        let value = value.to_string();
+        self.per_request_context.response_modifiers.push(Box::new(
+            move |response: &mut rustful::Response| {
+                response.headers_mut().set(
+                    rustful::header::SetCookie(vec![
+                format!("{}={}; Path=/", key, value).to_string(),
+                    ]))
+            }));
+    }
+     */
+}
+
 pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {
     let matches = extract_cookie_values_for_key(context, "recentStations");
+
+    if matches.len() == 0 { return vec![]; }
+
+    return matches[0].split(':').map(|x| x.to_string()).collect();
+}
+
+pub fn extract_recent_stations(cookies: &Cookies) -> Vec<String> {
+    let matches = cookies.get_cookie("recentStations");
 
     if matches.len() == 0 { return vec![]; }
 
@@ -251,7 +295,11 @@ pub fn add_recent_station_to_cookie(id: &str, context: &rustful::Context, prc: &
 }
 
 fn extract_cookie_values_for_key(context: &rustful::Context, key: &str) -> Vec<String> {
-    match context.headers.get::<rustful::header::Cookie>() {
+    return extract_cookie_values(&context.headers, key);
+}
+
+fn extract_cookie_values(headers: &rustful::header::Headers, key: &str) -> Vec<String> {
+    match headers.get::<rustful::header::Cookie>() {
         None => { return vec![] },
         Some(ref cookies) => {
             return cookies.iter().filter_map(|cookie| {

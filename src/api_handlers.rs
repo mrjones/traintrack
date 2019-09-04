@@ -42,7 +42,12 @@ fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &sto
 }
 
 pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
-    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.proxy_client.feeds(), &rustful_context, &mut per_request_context.timer)?;
+    let station_id_param: Option<String> = rustful_context.variables.get("station_id")
+        .map(|cow| cow.into_owned());
+
+    let cookies = utils::Cookies::new(&rustful_context.headers);
+
+    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.proxy_client.feeds(), station_id_param, &cookies, &mut per_request_context.timer)?;
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
@@ -62,23 +67,27 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     return result;
 }
 
-pub fn station_detail_handler_guts(stops: &stops::Stops, system_status: feedproxy_api::SubwayStatus, feeds: &feedfetcher::LockedFeeds, rustful_context: &rustful::Context, timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
+pub fn station_detail_handler_guts(
+    stops: &stops::Stops,
+    system_status: feedproxy_api::SubwayStatus,
+    feeds: &feedfetcher::LockedFeeds,
+    station_id_param: Option<String>,
+    cookies: &utils::Cookies,
+    timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
     let _all_span = timer.span("station_detail_api");
 
-    let station_id: String;
+    let mut station_id: String;
     let station;
     {
         let _parse_query_span = timer.span("parse_query");
-        let station_id_str = rustful_context.variables.get("station_id").ok_or(
+        station_id = station_id_param.ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
-        if station_id_str == "default" {
-            station_id = utils::extract_recent_stations_from_cookie(&rustful_context)
+        if station_id == "default" {
+            station_id = utils::extract_recent_stations(cookies)
                 .into_iter()
                 .rev()
                 .next()
                 .unwrap_or("028".to_string());
-        } else {
-            station_id = station_id_str.into_owned();
         }
         station = stops.lookup_by_id(&station_id).ok_or(
             result::TTError::Uncategorized(
