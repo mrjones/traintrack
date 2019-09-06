@@ -68,23 +68,6 @@ impl TTContext {
             }),
         }
     }
-
-    pub fn all_feeds(&self) -> result::TTResult<Vec<feedfetcher::FetchResult>> {
-        return Ok(self.proxy_client.all_feeds());
-    }
-
-    pub fn with_feeds<F, R>(&self, handler: F) -> R
-        where F: FnMut(Vec<&feedfetcher::FetchResult>) -> R {
-        return self.proxy_client.with_feeds(handler);
-    }
-
-    pub fn feed(&self, feed_id: i32) -> result::TTResult<feedfetcher::FetchResult> {
-        return match self.proxy_client.latest_value(feed_id) {
-            Some(result) => Ok(result),
-            None => Err(result::TTError::Uncategorized(
-                "No feed data yet".to_string())),
-        };
-    }
 }
 
 impl PerRequestContext {

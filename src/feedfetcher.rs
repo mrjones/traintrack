@@ -276,13 +276,6 @@ impl ProxyClient {
             |feeds| feeds.values().cloned().collect());
     }
 
-    #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn with_feeds<F, R>(&self, mut handler: F) -> R
-    where F: FnMut(Vec<&FetchResult>) -> R {
-        return self.latest_values.under_read_lock(
-            |feeds| handler(feeds.values().collect()));
-    }
-
     pub fn fetch_once(&self) {
         for feed_id in FEED_IDS {
             info!("Fetching feed #{}", feed_id);
