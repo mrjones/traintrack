@@ -276,7 +276,7 @@ impl ProxyClient {
         for feed_id in FEED_IDS {
             info!("Fetching feed #{}", feed_id);
             let feed_id = *feed_id;
-            match self.fetch_once_remote(&self.proxy_url, feed_id) {
+            match self.fetch_feed_from_proxy(&self.proxy_url, feed_id) {
                 Ok(new_result) => {
                     self.latest_values.update(feed_id, &new_result);
                     self.archive.save(feed_id, &new_result.feed).unwrap();
@@ -313,7 +313,7 @@ impl ProxyClient {
         return Ok(feedproxy_api::SubwayStatus::decode(&response_body)?);
     }
 
-    fn fetch_once_remote(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
+    fn fetch_feed_from_proxy(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
         use prost::Message;
 
         let mut feed_url = proxy_url.to_string();

@@ -47,7 +47,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
 
     let cookies = utils::RustfulCookies::new(&rustful_context.headers);
 
-    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.proxy_client.feeds(), station_id_param, &cookies, &mut per_request_context.timer)?;
+    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.latest_feeds(), station_id_param, &cookies, &mut per_request_context.timer)?;
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
