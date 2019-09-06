@@ -22,7 +22,7 @@ pub fn dump_feed_links(
     tt_context: &context::TTContext, _: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
 
     let mut body = "<h1>Dump Proto</h1><ul>".to_string();
-    for feed_id in tt_context.proxy_client.known_feed_ids() {
+    for feed_id in tt_context.latest_feeds().known_feed_ids() {
         body.push_str(format!("<li><a href='/debug/dump_proto/{}'>/debug/dump_proto/{}</a></li>", feed_id, feed_id).as_ref());
     }
     body.push_str("</ul>");
@@ -58,7 +58,7 @@ pub fn dump_proto(tt_context: &context::TTContext, rustful_context: rustful::Con
             });
         },
         None => {
-            proto_data = tt_context.proxy_client.latest_value(desired_feed);
+            proto_data = tt_context.latest_feeds().cloned_feed_with_id(desired_feed);
         }
     };
 
@@ -82,8 +82,8 @@ pub fn feed_freshness(
     tt_context: &context::TTContext, _: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = "<h1>Dump Proto</h1><ul>".to_string();
     let now = chrono::Utc::now();
-    for feed_id in tt_context.proxy_client.known_feed_ids() {
-        let feed = tt_context.proxy_client.latest_value(feed_id);
+    for feed_id in tt_context.latest_feeds().known_feed_ids() {
+        let feed = tt_context.latest_feeds().cloned_feed_with_id(feed_id);
         match feed {
             None => {
                 body.push_str(format!("<li>Feed {}: NO DATA</li>", feed_id).as_ref());

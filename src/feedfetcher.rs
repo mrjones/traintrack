@@ -73,6 +73,19 @@ impl LockedFeeds {
     pub fn update(&self, feed_id: i32, feed: &FetchResult) {
         self.feeds.write().unwrap().insert(feed_id, feed.clone());
     }
+
+    // Helpers, maybe belong in a separate util?
+    pub fn known_feed_ids(&self) -> Vec<i32> {
+        return self.under_read_lock(|feeds| feeds.keys().cloned().collect());
+    }
+
+    pub fn cloned_feed_with_id(&self, id: i32) -> Option<FetchResult> {
+        return self.under_read_lock(|feeds| feeds.get(&id).cloned());
+    }
+
+    pub fn all_feeds_cloned(&self) -> Vec<FetchResult> {
+        return self.under_read_lock(|feeds| feeds.values().cloned().collect());
+    }
 }
 
 impl MtaFeedClient {
@@ -244,17 +257,6 @@ impl ProxyClient {
         return &self.latest_values;
     }
 
-    #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn known_feed_ids(&self) -> Vec<i32> {
-        return self.latest_values.under_read_lock(
-            |feeds| feeds.keys().cloned().collect());
-    }
-
-    pub fn latest_value(&self, feed_id: i32) -> Option<FetchResult> {
-        return self.latest_values.under_read_lock(
-            |feeds| feeds.get(&feed_id).cloned());
-    }
-
     // TODO(mrjones): with_status?
     pub fn latest_status(&self) -> feedproxy_api::SubwayStatus {
         return self.latest_status.read().unwrap().clone();
@@ -268,12 +270,6 @@ impl ProxyClient {
     #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn archive_keys(&self, feed_id: i32) -> Vec<u64> {
         return self.archive.local_keys(feed_id);
-    }
-
-    #[allow(dead_code)]  // Used in server, but not proxy.
-    pub fn all_feeds(&self) -> Vec<FetchResult> {
-        return self.latest_values.under_read_lock(
-            |feeds| feeds.values().cloned().collect());
     }
 
     pub fn fetch_once(&self) {

@@ -22,7 +22,7 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
 
 pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut response = line_list_handler_guts(
-        &tt_context.proxy_client.all_feeds(), &tt_context.stops)?;
+        &tt_context.latest_feeds().all_feeds_cloned(), &tt_context.stops)?;
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
@@ -206,7 +206,7 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
 
-    let mut response = tt_context.proxy_client.all_feeds().iter().flat_map(|feed| {
+    let mut response = tt_context.latest_feeds().all_feeds_cloned().iter().flat_map(|feed| {
         return feed.feed.entity.iter().filter_map(|ref entity| {
             return entity.trip_update.as_ref().and_then(|ref trip_update| {
                 if trip_update.trip.trip_id() != desired_train {
@@ -258,7 +258,7 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
     let mut response = webclient_api::TrainArrivalHistory::default();
 
 
-    for feed_id in tt_context.proxy_client.known_feed_ids() {
+    for feed_id in tt_context.latest_feeds().known_feed_ids() {
         for archive_id in tt_context.proxy_client.archive_keys(feed_id) {
             let feed = tt_context.proxy_client.archived_value(feed_id, archive_id).unwrap();
             for entity in &feed.entity {

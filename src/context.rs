@@ -68,6 +68,10 @@ impl TTContext {
             }),
         }
     }
+
+    pub fn latest_feeds(&self) -> &feedfetcher::LockedFeeds {
+        return self.proxy_client.feeds();
+    }
 }
 
 impl PerRequestContext {
