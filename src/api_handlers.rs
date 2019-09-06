@@ -72,7 +72,7 @@ pub fn station_detail_handler_guts(
     system_status: feedproxy_api::SubwayStatus,
     feeds: &feedfetcher::LockedFeeds,
     station_id_param: Option<String>,
-    cookies: &dyn utils::CookieGetter,
+    cookies: &dyn utils::CookieAccessor,
     timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
     let _all_span = timer.span("station_detail_api");
 
@@ -345,7 +345,7 @@ mod tests {
 
     struct EmptyCookieAccessor{ }
 
-    impl utils::CookieGetter for EmptyCookieAccessor {
+    impl utils::CookieAccessor for EmptyCookieAccessor {
         fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
     }
 

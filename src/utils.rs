@@ -230,7 +230,7 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
 
 // TODO(mrjones): Move to cookies mod?
 
-pub trait CookieGetter {
+pub trait CookieAccessor {
     fn get_cookie(&self, key: &str) -> Vec<String>;
 }
 
@@ -250,7 +250,7 @@ impl <'h /*, 'p */> RustfulCookies<'h /*, 'p */> {
     }
 }
 
-impl <'h> CookieGetter for RustfulCookies<'h> {
+impl <'h> CookieAccessor for RustfulCookies<'h> {
     fn get_cookie(&self, key: &str) -> Vec<String> {
         return extract_cookie_values(self.request_headers, key);
     }
@@ -278,7 +278,7 @@ pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<St
     return matches[0].split(':').map(|x| x.to_string()).collect();
 }
 
-pub fn extract_recent_stations(cookies: &CookieGetter) -> Vec<String> {
+pub fn extract_recent_stations(cookies: &CookieAccessor) -> Vec<String> {
     let matches = cookies.get_cookie("recentStations");
 
     if matches.len() == 0 { return vec![]; }
