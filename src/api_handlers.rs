@@ -45,7 +45,7 @@ pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: 
     let station_id_param: Option<String> = rustful_context.variables.get("station_id")
         .map(|cow| cow.into_owned());
 
-    let cookies = utils::Cookies::new(&rustful_context.headers);
+    let cookies = utils::RustfulCookies::new(&rustful_context.headers);
 
     let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.proxy_client.feeds(), station_id_param, &cookies, &mut per_request_context.timer)?;
     let result;
@@ -72,7 +72,7 @@ pub fn station_detail_handler_guts(
     system_status: feedproxy_api::SubwayStatus,
     feeds: &feedfetcher::LockedFeeds,
     station_id_param: Option<String>,
-    cookies: &utils::Cookies,
+    cookies: &dyn utils::CookieGetter,
     timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
     let _all_span = timer.span("station_detail_api");
 
@@ -320,7 +320,11 @@ fn api_response<M: prost::Message + serde::Serialize>(data: &mut M, tt_context: 
 mod tests {
     extern crate stringreader;
 
+    use context;
+    use feedfetcher;
+    use feedproxy_api;
     use stops;
+    use utils;
     use webclient_api;
 
     // TODO(mrjones): Decide whether filtered prod data or synthetic data is better
@@ -339,20 +343,31 @@ mod tests {
 //2,MTA NYCT,2,Skipped route_long_name,Skipped route_desc,2,Skipped route_url,EE352E,\n".to_string();
     }
 
-    #[test]
-    fn line_list_handler_test() {
-        // TODO(mrjones): Include some trains so that some lines will be active.
-        let all_feeds = vec![];
+    struct EmptyCookieAccessor{ }
 
+    impl utils::CookieGetter for EmptyCookieAccessor {
+        fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
+    }
+
+    fn make_stops() -> stops::Stops {
         let routes_csv_data = routes_csv_data_from_prod(vec!["1", "2"]);
         let mut routes_csv = csv::Reader::from_reader(stringreader::StringReader::new(&routes_csv_data));
 
         let mut trips_csv = csv::Reader::from_reader(stringreader::StringReader::new(""));
         let mut stations_csv = csv::Reader::from_reader(stringreader::StringReader::new(""));
 
-        let stops = stops::Stops::new_from_csv_readers(
+        return stops::Stops::new_from_csv_readers(
             &mut routes_csv, &mut stations_csv, &mut trips_csv)
             .expect("parsing stops data");
+
+    }
+
+    #[test]
+    fn line_list_handler_test() {
+        // TODO(mrjones): Include some trains so that some lines will be active.
+        let all_feeds = vec![];
+
+        let stops = make_stops();
 
         let line_list = super::line_list_handler_guts(&all_feeds, &stops)
             .expect("Calling handler");
@@ -373,5 +388,24 @@ mod tests {
                 debug_info: None,
             },
             line_list);
+    }
+
+    #[test]
+    #[ignore] // Work in progress
+    fn station_detail_handler_test() {
+        let stops = make_stops();
+        let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
+        let feeds = feedfetcher::LockedFeeds::new();
+        let cookies = EmptyCookieAccessor{};
+        let mut timer = context::RequestTimer::new(/* trace= */ false);
+
+        let station_data = super::station_detail_handler_guts(
+            &stops,
+            empty_status_proto,
+            &feeds,
+            Some("028".to_string()),
+            &cookies,
+            &mut timer).expect("station_detail_handler_guts call");
+
     }
 }
