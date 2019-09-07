@@ -22,11 +22,14 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
 
 pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut response = line_list_handler_guts(
-        &tt_context.latest_feeds().all_feeds_cloned(), &tt_context.stops)?;
+        &tt_context.latest_feeds().all_feeds_cloned(),
+        &tt_context.stops)?;
     return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &stops::Stops) -> result::TTResult<webclient_api::LineList> {
+fn line_list_handler_guts(
+    all_feeds: &Vec<feedfetcher::FetchResult>,
+    stops: &stops::Stops) -> result::TTResult<webclient_api::LineList> {
     let active_lines = utils::active_lines(all_feeds);
 
     return Ok(webclient_api::LineList{
@@ -41,13 +44,23 @@ fn line_list_handler_guts(all_feeds: &Vec<feedfetcher::FetchResult>, stops: &sto
     });
 }
 
-pub fn station_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
+pub fn station_detail_handler(
+    tt_context: &context::TTContext,
+    rustful_context: rustful::Context,
+    per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
     let station_id_param: Option<String> = rustful_context.variables.get("station_id")
         .map(|cow| cow.into_owned());
 
     let cookies = utils::RustfulCookies::new(&rustful_context.headers);
 
-    let (mut response, station_id) = station_detail_handler_guts(&tt_context.stops, tt_context.proxy_client.latest_status(), tt_context.latest_feeds(), station_id_param, &cookies, &mut per_request_context.timer)?;
+    let (mut response, station_id) = station_detail_handler_guts(
+        &tt_context.stops,
+        tt_context.proxy_client.latest_status(),
+        tt_context.latest_feeds(),
+        station_id_param,
+        &cookies,
+        &mut per_request_context.timer)?;
+
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
@@ -285,7 +298,12 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 
-fn api_response<M: prost::Message + serde::Serialize>(data: &mut M, tt_context: &context::TTContext, rustful_context: &rustful::Context, timer: &context::RequestTimer, debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
+fn api_response<M: prost::Message + serde::Serialize>(
+    data: &mut M,
+    tt_context: &context::TTContext,
+    rustful_context: &rustful::Context,
+    timer: &context::RequestTimer,
+    debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     match debug_getter {
         Some(f) => {
             let debug_info = f(data);
