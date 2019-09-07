@@ -44,6 +44,8 @@ mod result;
 mod server;
 mod stops;
 mod statusxml;
+#[cfg(test)]
+mod testutil;
 mod utils;
 
 pub mod built_info {

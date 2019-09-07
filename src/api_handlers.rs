@@ -325,6 +325,7 @@ mod tests {
     use feedfetcher;
     use feedproxy_api;
     use stops;
+    use testutil;
     use utils;
     use webclient_api;
 
@@ -349,11 +350,6 @@ mod tests {
 //2,MTA NYCT,2,Skipped route_long_name,Skipped route_desc,2,Skipped route_url,EE352E,\n".to_string();
     }
 
-    struct EmptyCookieAccessor{ }
-
-    impl utils::CookieAccessor for EmptyCookieAccessor {
-        fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
-    }
 
     fn make_stops() -> stops::Stops {
         let routes_csv_data = routes_csv_data_from_prod(vec!["1", "2"]);
@@ -401,7 +397,7 @@ mod tests {
         let stops = make_stops();
         let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
         let feeds = feedfetcher::LockedFeeds::new();
-        let cookies = EmptyCookieAccessor{};
+        let cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
         let (station_data, station_id) = super::station_detail_handler_guts(
