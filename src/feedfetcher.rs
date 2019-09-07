@@ -55,6 +55,7 @@ pub struct MtaFeedClient {
     archive: archive::FeedArchive,
 }
 
+#[allow(dead_code)]  // Used in server, but not proxy.
 impl LockedFeeds {
     pub fn new() -> LockedFeeds {
         return LockedFeeds{
@@ -88,6 +89,7 @@ impl LockedFeeds {
     }
 }
 
+#[allow(dead_code)]  // Used in proxy, but not server.
 impl MtaFeedClient {
     pub fn new(mta_api_key: &str, archive: archive::FeedArchive) -> MtaFeedClient {
         return MtaFeedClient{
@@ -102,7 +104,6 @@ impl MtaFeedClient {
         return self.latest_values.read().unwrap().get(&feed_id).map(|x| x.clone());
     }
 
-    #[allow(dead_code)]  // Used in proxy, but not server.
     pub fn latest_status(&self) -> feedproxy_api::SubwayStatus {
         return self.latest_status.read().unwrap().clone();
     }
@@ -241,8 +242,8 @@ impl MtaFeedClient {
     }
 }
 
+#[allow(dead_code)]  // Used in server, but not proxy.
 impl ProxyClient {
-    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn new_proxy_client(proxy_url: &str, archive: archive::FeedArchive) -> ProxyClient {
         info!("Using remote feedproxy at {}", proxy_url);
         return ProxyClient{
@@ -262,12 +263,10 @@ impl ProxyClient {
         return self.latest_status.read().unwrap().clone();
     }
 
-    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn archived_value(&self, feed_id: i32, key: u64) -> Option<transit_realtime::FeedMessage> {
         return self.archive.local_get(feed_id, key);
     }
 
-    #[allow(dead_code)]  // Used in server, but not proxy.
     pub fn archive_keys(&self, feed_id: i32) -> Vec<u64> {
         return self.archive.local_keys(feed_id);
     }
