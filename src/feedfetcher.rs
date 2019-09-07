@@ -108,8 +108,8 @@ impl MtaFeedClient {
         return self.latest_status.read().unwrap().clone();
     }
 
-    pub fn fetch_subway_status(&self) {
-        match self.fetch_subway_status2() {
+    pub fn fetch_and_save_subway_status(&self) {
+        match self.fetch_subway_status() {
             Ok(subway_status) => {
                 let mut cache = self.latest_status.write().unwrap();
                 *cache = subway_status;
@@ -118,7 +118,7 @@ impl MtaFeedClient {
         }
     }
 
-    fn fetch_subway_status2(&self) -> result::TTResult<feedproxy_api::SubwayStatus> {
+    fn fetch_subway_status(&self) -> result::TTResult<feedproxy_api::SubwayStatus> {
         let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
         debug!("Fetching URL: {}", url);
 

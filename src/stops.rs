@@ -161,42 +161,6 @@ impl Stops {
         return self.trips_by_id.get(id).map(|rec| rec.trip_headsign.clone());
     }
 
-    pub fn compute_stops_for_route(
-        trip_ids_by_route: &std::collections::HashMap<String, Vec<String>>,
-        stop_ids_by_trip: &std::collections::HashMap<String, Vec<String>>,
-        stops: &std::collections::HashMap<String, Stop>,
-        route_id: &str) -> result::TTResult<Vec<Stop>> {
-        let mut stop_ids_for_route = std::collections::HashSet::new();
-        for trip_id in trip_ids_by_route.get(route_id).unwrap_or(&vec![]).iter() {
-            for stop_id in stop_ids_by_trip.get(trip_id).ok_or(
-                result::quick_err("No stops for trip"))?.iter() {
-                stop_ids_for_route.insert(stop_id);
-            }
-        }
-
-        let mut parent_stop_ids = std::collections::HashSet::new();
-        for stop_id in stop_ids_for_route {
-            let stop = stops.get(stop_id).ok_or(
-                result::quick_err(
-                    format!("No stop with ID: {}", stop_id).as_ref()))?;
-            match stop.parent_id {
-                None => { parent_stop_ids.insert(stop_id) },
-                Some(ref parent_id) => { parent_stop_ids.insert(parent_id) },
-            };
-        }
-
-
-        let mut stops_for_this_route: Vec<Stop> = Vec::new();
-        for stop_id in parent_stop_ids {
-            let stop = stops.get(stop_id).ok_or(
-                result::quick_err(
-                    format!("No stop with ID: {}", stop_id).as_ref()))?;
-            stops_for_this_route.push(stop.to_owned());
-        }
-
-        return Ok(stops_for_this_route);
-    }
-
     pub fn new_from_csvs(gtfs_directory: &str) -> result::TTResult<Stops> {
         let gtfs_directory = std::path::PathBuf::from(gtfs_directory.to_string());
 

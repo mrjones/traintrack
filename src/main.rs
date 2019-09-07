@@ -134,10 +134,10 @@ fn main() {
         ".".to_string());
     log4rs::init_config(log4rs_config(format!("{}/log/", root_directory).as_ref())).unwrap();
 
-    let key = match matches.opt_str("k") {
-        Some(key) => key,
-        None => panic!("must set --mta-api-key"),
-    };
+
+    if matches.opt_str("k").is_some() {
+        warn!("--mta-api-key is obsolete in the frontend");
+    }
 
     let gtfs_directory = matches.opt_str("gtfs-directory").unwrap_or(
         format!("{}/data/", root_directory));

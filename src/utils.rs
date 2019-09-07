@@ -115,15 +115,6 @@ pub struct UpcomingTrainsResult {
     pub underlying_data_timestamp: chrono::DateTime<chrono::Utc>,
 }
 
-pub fn all_upcoming_trains(stop_id: &str, feed: &transit_realtime::FeedMessage, stops: &stops::Stops) -> UpcomingTrainsResult {
-    return all_upcoming_trains_vec(stop_id, &vec![feed.clone()], stops);
-}
-
-pub fn all_upcoming_trains_vec(stop_id: &str, feeds: &Vec<transit_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
-    let ref_vec: Vec<&transit_realtime::FeedMessage> = feeds.iter().map(|v| v).collect();
-    return all_upcoming_trains_vec_ref(stop_id, &ref_vec, stops);
-}
-
 /*
 fn extract_field_with_id(unknown_fields: &std::collections::HashMap<u32, protobuf::UnknownValues>, id: u32) -> Option<Vec<Vec<u8>>> {
     return unknown_fields.get(&id).map(|unknown_values| {
@@ -278,7 +269,7 @@ pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<St
     return matches[0].split(':').map(|x| x.to_string()).collect();
 }
 
-pub fn extract_recent_stations(cookies: &CookieAccessor) -> Vec<String> {
+pub fn extract_recent_stations(cookies: &dyn CookieAccessor) -> Vec<String> {
     let matches = cookies.get_cookie("recentStations");
 
     if matches.len() == 0 { return vec![]; }

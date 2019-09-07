@@ -1,7 +1,6 @@
 use feedfetcher;
 use chrono;
 use prefs;
-use result;
 use rustful;
 use std;
 use stops;

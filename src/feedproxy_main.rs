@@ -153,7 +153,7 @@ fn main() {
         .name("status_fetcher_thread".to_string())
         .spawn(move || {
             loop {
-                clientclone2.fetch_subway_status();
+                clientclone2.fetch_and_save_subway_status();
                 std::thread::sleep(std::time::Duration::new(
                     5 * fetch_period_seconds, 0));
             }
