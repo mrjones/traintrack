@@ -338,6 +338,7 @@ fn api_response<M: prost::Message + serde::Serialize>(
 #[cfg(test)]
 mod tests {
     extern crate stringreader;
+    extern crate simple_logger;
 
     use context;
     use feedfetcher;
@@ -350,7 +351,7 @@ mod tests {
         // TODO(mrjones): Include some trains so that some lines will be active.
         let all_feeds = vec![];
 
-        let stops = testutil::make_stops();
+        let stops = testutil::make_stops(testutil::WhichRoutes::Some(vec!["1", "2"]));
 
         let line_list = super::line_list_handler_guts(&all_feeds, &stops)
             .expect("Calling handler");
@@ -375,16 +376,29 @@ mod tests {
 
     #[test]
     fn station_detail_handler_test() {
-        let stops = testutil::make_stops();
+        simple_logger::init().unwrap();
+
+        let stops = testutil::make_stops(testutil::WhichRoutes::All);
         let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
         let feeds = feedfetcher::LockedFeeds::new();
         let cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
+        feeds.update(1, &testutil::make_feed(
+            1100,
+            vec![
+                testutil::TripSpec{
+                    line: "R".to_string(),
+                    // "GTFS Stop Id" column from Stations.csv
+                    stops: vec![("R32S".to_string(), 1000)],
+                }
+            ]));
+
         let (station_data, station_id) = super::station_detail_handler_guts(
             &stops,
             empty_status_proto,
             &feeds,
+            // "Station ID" column from Stations.csv
             Some("028".to_string()),
             &cookies,
             &mut timer).expect("station_detail_handler_guts call");
@@ -392,5 +406,11 @@ mod tests {
         assert_eq!(station_id, "028".to_string());
 
         assert_eq!("Union St".to_string(), station_data.name());
+
+        assert_eq!(1, station_data.line.len());
+        assert_eq!("R".to_string(), station_data.line[0].line());
+
+        assert_eq!(1, station_data.line[0].arrivals.len());
+        assert_eq!(1000, station_data.line[0].arrivals[0].timestamp());
     }
 }

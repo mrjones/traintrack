@@ -90,7 +90,10 @@ pub fn possible_stop_ids(initial_id: &str) -> Vec<String> {
 
 pub fn stop_matches(candidate_id: &str, desired_id: &str, stops: &stops::Stops) -> bool {
     return possible_stop_ids(candidate_id).iter().map(
-            |id| stops.gtfs_id_to_complex_id(id) == Some(desired_id)).find(|x| *x).is_some();
+        |id| {
+            return stops.gtfs_id_to_complex_id(id) == Some(desired_id);
+        }).find(|x| *x).is_some()
+
 }
 
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
@@ -161,7 +164,6 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
         for entity in &feed.entity {
             if let Some(ref trip_update) = entity.trip_update {
                 let trip = &trip_update.trip;
-
                 //                let maybe_nyct_extension = get_nyct_extension(trip);
                 let maybe_nyct_extension = None;
                 for stop_time_update in &trip_update.stop_time_update {

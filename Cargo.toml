@@ -43,6 +43,9 @@ xml5ever = "*"
 [dev-dependencies]
 stringreader = "*"
 
+[dev-dependencies.simple_logger]
+default-features = false  # Turn off colorization
+
 [build-dependencies]
 built = "*"
 prost-build = "*"
