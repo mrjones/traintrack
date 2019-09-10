@@ -278,17 +278,12 @@ pub fn extract_recent_stations(cookies: &dyn CookieAccessor) -> Vec<String> {
     return matches[0].split(':').map(|x| x.to_string()).collect();
 }
 
-pub fn add_recent_station_to_cookie(id: &str, context: &rustful::Context, prc: &mut context::PerRequestContext) -> result::TTResult<()> {
-    let mut list: Vec<String> = extract_recent_stations_from_cookie(context).into_iter().filter(|x| x != id).take(15).collect();
+pub fn add_recent_station_to_cookie(id: &str, cookies: &mut dyn CookieAccessor) -> result::TTResult<()> {
+    let mut list: Vec<String> = extract_recent_stations(cookies).into_iter().filter(|x| x != id).take(15).collect();
     list.push(id.to_string());
     let newval = list.join(":");
 
-    prc.response_modifiers.push(Box::new(move |response: &mut rustful::Response| {
-        response.headers_mut().set(
-            rustful::header::SetCookie(vec![
-                format!("recentStations={}; Path=/", newval).to_string(),
-            ]));
-    }));
+    cookies.set_cookie("recent_stations", &newval);
     return Ok(());
 }
 

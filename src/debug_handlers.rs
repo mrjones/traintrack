@@ -155,7 +155,8 @@ pub fn get_recent_stations(_: &context::TTContext, rustful_context: rustful::Con
 }
 
 pub fn add_recent_station(_: &context::TTContext, rustful_context: rustful::Context, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    utils::add_recent_station_to_cookie("42", &rustful_context, prc)?;
+        let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut prc.response_modifiers);
+    utils::add_recent_station_to_cookie("42", &mut cookies)?;
     return Ok("Done?".to_string().as_bytes().to_vec());
 }
 

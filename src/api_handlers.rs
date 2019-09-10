@@ -51,7 +51,7 @@ pub fn station_detail_handler(
     let station_id_param: Option<String> = rustful_context.variables.get("station_id")
         .map(|cow| cow.into_owned());
 
-    let cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
+    let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
     let (mut response, station_id) = station_detail_handler_guts(
         &tt_context.stops,
@@ -68,13 +68,12 @@ pub fn station_detail_handler(
     }
 
     // TODO(mrjones): Consider not failing the whole request if this fails.
-    // TODO(mrjones): Move this down into _guts so it's testable
     let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
         .map(|x: std::borrow::Cow<'_, str>| String::from(x));
     let is_prefetch = prefetch_string == Some("true".to_string());
 
     if !is_prefetch {
-        utils::add_recent_station_to_cookie(&station_id, &rustful_context, per_request_context)?;
+        utils::add_recent_station_to_cookie(&station_id, &mut cookies)?;
     }
 
     return result;
