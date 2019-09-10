@@ -376,6 +376,9 @@ mod tests {
 
     #[test]
     fn station_detail_handler_test() {
+        // Things to test:
+        // - Directionality
+        // - Complexes with multiple stations
         simple_logger::init().unwrap();
 
         let stops = testutil::make_stops(testutil::WhichRoutes::All);
@@ -385,12 +388,23 @@ mod tests {
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
         feeds.update(1, &testutil::make_feed(
-            1100,
+            500,
             vec![
                 testutil::TripSpec{
                     line: "R".to_string(),
                     // "GTFS Stop Id" column from Stations.csv
-                    stops: vec![("R32S".to_string(), 1000)],
+                    stops: vec![
+                        ("R32S".to_string(), 1000),
+                        ("D24S".to_string(), 1100), // Irrelevant
+                    ],
+                },
+                testutil::TripSpec{
+                    line: "R".to_string(),
+                    // "GTFS Stop Id" column from Stations.csv
+                    stops: vec![
+                        ("R32S".to_string(), 2000),
+                        ("D24S".to_string(), 2200), // Irrelevant
+                    ],
                 }
             ]));
 
@@ -410,7 +424,8 @@ mod tests {
         assert_eq!(1, station_data.line.len());
         assert_eq!("R".to_string(), station_data.line[0].line());
 
-        assert_eq!(1, station_data.line[0].arrivals.len());
+        assert_eq!(2, station_data.line[0].arrivals.len());
         assert_eq!(1000, station_data.line[0].arrivals[0].timestamp());
+        assert_eq!(2000, station_data.line[0].arrivals[1].timestamp());
     }
 }
