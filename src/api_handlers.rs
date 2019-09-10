@@ -53,12 +53,17 @@ pub fn station_detail_handler(
 
     let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
-    let (mut response, station_id) = station_detail_handler_guts(
+    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
+        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
+    let is_prefetch = prefetch_string == Some("true".to_string());
+
+    let mut response = station_detail_handler_guts(
         &tt_context.stops,
         tt_context.proxy_client.latest_status(),
         tt_context.latest_feeds(),
         station_id_param,
-        &cookies,
+        &mut cookies,
+        is_prefetch,
         &mut per_request_context.timer)?;
 
     let result;
@@ -67,26 +72,17 @@ pub fn station_detail_handler(
         result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
     }
 
-    // TODO(mrjones): Consider not failing the whole request if this fails.
-    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
-        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
-    let is_prefetch = prefetch_string == Some("true".to_string());
-
-    if !is_prefetch {
-        utils::add_recent_station_to_cookie(&station_id, &mut cookies)?;
-    }
-
     return result;
 }
 
-// Returns the StationStatus and the id of the station
 pub fn station_detail_handler_guts(
     stops: &stops::Stops,
     system_status: feedproxy_api::SubwayStatus,
     feeds: &feedfetcher::LockedFeeds,
     station_id_param: Option<String>,
-    cookies: &dyn utils::CookieAccessor,
-    timer: &mut context::RequestTimer) -> result::TTResult<(webclient_api::StationStatus, String)> {
+    cookies: &mut dyn utils::CookieAccessor,
+    is_prefetch: bool,
+    timer: &mut context::RequestTimer) -> result::TTResult<webclient_api::StationStatus> {
     let _all_span = timer.span("station_detail_api");
 
     let mut station_id: String;
@@ -123,8 +119,13 @@ pub fn station_detail_handler_guts(
         .map(|route| (route.id.clone(), route.color.clone()))
         .collect::<std::collections::HashMap<String, String>>();
 
+    // TODO(mrjones): Consider not failing the whole request if this fails.
+    if !is_prefetch {
+        utils::add_recent_station_to_cookie(&station_id, cookies)?;
+    }
+
     let _build_proto_span = timer.span("build_proto");
-    return Ok((webclient_api::StationStatus{
+    return Ok(webclient_api::StationStatus{
         name: Some(station.name.clone()),
         id: Some(station.complex_id.clone()),
         line: upcoming.trains_by_route_and_direction.iter().flat_map(|(route_id, trains)| {
@@ -159,7 +160,7 @@ pub fn station_detail_handler_guts(
             return None;
         }).collect(),
         debug_info: None,
-    }, station_id));
+    });
 }
 
 pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -396,12 +397,13 @@ mod tests {
         // Things to test:
         // - Complexes with multiple stations
         // - System status (only showing affected routes).
+        // - Prefetching and setting of recent stations cookies
         simple_logger::init().unwrap();
 
         let stops = testutil::make_stops(testutil::WhichRoutes::All);
         let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
         let feeds = feedfetcher::LockedFeeds::new();
-        let cookies = testutil::EmptyCookieAccessor{};
+        let mut cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
         feeds.update(1, &testutil::make_feed(
@@ -434,15 +436,14 @@ mod tests {
 
             ]));
 
-        let (station_data, station_id) = super::station_detail_handler_guts(
+        let station_data = super::station_detail_handler_guts(
             &stops,
             empty_status_proto,
             &feeds,
             Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
-            &cookies,
+            &mut cookies,
+            /*is_prefetch=*/ false,
             &mut timer).expect("station_detail_handler_guts call");
-
-        assert_eq!(station_id, UNION_ST_MTA_COMPLEX_ID.to_string());
 
         assert_eq!("Union St".to_string(), station_data.name());
 
