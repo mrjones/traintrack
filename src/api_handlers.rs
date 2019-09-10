@@ -387,32 +387,36 @@ mod tests {
         let cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
+        // "GTFS Stop Id" and "Complex ID" columns from Stations.csv
+        const UNION_ST_GTFS_ID: &str = "R32S";
+        const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
+        const UNION_ST_MTA_COMPLEX_ID: &str = "028";
+
         feeds.update(1, &testutil::make_feed(
             500,
             vec![
-                // Stop ID is "GTFS Stop Id" column from Stations.csv
                 testutil::TripSpec{
                     line: "R",
                     direction: utils::Direction::UPTOWN,
                     stops: vec![
-                        ("R32S", 1000),
-                        ("D24S", 1100), // Irrelevant
+                        (UNION_ST_GTFS_ID, 1000),
+                        (BARCLAYS_CTR_GTFS_ID, 1100), // Irrelevant
                     ],
                 },
                 testutil::TripSpec{
                     line: "R",
                     direction: utils::Direction::UPTOWN,
                     stops: vec![
-                        ("R32S", 2000),
-                        ("D24S", 2200), // Irrelevant
+                        (UNION_ST_GTFS_ID, 2000),
+                        (BARCLAYS_CTR_GTFS_ID, 2200), // Irrelevant
                     ],
                 },
                 testutil::TripSpec{
                     line: "R",
                     direction: utils::Direction::DOWNTOWN,
                     stops: vec![
-                        ("D24S", 3000), // Irrelevant
-                        ("R32S", 3300),
+                        (BARCLAYS_CTR_GTFS_ID, 3000), // Irrelevant
+                        (UNION_ST_GTFS_ID, 3300),
                     ],
                 }
 
@@ -422,12 +426,11 @@ mod tests {
             &stops,
             empty_status_proto,
             &feeds,
-            // "Complex ID" column from Stations.csv
-            Some("028".to_string()),
+            Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
             &cookies,
             &mut timer).expect("station_detail_handler_guts call");
 
-        assert_eq!(station_id, "028".to_string());
+        assert_eq!(station_id, UNION_ST_MTA_COMPLEX_ID.to_string());
 
         assert_eq!("Union St".to_string(), station_data.name());
 
