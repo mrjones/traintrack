@@ -347,10 +347,27 @@ mod tests {
     use utils;
     use webclient_api;
 
+    // "GTFS Stop Id" and "Complex ID" columns from Stations.csv
+    const UNION_ST_GTFS_ID: &str = "R32S";
+    const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
+    const UNION_ST_MTA_COMPLEX_ID: &str = "028";
+
     #[test]
     fn line_list_handler_test() {
-        // TODO(mrjones): Include some trains so that some lines will be active.
-        let all_feeds = vec![];
+        // Setup a feed with a 1 train, but leave the 2 inactive.
+        let all_feeds = vec![
+            testutil::make_feed(
+                100,
+                vec![
+                    testutil::TripSpec{
+                        line: "1",
+                        direction: utils::Direction::UPTOWN,
+                        stops: vec![
+                            (UNION_ST_GTFS_ID, 1000),
+                        ],
+                    },
+                ])
+        ];
 
         let stops = testutil::make_stops(testutil::WhichRoutes::Some(vec!["1", "2"]));
 
@@ -363,7 +380,7 @@ mod tests {
                     webclient_api::Line{
                         name: Some("1".to_string()),
                         color_hex: Some("EE352E".to_string()),
-                        active: Some(false),
+                        active: Some(true),
                     }, webclient_api::Line{
                         name: Some("2".to_string()),
                         color_hex: Some("EE352E".to_string()),
@@ -386,11 +403,6 @@ mod tests {
         let feeds = feedfetcher::LockedFeeds::new();
         let cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
-
-        // "GTFS Stop Id" and "Complex ID" columns from Stations.csv
-        const UNION_ST_GTFS_ID: &str = "R32S";
-        const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
-        const UNION_ST_MTA_COMPLEX_ID: &str = "028";
 
         feeds.update(1, &testutil::make_feed(
             500,
