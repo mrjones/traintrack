@@ -9,6 +9,7 @@ pub struct EmptyCookieAccessor{ }
 
 impl utils::CookieAccessor for EmptyCookieAccessor {
     fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
+    fn set_cookie(&mut self, _key: &str, _value: &str) { }
 }
 
 // TODO(mrjones): Decide whether filtered prod data or synthetic data is better

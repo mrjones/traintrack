@@ -225,34 +225,34 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
 
 pub trait CookieAccessor {
     fn get_cookie(&self, key: &str) -> Vec<String>;
+    fn set_cookie(&mut self, key: &str, value: &str);
 }
 
-pub struct RustfulCookies<'h /*, 'p */> {
+pub struct RustfulCookies<'h, 'm> {
     request_headers: &'h rustful::header::Headers,
-//    per_request_context: &'p mut context::PerRequestContext,
+    response_modifiers: &'m mut Vec<context::ResponseModifier>,
 }
 
-impl <'h /*, 'p */> RustfulCookies<'h /*, 'p */> {
+impl <'h, 'm> RustfulCookies<'h, 'm> {
     pub fn new(
-        request_headers: &'h rustful::header::Headers) -> RustfulCookies<'h /*, 'p */> {
-//        per_request_context: &'p mut context::PerRequestContext
+        request_headers: &'h rustful::header::Headers,
+        response_modifiers: &'m mut Vec<context::ResponseModifier>) -> RustfulCookies<'h, 'm> {
         return RustfulCookies{
             request_headers: request_headers,
-//            per_request_context: per_request_context,
+            response_modifiers: response_modifiers,
         };
     }
 }
 
-impl <'h> CookieAccessor for RustfulCookies<'h> {
+impl <'h, 'm> CookieAccessor for RustfulCookies<'h, 'm> {
     fn get_cookie(&self, key: &str) -> Vec<String> {
         return extract_cookie_values(self.request_headers, key);
     }
 
-    /*
-    pub fn set_cookie(&mut self, key: &str, value: &str) {
+    fn set_cookie(&mut self, key: &str, value: &str) {
         let key = key.to_string();
         let value = value.to_string();
-        self.per_request_context.response_modifiers.push(Box::new(
+        self.response_modifiers.push(Box::new(
             move |response: &mut rustful::Response| {
                 response.headers_mut().set(
                     rustful::header::SetCookie(vec![
@@ -260,7 +260,6 @@ impl <'h> CookieAccessor for RustfulCookies<'h> {
                     ]))
             }));
     }
-     */
 }
 
 pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {

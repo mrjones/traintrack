@@ -51,7 +51,7 @@ pub fn station_detail_handler(
     let station_id_param: Option<String> = rustful_context.variables.get("station_id")
         .map(|cow| cow.into_owned());
 
-    let cookies = utils::RustfulCookies::new(&rustful_context.headers);
+    let cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
     let (mut response, station_id) = station_detail_handler_guts(
         &tt_context.stops,
@@ -396,6 +396,7 @@ mod tests {
     fn station_detail_handler_test() {
         // Things to test:
         // - Complexes with multiple stations
+        // - System status (only showing affected routes).
         simple_logger::init().unwrap();
 
         let stops = testutil::make_stops(testutil::WhichRoutes::All);

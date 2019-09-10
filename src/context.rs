@@ -31,9 +31,11 @@ pub struct RequestTimer {
     pub trace: bool,
 }
 
+pub type ResponseModifier = Box<dyn Fn(&mut rustful::Response)>;
+
 pub struct PerRequestContext {
     pub timer: RequestTimer,
-    pub response_modifiers: std::vec::Vec<Box<dyn Fn(&mut rustful::Response)>>,
+    pub response_modifiers: std::vec::Vec<ResponseModifier>,
 }
 
 pub struct RequestSpan {
