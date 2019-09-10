@@ -42,9 +42,10 @@ xml5ever = "*"
 
 [dev-dependencies]
 stringreader = "*"
+simple_logger = "*"
 
-[dev-dependencies.simple_logger]
-default-features = false  # Turn off colorization
+#[dev-dependencies.simple_logger]
+#default-features = false  # Turn off colorization
 
 [build-dependencies]
 built = "*"
