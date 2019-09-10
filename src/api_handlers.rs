@@ -50,12 +50,10 @@ pub fn station_detail_handler(
     per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
     let station_id_param: Option<String> = rustful_context.variables.get("station_id")
         .map(|cow| cow.into_owned());
+    let prefetch_param: Option<String> = rustful_context.query.get("prefetch")
+        .map(|cow| cow.into_owned());
 
     let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
-
-    let prefetch_string: Option<String> = rustful_context.query.get("prefetch")
-        .map(|x: std::borrow::Cow<'_, str>| String::from(x));
-    let is_prefetch = prefetch_string == Some("true".to_string());
 
     let mut response = station_detail_handler_guts(
         &tt_context.stops,
@@ -63,7 +61,7 @@ pub fn station_detail_handler(
         tt_context.latest_feeds(),
         station_id_param,
         &mut cookies,
-        is_prefetch,
+        prefetch_param == Some("true".to_string()),
         &mut per_request_context.timer)?;
 
     let result;
