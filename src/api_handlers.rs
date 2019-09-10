@@ -344,6 +344,7 @@ mod tests {
     use feedfetcher;
     use feedproxy_api;
     use testutil;
+    use utils;
     use webclient_api;
 
     #[test]
@@ -377,7 +378,6 @@ mod tests {
     #[test]
     fn station_detail_handler_test() {
         // Things to test:
-        // - Directionality
         // - Complexes with multiple stations
         simple_logger::init().unwrap();
 
@@ -390,22 +390,32 @@ mod tests {
         feeds.update(1, &testutil::make_feed(
             500,
             vec![
+                // Stop ID is "GTFS Stop Id" column from Stations.csv
                 testutil::TripSpec{
-                    line: "R".to_string(),
-                    // "GTFS Stop Id" column from Stations.csv
+                    line: "R",
+                    direction: utils::Direction::UPTOWN,
                     stops: vec![
-                        ("R32S".to_string(), 1000),
-                        ("D24S".to_string(), 1100), // Irrelevant
+                        ("R32S", 1000),
+                        ("D24S", 1100), // Irrelevant
                     ],
                 },
                 testutil::TripSpec{
-                    line: "R".to_string(),
-                    // "GTFS Stop Id" column from Stations.csv
+                    line: "R",
+                    direction: utils::Direction::UPTOWN,
                     stops: vec![
-                        ("R32S".to_string(), 2000),
-                        ("D24S".to_string(), 2200), // Irrelevant
+                        ("R32S", 2000),
+                        ("D24S", 2200), // Irrelevant
+                    ],
+                },
+                testutil::TripSpec{
+                    line: "R",
+                    direction: utils::Direction::DOWNTOWN,
+                    stops: vec![
+                        ("D24S", 3000), // Irrelevant
+                        ("R32S", 3300),
                     ],
                 }
+
             ]));
 
         let (station_data, station_id) = super::station_detail_handler_guts(
@@ -421,11 +431,18 @@ mod tests {
 
         assert_eq!("Union St".to_string(), station_data.name());
 
-        assert_eq!(1, station_data.line.len());
+        assert_eq!(2, station_data.line.len());
         assert_eq!("R".to_string(), station_data.line[0].line());
+        assert_eq!(webclient_api::Direction::Uptown, station_data.line[0].direction());
+
+        assert_eq!("R".to_string(), station_data.line[1].line());
+        assert_eq!(webclient_api::Direction::Downtown, station_data.line[1].direction());
 
         assert_eq!(2, station_data.line[0].arrivals.len());
         assert_eq!(1000, station_data.line[0].arrivals[0].timestamp());
         assert_eq!(2000, station_data.line[0].arrivals[1].timestamp());
+
+        assert_eq!(1, station_data.line[1].arrivals.len());
+        assert_eq!(3300, station_data.line[1].arrivals[0].timestamp());
     }
 }

@@ -55,12 +55,20 @@ pub fn make_stops(which_routes: WhichRoutes) -> stops::Stops {
         .expect("parsing stops data");
 }
 
-pub struct TripSpec {
-    pub line: String,
-    pub stops: Vec<(String, i64)>, // Stop, timestamp
+pub struct TripSpec<'a> {
+    pub line: &'a str,
+    pub direction: utils::Direction,
+    pub stops: Vec<(&'a str, i64)>, // Stop, timestamp
 }
 
-pub fn make_feed(timestamp: i64, trips: Vec<TripSpec>) -> feedfetcher::FetchResult {
+fn direction_char(direction: &utils::Direction) -> char {
+    match direction {
+        utils::Direction::UPTOWN => 'N',
+        utils::Direction::DOWNTOWN => 'S',
+    }
+}
+
+pub fn make_feed<'a>(timestamp: i64, trips: Vec<TripSpec<'a>>) -> feedfetcher::FetchResult {
     use chrono::TimeZone;
 
     let feed_proto = transit_realtime::FeedMessage{
@@ -73,13 +81,13 @@ pub fn make_feed(timestamp: i64, trips: Vec<TripSpec>) -> feedfetcher::FetchResu
                 trip_update: Some(transit_realtime::TripUpdate{
                     trip: transit_realtime::TripDescriptor{
                         // TODO(mrjones): Direction
-                        trip_id: Some(format!("XXX_{}..NXXX", &spec.line)),
-                        route_id: Some(spec.line.clone()),
+                        trip_id: Some(format!("XXX_{}..{}XXX", &spec.line, direction_char(&spec.direction))),
+                        route_id: Some(spec.line.to_string()),
                         ..Default::default()
                     },
                     stop_time_update: spec.stops.iter().map(|(stop_id, stop_timestamp)| {
                         transit_realtime::trip_update::StopTimeUpdate{
-                            stop_id: Some(stop_id.clone()),
+                            stop_id: Some(stop_id.to_string()),
                             arrival: Some(transit_realtime::trip_update::StopTimeEvent{
                                 time: Some(*stop_timestamp),
                                 ..Default::default()
