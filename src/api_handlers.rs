@@ -398,7 +398,7 @@ mod tests {
             &stops,
             empty_status_proto,
             &feeds,
-            // "Station ID" column from Stations.csv
+            // "Complex ID" column from Stations.csv
             Some("028".to_string()),
             &cookies,
             &mut timer).expect("station_detail_handler_guts call");
