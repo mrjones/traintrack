@@ -18,6 +18,8 @@ extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
+#[macro_use]
+extern crate maplit;
 extern crate prost;
 #[macro_use]
 extern crate serde_derive;
@@ -105,6 +107,7 @@ fn main() {
     opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
     opts.optopt("", "google-service-account-pem-file", ".pem file containing the Google service account's private key", "PATH");
     opts.optopt("", "gcs-archive-bucket", "GCS bucket to hold archived feeds", "BUCKET");
+    opts.optflag("", "use-new-mta-api-endpoint", "If true, connects to the new (api.mta.info) endpoint");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -135,8 +138,15 @@ fn main() {
             });
         });
 
+    let mta_endpoint = if matches.opt_present("use-new-mta-api-endpoint") {
+        feedfetcher::MtaApiEndpoint::New
+    } else {
+        feedfetcher::MtaApiEndpoint::Legacy
+    };
+
+
     let mta_client = std::sync::Arc::new(
-        feedfetcher::MtaFeedClient::new(&key, archive::FeedArchive::new(gcs_config)));
+        feedfetcher::MtaFeedClient::new(&key, archive::FeedArchive::new(gcs_config), mta_endpoint));
 
     let clientclone = mta_client.clone();
     let clientclone2 = mta_client.clone();

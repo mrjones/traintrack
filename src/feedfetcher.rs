@@ -41,6 +41,11 @@ pub struct LockedFeeds {
     feeds: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
 }
 
+pub enum MtaApiEndpoint {
+    Legacy,
+    New,
+}
+
 pub struct ProxyClient {
     latest_values: LockedFeeds,
     latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
@@ -50,6 +55,7 @@ pub struct ProxyClient {
 
 pub struct MtaFeedClient {
     mta_api_key: String,
+    mta_endpoint: MtaApiEndpoint,
     latest_values: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
     latest_status: std::sync::RwLock<feedproxy_api::SubwayStatus>,
     archive: archive::FeedArchive,
@@ -91,9 +97,10 @@ impl LockedFeeds {
 
 #[allow(dead_code)]  // Used in proxy, but not server.
 impl MtaFeedClient {
-    pub fn new(mta_api_key: &str, archive: archive::FeedArchive) -> MtaFeedClient {
+    pub fn new(mta_api_key: &str, archive: archive::FeedArchive, endpoint: MtaApiEndpoint) -> MtaFeedClient {
         return MtaFeedClient{
             mta_api_key: mta_api_key.to_string(),
+            mta_endpoint: endpoint,
             latest_values: std::sync::RwLock::new(std::collections::HashMap::new()),
             latest_status: std::sync::RwLock::new(feedproxy_api::SubwayStatus::default()),
             archive: archive,
@@ -187,17 +194,48 @@ impl MtaFeedClient {
         return Ok(feed);
     }
 
+    fn fetch_one_feed_legacy_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::Response> {
+        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", api_key, feed_id);
+        info!("Fetching URL: {}", url);
+        return Ok(reqwest::get(&url)?);
+    }
+
+    fn fetch_one_feed_new_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::Response> {
+        // TODO(mrjones): Get rid of this mapping once we delete the legacy API code
+        let legacy_feed_id_mapping = hashmap!{
+            1 => "gtfs", // 123456
+            2 => "gtfs-l",
+            16 => "gtfs-nqrw",
+            21 => "gtfs-bdfm",
+            26 => "gtfs-ace",
+            31 => "gtfs-g",
+            36 => "gtfs-jz",
+            51 => "gtfs-7",
+        };
+        let feed_string = legacy_feed_id_mapping.get(&feed_id).unwrap();
+
+        let url = format!("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2F{}", feed_string);
+
+        info!("Fetching URL: {}", url);
+        let client = reqwest::Client::new();
+        return Ok(client.get(&url).header("x-api-key", api_key).send()?);
+
+    }
+
     fn fetch_one_feed(&self, feed_id: i32) -> result::TTResult<transit_realtime::FeedMessage> {
         let last_successful_fetch = match self.latest_values.read().unwrap().get(&feed_id) {
             None => None,
             Some(ref result) => result.last_good_fetch,
         };
 
-        let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", self.mta_api_key, feed_id);
-        debug!("Fetching URL: {}", url);
+        let mut response = match self.mta_endpoint {
+            MtaApiEndpoint::Legacy => self.fetch_one_feed_legacy_endpoint(feed_id, &self.mta_api_key)?,
+            MtaApiEndpoint::New => self.fetch_one_feed_new_endpoint(feed_id, &self.mta_api_key)?,
+        };
 
-        let mut response: reqwest::Response = reqwest::get(&url)?;
         if !response.status().is_success() {
+            error!("{:?}", response.status());
+            error!("{}", response.text().unwrap());
             return Err(result::quick_err(
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
