@@ -36,6 +36,7 @@ export class AboutPage extends React.Component<any, any> {
       <li>2018-05-21: Remember most recent station when loading home page.</li>
       <li>2018-10-09: Persist train highlighting when using station filtering controls.</li>
       <li>2019-06-05: First shot at presenting relevant service status messages for a station. Note that it is, unfortunately, still common to get irrelevant or confusing messages.</li>
+      <li>2019-09-11: Added support for a new MTA API endpoint, which hopefully (?) will provide more reliable data, but could also lead to new bugs.</li>
       </ul>
       </p>
       </div>;
