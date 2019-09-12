@@ -41,6 +41,7 @@ pub struct LockedFeeds {
     feeds: std::sync::RwLock<std::collections::HashMap<i32, FetchResult>>,
 }
 
+#[allow(dead_code)]  // Used in proxy, but not server.
 pub enum MtaApiEndpoint {
     Legacy,
     New,
