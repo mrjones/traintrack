@@ -28,14 +28,15 @@ spec:
     spec:
       containers:
       - name: feedproxy
-        image: gcr.io/mrjones-gke/traintrack-feedproxy:2019-09-11.0
+        image: gcr.io/mrjones-gke/traintrack-feedproxy:2019-09-11.1
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY
           valueFrom:
             secretKeyRef:
-              name: traintrack-creds
+              name: traintrack-creds-api.mta.info
               key: mta-api-key
         args: [
+          "--use-new-mta-api-endpoint",
           "--mta-api-key", "$(MTA_API_KEY)",
         ]

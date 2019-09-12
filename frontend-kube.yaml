@@ -31,14 +31,9 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2019-09-11.0
+        image: gcr.io/mrjones-gke/traintrack:2019-09-11.1
         imagePullPolicy: IfNotPresent
         env:
-        - name: MTA_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: traintrack-creds
-              key: mta-api-key
         - name: GOOGLE_API_ID
           valueFrom:
             secretKeyRef:
@@ -55,8 +50,6 @@ spec:
               name: traintrack-firebase-creds
               key: firebase-api-key
         args: [
-          # TODO: Remove
-          "--mta-api-key", "$(MTA_API_KEY)",
           "--proxy-url", "http://$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_HOST):$(TRAINTRACK_FEEDPROXY_SERVICE_SERVICE_PORT)",
           "--google-api-id", "$(GOOGLE_API_ID)",
           "--google-api-secret", "$(GOOGLE_API_SECRET)",

@@ -1,7 +1,9 @@
 FROM ubuntu:16.04
 MAINTAINER Matt Jones <jonesmr@gmail.com>
 
-RUN apt-get update && apt-get -y install libssl-dev
+RUN apt-get update && apt-get -y install \
+  ca-certificates \
+  libssl-dev
 
 COPY feedproxy /deploy/feedproxy
 RUN mkdir -p /deploy/log
