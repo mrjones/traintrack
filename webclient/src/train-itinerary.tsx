@@ -32,10 +32,10 @@ import { TTThunkDispatch } from './thunk-types';
 
 export class TrainItineraryQueryParams {
   public static parseFrom(query: history.Search): TrainItineraryQueryParams {
-    let parsed = querystring.parse(query);
+    let parsed = querystring.parse(query, {arrayFormat: 'comma'});
     return {
       highlightedStations: parsed["highlight"] ?
-        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set(),
+        Immutable.Set(parsed["highlight"]) : Immutable.Set(),
     };
   }
 

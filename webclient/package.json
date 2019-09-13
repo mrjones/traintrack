@@ -8,7 +8,7 @@
     "@types/react-redux": "^7.1.2",
     "@types/react-router-dom": "^4.3.5",
     "es6-map": "^0.1.5",
-    "google-protobuf": "^3.6.1",
+    "google-protobuf": "^3.10.0-rc.1",
     "immutable": "^3.8.2",
     "moment": "^2.24.0",
     "protobufjs": "^6.8.8",

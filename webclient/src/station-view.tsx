@@ -41,10 +41,10 @@ export class StationPageQueryParams {
   }
 
   public static parseFrom(query: history.Search): StationPageQueryParams {
-    let parsed = querystring.parse(query);
+    let parsed = querystring.parse(query, {arrayFormat: 'comma'});
     return new StationPageQueryParams(
       parsed["highlight"] ?
-        Immutable.Set(parsed["highlight"].split(",")) : Immutable.Set());
+        Immutable.Set(parsed["highlight"]) : Immutable.Set());
   }
 
   public asParams(): Immutable.Set<string> {
