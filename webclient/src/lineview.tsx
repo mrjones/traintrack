@@ -73,11 +73,11 @@ export default class LineView extends React.Component<LineViewProps, LineViewLoc
     }
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.fetchDataIfNecessary(this.props);
   }
 
-  public componentWillReceiveProps(nextProps: LineViewProps) {
+  public componentDidUpdate(nextProps: LineViewProps) {
     this.fetchDataIfNecessary(nextProps);
   }
 

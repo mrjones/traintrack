@@ -166,11 +166,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     this.state = { lastStationIdsFetched: [] };
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.fetchMissingData(this.props);
   }
 
-  public componentWillReceiveProps(nextProps: TransferPageProps) {
+  public componentDidUpdate(nextProps: TransferPageProps) {
     this.fetchMissingData(nextProps);
   }
 

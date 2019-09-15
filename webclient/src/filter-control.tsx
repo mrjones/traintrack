@@ -185,7 +185,6 @@ class FilterControlExplicitProps {
   public queryParamsToPropagate: Immutable.Set<String>;
 }
 class FilterControlLocalState {
-  public lineColors: Map<string, string>;  // TODO: move to props
   public expanded: boolean;
 };
 
@@ -211,7 +210,6 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     super(props);
 
     this.state = {
-      lineColors: new Map<string, string>(),
       expanded: false,
     };
   }
@@ -241,10 +239,15 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
 
     togglers.push(<div key="sep1" className="toggleSeparator" />);
 
+    let lineColorsByName = new Map<string, string>();
+    this.props.allTrains.line.map((line: proto.LineArrivals) => {
+      lineColorsByName.set(line.line, line.lineColorHex);
+    });
+
     utils.linesForStation(this.props.allTrains).map((line: string) => {
       let visible = this.props.visibilityState.includesLine(line);
       let style = {
-        background: "#" + this.state.lineColors.get(line),
+        background: "#" + lineColorsByName.get(line),
       };
       let className = "toggleButton " + (visible ? "active" : "inactive");
       let newVisibility = this.props.visibilityState.clone();
@@ -279,17 +282,6 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     let cookieStr = "defaultStation=" + stationId + "; max-age=31536000; path=/;";
     console.log("Setting cookie: " + cookieStr);
     document.cookie = cookieStr;
-  }
-
-  public componentWillReceiveProps(nextProps: FilterControlProps) {
-    let lineColors = new Map<string, string>();
-    nextProps.allTrains.line.map((line: proto.LineArrivals) => {
-      lineColors.set(line.line, line.lineColorHex);
-    });
-
-    this.setState({
-      lineColors: lineColors,
-    });
   }
 
   private toggleExpanded() {

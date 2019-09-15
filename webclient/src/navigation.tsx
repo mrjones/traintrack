@@ -129,7 +129,7 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
     };
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     if (!this.props.allStations.valid && !this.props.allStations.loading) {
       this.props.loadStationData();
     }

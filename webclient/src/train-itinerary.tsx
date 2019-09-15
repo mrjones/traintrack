@@ -93,11 +93,11 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
     this.state = { };
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.props.loadItinerary(this.props.trainId);
   }
 
-  public componentWillReceiveProps(nextProps: TrainItineraryProps) {
+  public componentDidUpdate(nextProps: TrainItineraryProps) {
     if (this.props.trainId !== nextProps.trainId) {
       this.props.loadItinerary(nextProps.trainId);
     }

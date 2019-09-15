@@ -227,11 +227,11 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
     this.props.fetchStationData(this.props.stationId);
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.fetchDataIfNecessary(this.props);
   }
 
-  public componentWillReceiveProps(nextProps: StationMultiLineProps) {
+  public componentDidUpdate(nextProps: StationMultiLineProps) {
     this.fetchDataIfNecessary(nextProps);
   }
 
