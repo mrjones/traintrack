@@ -9,8 +9,8 @@ COPY bin/server /deploy/server
 COPY templates /deploy/templates
 COPY static /deploy/static
 COPY data /deploy/data
-COPY webclient/bin/webclient.js /deploy/webclient.js
-COPY webclient/bin/webclient.js.gz /deploy/webclient.js.gz
+COPY webclient/dist/bin/webclient.js /deploy/webclient.js
+COPY webclient/dist/bin/webclient.js.gz /deploy/webclient.js.gz
 RUN mkdir -p /deploy/log
 
 EXPOSE 3837
