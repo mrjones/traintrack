@@ -99,7 +99,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
 
         return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}?highlight=${this.props.stationId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       });
-      directionUls.push(<div className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
+      directionUls.push(<div key={directionData[0]} className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
     }
 
     return <div>{directionUls}</div>;
