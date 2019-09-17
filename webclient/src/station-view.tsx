@@ -80,7 +80,6 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
   public render(): JSX.Element {
     let directionUls = new Array<JSX.Element>();
     let directionDatas = this.sortArrivals(this.props.data);
-    console.log("HIGHLIGHTS: " + JSON.stringify(this.props.highlightedTrains));
     for (let directionData of directionDatas) {
       let lis = directionData[1].map((info: IntermingledArrivalInfo) => {
         let key = info.line + "-" + info.timestamp + "-" + info.direction;

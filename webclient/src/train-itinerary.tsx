@@ -116,12 +116,9 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
   }
 
   public render(): JSX.Element {
-    console.log("Rendering train with " + this.props.queryParams.highlightedStations.size + " highlights");
     let body = <div>Loading...</div>;
     let dataTs = moment.unix(0);
     if (this.props.hasData) {
-      console.log("COLOR: " + JSON.stringify(this.props.data));
-
       const rows = this.props.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
         let stationElt = <span>Unknown station</span>;
