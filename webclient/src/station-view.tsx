@@ -42,9 +42,13 @@ export class StationPageQueryParams {
 
   public static parseFrom(query: history.Search): StationPageQueryParams {
     let parsed = querystring.parse(query, {arrayFormat: 'comma'});
-    return new StationPageQueryParams(
-      parsed["highlight"] ?
-        Immutable.Set(parsed["highlight"]) : Immutable.Set());
+    // see note in TrainItineraryQueryParams::parseFrom in train-itinerary.tsx
+    let highlights: string | string[] = parsed["highlight"];
+    if (Array.isArray(highlights)) {
+      return new StationPageQueryParams(Immutable.Set<string>(highlights));
+    } else {
+      return new StationPageQueryParams(Immutable.Set.of<string>(highlights));
+    }
   }
 
   public asParams(): Immutable.Set<string> {

@@ -33,10 +33,22 @@ import { TTThunkDispatch } from './thunk-types';
 export class TrainItineraryQueryParams {
   public static parseFrom(query: history.Search): TrainItineraryQueryParams {
     let parsed = querystring.parse(query, {arrayFormat: 'comma'});
-    return {
-      highlightedStations: parsed["highlight"] ?
-        Immutable.Set(parsed["highlight"]) : Immutable.Set(),
-    };
+    // It's obnoxious that
+    // (a) this returns a "string | string[]" depending on whether the input
+    //     has one or more matches.
+    // (b) Immutable.Set treats "string" and "string[]" differently:
+    //     "A JavaScript string is an iterable object, so if you create a
+    //      Set of strings using Set("string"), you’ll actually get a Set
+    //      of characters (['s', 't', 'r', 'i', 'n', 'g'])"
+    //      - https://untangled.io/immutablejs-creating-sets/
+    // So, we have to switch on the type of the object and handle them
+    // differently.
+    let highlights: string | string[] = parsed["highlight"];
+    if (Array.isArray(highlights)) {
+      return { highlightedStations: Immutable.Set<string>(highlights), };
+    } else {
+      return { highlightedStations: Immutable.Set.of<string>(highlights), };
+    }
   }
 
   public highlightedStations: Immutable.Set<string>;
@@ -104,6 +116,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
   }
 
   public render(): JSX.Element {
+    console.log("Rendering train with " + this.props.queryParams.highlightedStations.size + " highlights");
     let body = <div>Loading...</div>;
     let dataTs = moment.unix(0);
     if (this.props.hasData) {
