@@ -24,7 +24,7 @@ pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustf
     let mut response = line_list_handler_guts(
         &tt_context.latest_feeds().all_feeds_cloned(),
         &tt_context.stops)?;
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 fn line_list_handler_guts(
@@ -67,7 +67,7 @@ pub fn station_detail_handler(
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
-        result = api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+        result = api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
     }
 
     return result;
@@ -191,7 +191,7 @@ pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: ru
         response.station.insert(0, station);
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -210,7 +210,7 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
         debug_info: None,
     };
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -258,7 +258,7 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
         }).collect::<Vec<webclient_api::TrainItinerary>>().into_iter();
     }).nth(0).ok_or(result::quick_err("No matching train."))?;
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -291,7 +291,7 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
     }
 
 
-    return api_response(&mut response, tt_context, &rustful_context, &per_request_context.timer, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
@@ -300,13 +300,13 @@ fn api_response<M: prost::Message + serde::Serialize>(
     data: &mut M,
     tt_context: &context::TTContext,
     rustful_context: &rustful::Context,
-    timer: &context::RequestTimer,
+    per_request_context: &mut context::PerRequestContext,
     debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     match debug_getter {
         Some(f) => {
             let debug_info = f(data);
             let now = chrono::Utc::now();
-            let start_ms = timer.start_time.timestamp() * 1000 + timer.start_time.timestamp_subsec_millis() as i64;
+            let start_ms = per_request_context.timer.start_time.timestamp() * 1000 + per_request_context.timer.start_time.timestamp_subsec_millis() as i64;
             let now_ms = now.timestamp() * 1000 + now.timestamp_subsec_millis() as i64;
 
             debug_info.processing_time_ms = Some(now_ms - start_ms);
@@ -323,6 +323,9 @@ fn api_response<M: prost::Message + serde::Serialize>(
         // TODO(mrjones): return proper MIME type
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => {
+            per_request_context.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
+                response.headers_mut().set(rustful::header::ContentType::json());
+            }));
             return Ok(serde_json::to_vec(data).expect("json encode"));
         },
         _ => {
