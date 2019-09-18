@@ -85,6 +85,8 @@ pub fn possible_stop_ids(initial_id: &str) -> Vec<String> {
         result.push(initial_id[..l].to_string());
     }
 
+    result.push(format!("0{}", initial_id)); // XXX
+
     return result;
 }
 

@@ -182,7 +182,11 @@ impl Stops {
         return Stops::new_from_csv_readers(&mut routes_reader, &mut stations_reader, &mut trips_reader);
     }
 
-    pub fn new_from_csv_readers<R: std::io::Read>(routes_reader: &mut csv::Reader<R>, stations_reader: &mut csv::Reader<R>, trips_reader: &mut csv::Reader<R>) -> result::TTResult<Stops> {
+    pub fn new_from_csv_readers<R: std::io::Read>(
+        routes_reader: &mut csv::Reader<R>,
+        stations_reader: &mut csv::Reader<R>,
+        trips_reader: &mut csv::Reader<R>) -> result::TTResult<Stops> {
+
         info!("Parsing routes.txt");
         let mut routes = Vec::new();
         for record in routes_reader.deserialize() {
@@ -199,20 +203,28 @@ impl Stops {
         let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
         for record in stations_reader.deserialize() {
             let record: StationCsvRecord = record?;
+            // TODO(mrjones): Station/Complex IDs used to be three zero-padded digits:
+            // e.g. "028" (https://github.com/mrjones/traintrack/commit/86296a5643f4dc57a27f161be7f5c7bcc0395d71#diff-59d050d5e1a2e1a0821288bb4f1dfec3).
+            // But then they became variable-width and not zero-padded (e.g. "28").
+            // For now, we convert to the old format because we exposed it in URLs.
+            // In the future we should think harder about how to manage this.
+            let complex_id = format!("{:0>3}", record.complex_id);
+
+            info!("complex_id: {}", complex_id);
             let stop = Stop{
                 id: record.gtfs_stop_id.clone(),
                 parent_id: None,
                 name: record.name,
-                complex_id: record.complex_id.clone(),
+                complex_id: complex_id.clone(),
                 lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
             };
 
             stops.insert(record.gtfs_stop_id.clone(), stop.clone());
 
-            if !complexes.contains_key(&record.complex_id) {
-                complexes.insert(record.complex_id, stop.clone());
+            if !complexes.contains_key(&complex_id) {
+                complexes.insert(complex_id, stop.clone());
             } else {
-                let existing = complexes.get_mut(&record.complex_id).unwrap();
+                let existing = complexes.get_mut(&complex_id).unwrap();
                 existing.lines = existing.lines.union(&stop.lines).cloned().collect();
             }
 
