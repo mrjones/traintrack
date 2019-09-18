@@ -40,7 +40,7 @@ pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::
             if let Some(ref trip_update) = entity.trip_update {
                 active_lines.insert(trip_update.trip.route_id().to_string());
             } else {
-                warn!("Missing trip_update in active_lines.");
+                debug!("Missing trip_update in active_lines.");
             }
         }
     }
@@ -64,10 +64,17 @@ fn infer_direction_for_trip_id(trip_id: &str) -> Direction {
     // TODO(mrjones): Read the NYCT extension and determine this properly
     let trip_id: String = trip_id.to_string();
 
-
-    let parts: Vec<&str> = trip_id.split("..").collect();
+    // TODO(mrjones): Almost all IDs are of the form:
+    // "099850_1..S04R" or "105550_E..S" (with two dots),
+    // but the 42nd St Shuttle (at least) looks like: "102800_GS.N04R"
+    // We should handle this more cleanly, and write a test too.
+    let mut parts: Vec<&str> = trip_id.split("..").collect();
     if parts.len() != 2 || parts[1].len() == 0 {
-        panic!("Couldn't split on '..': {}", trip_id);
+        parts = trip_id.split(".").collect();
+        if parts.len() != 2 || parts[1].len() == 0 {
+            error!("Couldn't split on '..' or '.': {}", trip_id);
+            return Direction::UPTOWN; // XXX
+        }
     }
 
     let indicator_char: String = parts[1].chars().take(1).collect();
@@ -189,7 +196,7 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
                             Some(ref nyct) => nyct.train_id().to_string(),
                             None => String::new(),
                         };
-                        info!("NYCT id: {}", nyct_train_id_or_empty);
+                        debug!("NYCT id: {}", nyct_train_id_or_empty);
                         if route_trains.contains_key(&direction) {
                             route_trains.get_mut(&direction).unwrap().push(
                                 Arrival::new(
