@@ -320,7 +320,6 @@ fn api_response<M: prost::Message + serde::Serialize>(
         .map(|x| String::from(x));
 
     match format.as_ref().map(String::as_ref) {
-        // TODO(mrjones): return proper MIME type
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => {
             per_request_context.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
