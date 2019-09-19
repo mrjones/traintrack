@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as proto from './webclient_api_pb';
-
+import { webclient_api } from './webclient_api_pb';
 import { Loadable } from './async';
 import { DataFetcher, DebuggableResult } from './datafetcher';
 import * as Immutable from 'immutable';
@@ -28,14 +27,14 @@ export class TTContext {
 
 // TODO(mrjones): split up and refactor
 export type TTCoreState = {
-  stationDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationStatus>>>;
+  stationDetails: Immutable.Map<string, Loadable<DebuggableResult<webclient_api.StationStatus>>>;
 
-  allStations: Loadable<proto.StationList>,
+  allStations: Loadable<webclient_api.StationList>,
 
-  allLines: Loadable<DebuggableResult<proto.LineList>>,
-  lineDetails: Immutable.Map<string, Loadable<DebuggableResult<proto.StationList>>>;
+  allLines: Loadable<DebuggableResult<webclient_api.LineList>>,
+  lineDetails: Immutable.Map<string, Loadable<DebuggableResult<webclient_api.StationList>>>;
 
-  trainItineraries: Immutable.Map<string, Loadable<DebuggableResult<proto.ITrainItinerary>>>;
+  trainItineraries: Immutable.Map<string, Loadable<DebuggableResult<webclient_api.ITrainItinerary>>>;
 }
 
 export type TTState = {
@@ -64,18 +63,18 @@ export enum TTActionTypes {
 };
 
 export type StartLoadingStationDetailsAction = TTAction<TTActionTypes.START_LOADING_STATION_DETAILS, string>;
-export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<proto.StationStatus>]>;
+export type InstallStationDetailsAction = TTAction<TTActionTypes.INSTALL_STATION_DETAILS, [string, DebuggableResult<webclient_api.StationStatus>]>;
 
-export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, proto.StationList>;
+export type InstallStationListAction = TTAction<TTActionTypes.INSTALL_STATION_LIST, webclient_api.StationList>;
 export type StartLoadingStationListAction = TTAction<TTActionTypes.START_LOADING_STATION_LIST, null>;
 
-export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<proto.LineList>>;
+export type InstallLineListAction = TTAction<TTActionTypes.INSTALL_LINE_LIST, DebuggableResult<webclient_api.LineList>>;
 export type StartLoadingLineListAction = TTAction<TTActionTypes.START_LOADING_LINE_LIST, null>;
 
-export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<proto.StationList>]>;
+export type InstallLineDetailsAction = TTAction<TTActionTypes.INSTALL_LINE_DETAILS, [string, DebuggableResult<webclient_api.StationList>]>;
 
 export type StartLoadingTrainItineraryAction = TTAction<TTActionTypes.START_LOADING_TRAIN_ITINERARY, string>;
-export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_ITINERARY, [string, DebuggableResult<proto.ITrainItinerary>]>;
+export type InstallTrainItineraryAction = TTAction<TTActionTypes.INSTALL_TRAIN_ITINERARY, [string, DebuggableResult<webclient_api.ITrainItinerary>]>;
 
 export type TTActions =
   InstallStationDetailsAction | StartLoadingStationDetailsAction |
@@ -100,12 +99,12 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   case TTActionTypes.START_LOADING_STATION_DETAILS: {
     let id: string = action.payload;
     console.log("START_LOADING_STATION_DETAILS -> " + id);
-    let defaultValue: Loadable<DebuggableResult<proto.StationStatus>> = {
-      data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
+    let defaultValue: Loadable<DebuggableResult<webclient_api.StationStatus>> = {
+      data: new DebuggableResult<webclient_api.StationStatus>(new webclient_api.StationStatus(), null, null),
       loading: true,
       valid: false,
     };
-    let loadable: Loadable<DebuggableResult<proto.StationStatus>> =
+    let loadable: Loadable<DebuggableResult<webclient_api.StationStatus>> =
       state.stationDetails.get(id, defaultValue);
     loadable.loading = true;
     partialState = {
@@ -115,7 +114,7 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_STATION_DETAILS: {
     let id: string = action.payload[0];
-    let obj: Loadable<DebuggableResult<proto.StationStatus>> = {
+    let obj: Loadable<DebuggableResult<webclient_api.StationStatus>> = {
       data: action.payload[1],
       loading: false,
       valid: true,
@@ -137,7 +136,7 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_STATION_LIST: {
     console.log("INSTALL_STATION_LIST");
-    let obj: Loadable<proto.StationList> = {
+    let obj: Loadable<webclient_api.StationList> = {
       data: action.payload,
       loading: false,
       valid: true,
@@ -165,7 +164,7 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_LINE_DETAILS: {
     let id: string = action.payload[0];
-    let obj: Loadable<DebuggableResult<proto.StationList>> = {
+    let obj: Loadable<DebuggableResult<webclient_api.StationList>> = {
       data: action.payload[1],
       loading: false,
       valid: true,
@@ -179,12 +178,12 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   case TTActionTypes.START_LOADING_TRAIN_ITINERARY: {
     let id: string = action.payload;
     console.log("START_LOADING_TRAIN_ITINERARY -> " + id);
-    let defaultValue: Loadable<DebuggableResult<proto.ITrainItinerary>> = {
-      data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
+    let defaultValue: Loadable<DebuggableResult<webclient_api.ITrainItinerary>> = {
+      data: new DebuggableResult<webclient_api.ITrainItinerary>(new webclient_api.TrainItinerary(), null, null),
       loading: true,
       valid: false,
     };
-    let loadable: Loadable<DebuggableResult<proto.ITrainItinerary>> =
+    let loadable: Loadable<DebuggableResult<webclient_api.ITrainItinerary>> =
       state.trainItineraries.get(id, defaultValue);
     loadable.loading = true;
     partialState = {
@@ -194,7 +193,7 @@ export function transition<T, P>(state: TTCoreState = initialState, action: TTAc
   }
   case TTActionTypes.INSTALL_TRAIN_ITINERARY: {
     let id: string = action.payload[0];
-    let obj: Loadable<DebuggableResult<proto.ITrainItinerary>> = {
+    let obj: Loadable<DebuggableResult<webclient_api.ITrainItinerary>> = {
       data: action.payload[1],
       loading: false,
       valid: true,

@@ -19,7 +19,7 @@ import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { Loadable } from './async';
 import { ApiDebugger } from './debug';
@@ -33,7 +33,7 @@ import { TTThunkDispatch } from './thunk-types';
 class TransferSpec {
   public stationId: string;
   public lines: Immutable.Set<string>;
-  public direction: proto.Direction;
+  public direction: webclient_api.Direction;
 
   // Format SSSS-LLL-D
   public static parse(serialized: string): TransferSpec | undefined {
@@ -51,7 +51,7 @@ class TransferSpec {
     return {
       stationId: parts[0],
       lines: Immutable.Set(parts[1].split('')),
-      direction: parts[2] === "U" ? proto.Direction.UPTOWN : proto.Direction.DOWNTOWN,
+      direction: parts[2] === "U" ? webclient_api.Direction.UPTOWN : webclient_api.Direction.DOWNTOWN,
     };
   }
 }
@@ -85,7 +85,7 @@ class TransferPageDataProps {
   public hasAllData: boolean;
   public loadingAnyData: boolean;
   public stationsMissingData: string[];
-  public stationDatas: DebuggableResult<proto.StationStatus>[];
+  public stationDatas: DebuggableResult<webclient_api.StationStatus>[];
   public stationIndex: Map<string, number>; // index into stationDatas
 }
 class TransferPageDispatchProps {
@@ -114,7 +114,7 @@ const mapStateToProps = (state: TTState, ownProps: TransferPageExplicitProps): T
 
   let allStationIds = stationIdsForProps(ownProps);
 
-  let maybeData: Loadable<DebuggableResult<proto.StationStatus>>[] =
+  let maybeData: Loadable<DebuggableResult<webclient_api.StationStatus>>[] =
     allStationIds.map((stationId: string) => {
       stationIndex.set(stationId, i++);
       return state.core.stationDetails.get(stationId);
@@ -233,12 +233,12 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
       });
 
       let minPubTs = this.props.stationDatas.reduce(
-        (minSoFar: number, candidate: DebuggableResult<proto.StationStatus>) => {
+        (minSoFar: number, candidate: DebuggableResult<webclient_api.StationStatus>) => {
           return Math.min(minSoFar, candidate.data.dataTimestamp as number);
         }, Number.MAX_SAFE_INTEGER);
 
-      let allStatusMessages: proto.ISubwayStatusMessage[] = this.props.stationDatas.reduce(
-        (situationsById: Immutable.Map<string, proto.ISubwayStatusMessage>, nextStation: DebuggableResult<proto.StationStatus>) => {
+      let allStatusMessages: webclient_api.ISubwayStatusMessage[] = this.props.stationDatas.reduce(
+        (situationsById: Immutable.Map<string, webclient_api.ISubwayStatusMessage>, nextStation: DebuggableResult<webclient_api.StationStatus>) => {
           for (let situation of nextStation.data.statusMessage) {
             situationsById = situationsById.set(situation.id, situation);
           }
@@ -307,13 +307,13 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     let transfers = transferSpecsForProps(this.props);
 
     let rootI = this.props.stationIndex.get(root.stationId);
-    let rootStation: proto.StationStatus = this.props.stationDatas[rootI].data;
+    let rootStation: webclient_api.StationStatus = this.props.stationDatas[rootI].data;
 
     let tripsWithConnections: TripWithConnections[] = [];
 
-    rootStation.line.forEach((line: proto.LineArrivals) => {
+    rootStation.line.forEach((line: webclient_api.LineArrivals) => {
       if (root.lines.has(line.line) && line.direction === root.direction) {
-        line.arrivals.forEach((lineArrival: proto.LineArrival) => {
+        line.arrivals.forEach((lineArrival: webclient_api.LineArrival) => {
           tripsWithConnections.push({
             rootStationId: root.stationId,
             rootTs: lineArrival.timestamp as number,
@@ -341,7 +341,7 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   private connectionsForTrip(
-    tripId: string, line: string, direction: proto.Direction, specs: TransferSpec[]): [string, ConnectionInfo | undefined][] {
+    tripId: string, line: string, direction: webclient_api.Direction, specs: TransferSpec[]): [string, ConnectionInfo | undefined][] {
       return specs.map((spec: TransferSpec): [string, ConnectionInfo | undefined] => {
         let i = this.props.stationIndex.get(spec.stationId);
         if (i === undefined) {
@@ -363,15 +363,15 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
   }
 
   private findBestConnection(
-    allTrains: proto.ILineArrivals[],
+    allTrains: webclient_api.ILineArrivals[],
     inboundTs: number,
     outboundLines: Immutable.Set<string>,
-    outboundDirection: proto.Direction,
+    outboundDirection: webclient_api.Direction,
     stationId: string): ConnectionInfo | undefined {
 
       let connectionInfo: ConnectionInfo | undefined = undefined;
 
-      allTrains.map((candidateLine: proto.ILineArrivals) => {
+      allTrains.map((candidateLine: webclient_api.ILineArrivals) => {
         if (outboundLines.has(candidateLine.line) &&
             candidateLine.direction === outboundDirection) {
           for (let i = 0; i < candidateLine.arrivals.length; i++) {
@@ -401,9 +401,9 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
     }
 
   private findTrainArrivalTimestamp(
-    allTrains: proto.ILineArrivals[],
+    allTrains: webclient_api.ILineArrivals[],
     line: string,
-    direction: proto.Direction,
+    direction: webclient_api.Direction,
     tripId: string): number | undefined {
       for (let t = 0; t < allTrains.length; t++) {
         let candidateLine = allTrains[t];

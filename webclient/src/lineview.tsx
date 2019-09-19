@@ -18,8 +18,7 @@ import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as ReduxThunk from "redux-thunk";
 
-
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { TTAsyncThunkAction, TTThunkDispatch } from './thunk-types';
 import { Loadable, itemIsBeingLoaded } from './async';
@@ -27,7 +26,7 @@ import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
 import { TTActionTypes, TTContext, TTState, InstallLineDetailsAction } from './state-machine';
 
-function installLineDetails(lineId: string, stations: DebuggableResult<proto.StationList>): InstallLineDetailsAction {
+function installLineDetails(lineId: string, stations: DebuggableResult<webclient_api.StationList>): InstallLineDetailsAction {
   return {
     type: TTActionTypes.INSTALL_LINE_DETAILS,
     payload: [lineId, stations],
@@ -42,14 +41,14 @@ function fetchLineDetails(lineId: string): TTAsyncThunkAction {
     // dispatch(startLoadingStationDetails(stationId));
     // TODO(mrjone): check for errors which might wedge us in "loading"
     context.dataFetcher.fetchStationsForLine(lineId)
-      .then((stationList: DebuggableResult<proto.StationList>) => {
+      .then((stationList: DebuggableResult<webclient_api.StationList>) => {
         dispatch(installLineDetails(lineId, stationList));
       });
   };
 }
 
 class LineViewDataProps {
-  public stationList: DebuggableResult<proto.StationList>;
+  public stationList: DebuggableResult<webclient_api.StationList>;
   public hasData: boolean;
 }
 class LineViewDispatchProps {
@@ -85,7 +84,7 @@ export default class LineView extends React.Component<LineViewProps, LineViewLoc
     if (!this.props.hasData) {
       return <div>Loading...</div>;
     }
-    let stationLis = this.props.stationList.data.station.map((station: proto.Station) => {
+    let stationLis = this.props.stationList.data.station.map((station: webclient_api.Station) => {
       return <li key={station.name}>
         <ReactRouter.Link to={`/app/station/${station.id}`}>
           {station.name}
@@ -102,7 +101,7 @@ export default class LineView extends React.Component<LineViewProps, LineViewLoc
 }
 
 const mapStateToProps = (state: TTState, ownProps: LineViewExplicitProps): LineViewDataProps => {
-  let maybeData: Loadable<DebuggableResult<proto.StationList>> =
+  let maybeData: Loadable<DebuggableResult<webclient_api.StationList>> =
     state.core.lineDetails.get(ownProps.lineId);
   if (maybeData !== undefined && maybeData.valid) {
     return {
@@ -111,7 +110,7 @@ const mapStateToProps = (state: TTState, ownProps: LineViewExplicitProps): LineV
     };
   } else {
     return {
-      stationList: new DebuggableResult<proto.StationList>(new proto.StationList(), null, null),
+      stationList: new DebuggableResult<webclient_api.StationList>(new webclient_api.StationList(), null, null),
       hasData: false,
     };
   }

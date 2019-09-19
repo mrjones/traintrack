@@ -2,8 +2,7 @@ import * as React from "react";
 import * as Redux from "redux";
 import * as Cookie from "es-cookie";
 
-import * as proto from './webclient_api_pb';
-
+import { webclient_api } from './webclient_api_pb';
 import { Loadable } from './async';
 import { DebuggableResult, RequestInitiator } from './datafetcher';
 import { TTContext, TTState } from './state-machine';
@@ -23,7 +22,7 @@ export class Prefetcher {
 
   public statusPage(): JSX.Element {
     let stationLis = this.reduxStore.getState().core.stationDetails.map(
-      (value: Loadable<DebuggableResult<proto.StationStatus>>, key: string) => {
+      (value: Loadable<DebuggableResult<webclient_api.StationStatus>>, key: string) => {
         if (value.valid) {
           return <li>"{value.data.data.name}" [{key}] {RequestInitiator[value.data.initiator]}</li>;
         } else {

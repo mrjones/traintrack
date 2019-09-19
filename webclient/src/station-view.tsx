@@ -21,7 +21,7 @@ import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as history from "history";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 import * as utils from './utils';
 
 import { Loadable } from './async';
@@ -63,7 +63,7 @@ export class StationPageQueryParams {
 }
 
 class StationIntermingledLineProps {
-  public data: proto.ILineArrivals[];
+  public data: webclient_api.ILineArrivals[];
   public stationId: string;
   public highlightedTrains: Immutable.Set<string>;
 }
@@ -71,7 +71,7 @@ class StationIntermingledLineProps {
 class IntermingledArrivalInfo {
   public line: string;
   public timestamp: number | Long;
-  public direction: proto.Direction;
+  public direction: webclient_api.Direction;
   public tripId: string;
   public lineColorHex: string;
 }
@@ -105,10 +105,10 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
     return <div>{directionUls}</div>;
   }
 
-  private sortArrivals(arrivals: proto.ILineArrivals[]): Map<proto.Direction, IntermingledArrivalInfo[]> {
-    let infoMap = new Map<proto.Direction, IntermingledArrivalInfo[]>();
-    arrivals.map((oneLine: proto.ILineArrivals) => {
-      oneLine.arrivals.map((oneArrival: proto.LineArrival) => {
+  private sortArrivals(arrivals: webclient_api.ILineArrivals[]): Map<webclient_api.Direction, IntermingledArrivalInfo[]> {
+    let infoMap = new Map<webclient_api.Direction, IntermingledArrivalInfo[]>();
+    arrivals.map((oneLine: webclient_api.ILineArrivals) => {
+      oneLine.arrivals.map((oneArrival: webclient_api.LineArrival) => {
         let info = new IntermingledArrivalInfo();
         info.line = oneLine.line;
         info.direction = oneLine.direction;
@@ -135,7 +135,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
 };
 
 class StationSingleLineProps {
-  public data: proto.LineArrivals;
+  public data: webclient_api.LineArrivals;
   public stationId: string;
   public highlightedTrains: Immutable.Set<string>;
 };
@@ -147,7 +147,7 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
   public render() {
     const arrivals = this.props.data.arrivals.map(
-      (arr: proto.LineArrival) => {
+      (arr: webclient_api.LineArrival) => {
         const ts = arr.timestamp as number;
         const time = moment.unix(ts);
 
@@ -179,7 +179,7 @@ class StationMultiLineExplicitProps {
 }
 class StationMultiLineDataProps {
   public stationName: string;
-  public data: DebuggableResult<proto.StationStatus>;
+  public data: DebuggableResult<webclient_api.StationStatus>;
   public hasData: boolean;
   public loading: boolean;
 }
@@ -191,7 +191,7 @@ class StationMultiLineLocalState { }
 type StationMultiLineProps = StationMultiLineExplicitProps & StationMultiLineDataProps & StationMultiLineDispatchProps;
 
 const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps): StationMultiLineDataProps => {
-  let maybeData: Loadable<DebuggableResult<proto.StationStatus>> =
+  let maybeData: Loadable<DebuggableResult<webclient_api.StationStatus>> =
     state.core.stationDetails.get(ownProps.stationId);
   if (maybeData !== undefined && maybeData.valid) {
     return {
@@ -203,7 +203,7 @@ const mapStateToProps = (state: TTState, ownProps: StationMultiLineExplicitProps
   } else {
     return {
       stationName: "Loading...",
-      data: new DebuggableResult<proto.StationStatus>(new proto.StationStatus(), null, null),
+      data: new DebuggableResult<webclient_api.StationStatus>(new webclient_api.StationStatus(), null, null),
       hasData: false,
       loading: true,
     };
@@ -241,14 +241,14 @@ class StationMultiLine extends React.Component<StationMultiLineProps, StationMul
   public render() {
     let lineSet: JSX.Element[];
     let visibleLines = this.props.data.data.line.filter(
-      (line: proto.LineArrivals) => {
+      (line: webclient_api.LineArrivals) => {
         return this.props.visibilityState.includesLine(line.line) &&
           this.props.visibilityState.includesDirection(line.direction);
       });
 
     if (!this.props.visibilityState.isCombined()) {
       lineSet = visibleLines.map(
-        (line: proto.LineArrivals) => {
+        (line: webclient_api.LineArrivals) => {
           const key = this.props.stationId + "-" + line.line + "-" + line.direction;
           return <StationSingleLine data={line} key={key} stationId={this.props.stationId} highlightedTrains={this.props.highlightedTrains}/>;
         });

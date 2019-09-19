@@ -14,7 +14,7 @@
 
 import * as Redux from "redux";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { DebuggableResult, RequestInitiator } from './datafetcher';
 import { TTActionTypes, TTContext, TTState, StartLoadingStationDetailsAction, InstallStationDetailsAction, InstallStationListAction, StartLoadingStationListAction, InstallLineListAction, StartLoadingLineListAction } from './state-machine';
@@ -27,7 +27,7 @@ function startLoadingStationDetails(stationId: string): StartLoadingStationDetai
   };
 }
 
-function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<proto.StationStatus>): InstallStationDetailsAction {
+function installStationDetails(newStationId: string, newStationInfo: DebuggableResult<webclient_api.StationStatus>): InstallStationDetailsAction {
   return {
     type: TTActionTypes.INSTALL_STATION_DETAILS,
     payload: [newStationId, newStationInfo],
@@ -44,7 +44,7 @@ export function loadStationDetails(stationId: string, initiator = RequestInitiat
     }
     dispatch(startLoadingStationDetails(stationId));
     context.dataFetcher.fetchStationStatus(stationId, initiator == RequestInitiator.PREFETCH)
-      .then((result: DebuggableResult<proto.StationStatus>) => {
+      .then((result: DebuggableResult<webclient_api.StationStatus>) => {
         result.setInitiator(initiator);
         dispatch(installStationDetails(stationId, result));
       });
@@ -62,7 +62,7 @@ export function loadMultipleStationDetails(stationIds: string[], initiator = Req
       }
       dispatch(startLoadingStationDetails(stationId));
       context.dataFetcher.fetchStationStatus(stationId)
-        .then((result: DebuggableResult<proto.StationStatus>) => {
+        .then((result: DebuggableResult<webclient_api.StationStatus>) => {
           result.setInitiator(initiator);
           dispatch(installStationDetails(stationId, result));
         });
@@ -70,7 +70,7 @@ export function loadMultipleStationDetails(stationIds: string[], initiator = Req
   };
 }
 
-function installStationList(allStations: proto.StationList): InstallStationListAction {
+function installStationList(allStations: webclient_api.StationList): InstallStationListAction {
   return {
     type: TTActionTypes.INSTALL_STATION_LIST,
     payload: allStations,
@@ -89,7 +89,7 @@ export function fetchStationList(initiator = RequestInitiator.UNKNOWN) {
   return (dispatch: Redux.Dispatch, getState: () => TTState, context: TTContext) => {
     dispatch(startLoadingStationList());
     context.dataFetcher.fetchStationList()
-      .then((result: DebuggableResult<proto.StationList>) => {
+      .then((result: DebuggableResult<webclient_api.StationList>) => {
         result.setInitiator(initiator);
         dispatch(installStationList(result.data));
       });
@@ -103,7 +103,7 @@ function startLoadingLineList(): StartLoadingLineListAction {
   };
 }
 
-function installLineList(allLines: DebuggableResult<proto.LineList>): InstallLineListAction {
+function installLineList(allLines: DebuggableResult<webclient_api.LineList>): InstallLineListAction {
   return {
     type: TTActionTypes.INSTALL_LINE_LIST,
     payload: allLines,
@@ -117,7 +117,7 @@ export function loadLineList(initiator = RequestInitiator.UNKNOWN) {
     }
     dispatch(startLoadingLineList());
     context.dataFetcher.fetchLineList()
-      .then((result: DebuggableResult<proto.LineList>) => {
+      .then((result: DebuggableResult<webclient_api.LineList>) => {
         result.setInitiator(initiator);
         dispatch(installLineList(result));
       });

@@ -17,7 +17,7 @@ import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { Loadable } from './async';
 import { ApiDebugger } from './debug';
@@ -28,7 +28,7 @@ import { TTThunkDispatch } from './thunk-types';
 
 class LinePickerDataProps {
   public dataLoaded: boolean;
-  public lineList: DebuggableResult<proto.LineList>;
+  public lineList: DebuggableResult<webclient_api.LineList>;
 }
 class LinePickerDispatchProps {
   // TODO(mrjones): Is this the right place?
@@ -53,7 +53,7 @@ export default class LinePicker extends React.Component<LinePickerProps, LinePic
     if (!this.props.dataLoaded) {
       return <div>Loading...</div>;
     }
-    let lineLis = this.props.lineList.data.line.map((line: proto.Line) => {
+    let lineLis = this.props.lineList.data.line.map((line: webclient_api.Line) => {
       let c = "#" + line.colorHex;
       let liStyle = {
         background: c,
@@ -96,7 +96,7 @@ export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteCo
 }
 
 class StationPickerDataProps {
-  public allStations: Loadable<proto.StationList>;
+  public allStations: Loadable<webclient_api.StationList>;
 }
 class StationPickerDispatchProps {
   public loadStationData: () => any;
@@ -150,7 +150,7 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
     const max = 10;
     let done = false;
     let stationLis = this.props.allStations.data.station.map(
-      (station: proto.Station) => {
+      (station: webclient_api.Station) => {
         if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
           if (i++ < max && !done) {
             // TODO(mrjones): Inject the link URL for flexibility

@@ -16,7 +16,7 @@ import 'babel-polyfill';
 
 import * as moment from "moment";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { ClientDebugInfo } from './debug';
 
@@ -27,11 +27,11 @@ export enum RequestInitiator { PREFETCH, ON_DEMAND, UNKNOWN };
 export class DebuggableResult<T> {
   public data: T;
   public apiUrl: string;
-  public serverDebugInfo?: proto.IDebugInfo;
+  public serverDebugInfo?: webclient_api.IDebugInfo;
   public clientDebugInfo?: ClientDebugInfo;
   public initiator: RequestInitiator;
 
-  public constructor(data: T, apiUrl: string, serverDebugInfo?: proto.IDebugInfo, clientDebugInfo?: ClientDebugInfo) {
+  public constructor(data: T, apiUrl: string, serverDebugInfo?: webclient_api.IDebugInfo, clientDebugInfo?: ClientDebugInfo) {
     this.data = data;
     this.apiUrl = apiUrl;
     this.serverDebugInfo = serverDebugInfo;
@@ -50,15 +50,15 @@ export class DataFetcher {
     this.artificialDelayMs = artificialDelayMs;
   }
 
-  public fetchLineList(): Promise<DebuggableResult<proto.LineList>> {
-    return new Promise<DebuggableResult<proto.LineList>>((resolve: (l: DebuggableResult<proto.LineList>) => void) => {
+  public fetchLineList(): Promise<DebuggableResult<webclient_api.LineList>> {
+    return new Promise<DebuggableResult<webclient_api.LineList>>((resolve: (l: DebuggableResult<webclient_api.LineList>) => void) => {
       let startMoment = moment();
       let apiUrl = "/api/lines";
       fetch(apiUrl).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
-        const lineList = proto.LineList.decode(bodyBytes);
+        const lineList = webclient_api.LineList.decode(bodyBytes);
 
         let result = new DebuggableResult(lineList, apiUrl, lineList.debugInfo, new ClientDebugInfo(startMoment, moment()));
         this.maybeDelayAndResolve(resolve, result);
@@ -66,23 +66,23 @@ export class DataFetcher {
     });
   }
 
-  public fetchStationStatus(stationId: string, isPrefetch = false): Promise<DebuggableResult<proto.StationStatus>> {
-    return new Promise<DebuggableResult<proto.StationStatus>>((resolve: (s: DebuggableResult<proto.StationStatus>) => void) => {
+  public fetchStationStatus(stationId: string, isPrefetch = false): Promise<DebuggableResult<webclient_api.StationStatus>> {
+    return new Promise<DebuggableResult<webclient_api.StationStatus>>((resolve: (s: DebuggableResult<webclient_api.StationStatus>) => void) => {
       let startMoment = moment();
       const url = "/api/station/" + stationId + (isPrefetch ? "?prefetch=true" : "");
       fetch(url, {credentials: 'include'}).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
-        const stationStatus = proto.StationStatus.decode(bodyBytes);
+        const stationStatus = webclient_api.StationStatus.decode(bodyBytes);
         let result = new DebuggableResult(stationStatus, url, stationStatus.debugInfo, new ClientDebugInfo(startMoment, moment()));
         this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
 
-  public fetchStationList(): Promise<DebuggableResult<proto.StationList>> {
-    return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
+  public fetchStationList(): Promise<DebuggableResult<webclient_api.StationList>> {
+    return new Promise<DebuggableResult<webclient_api.StationList>>((resolve: (s: DebuggableResult<webclient_api.StationList>) => void) => {
       let startMoment = moment();
       let url = "/api/stations";
 
@@ -91,30 +91,30 @@ export class DataFetcher {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
-        const stationList = proto.StationList.decode(bodyBytes);
+        const stationList = webclient_api.StationList.decode(bodyBytes);
         let result = new DebuggableResult(stationList, url, stationList.debugInfo, new ClientDebugInfo(startMoment, moment()));
         this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
 
-  public fetchStationsForLine(lineId: string): Promise<DebuggableResult<proto.StationList>> {
-    return new Promise<DebuggableResult<proto.StationList>>((resolve: (s: DebuggableResult<proto.StationList>) => void) => {
+  public fetchStationsForLine(lineId: string): Promise<DebuggableResult<webclient_api.StationList>> {
+    return new Promise<DebuggableResult<webclient_api.StationList>>((resolve: (s: DebuggableResult<webclient_api.StationList>) => void) => {
       let url = "/api/stations/byline/" + lineId;
 
       fetch(url).then((response: Response) => {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
-        const stationList = proto.StationList.decode(bodyBytes);
+        const stationList = webclient_api.StationList.decode(bodyBytes);
         let result = new DebuggableResult(stationList, url, stationList.debugInfo);
         this.maybeDelayAndResolve(resolve, result);
       });
     });
   }
 
-  public fetchTrainItinerary(trainId: string): Promise<DebuggableResult<proto.TrainItinerary>> {
-    return new Promise<DebuggableResult<proto.TrainItinerary>>((resolve: (ti: DebuggableResult<proto.TrainItinerary>) => void) => {
+  public fetchTrainItinerary(trainId: string): Promise<DebuggableResult<webclient_api.TrainItinerary>> {
+    return new Promise<DebuggableResult<webclient_api.TrainItinerary>>((resolve: (ti: DebuggableResult<webclient_api.TrainItinerary>) => void) => {
       let startMoment = moment();
       let url = "/api/train/" + trainId;
 
@@ -122,7 +122,7 @@ export class DataFetcher {
         return response.arrayBuffer();
       }).then((bodyBuffer: ArrayBuffer) => {
         const bodyBytes = new Uint8Array(bodyBuffer);
-        const itinerary = proto.TrainItinerary.decode(bodyBytes);
+        const itinerary = webclient_api.TrainItinerary.decode(bodyBytes);
         let result = new DebuggableResult(itinerary, url, itinerary.debugInfo, new ClientDebugInfo(startMoment, moment()));
 
         this.maybeDelayAndResolve(resolve, result);

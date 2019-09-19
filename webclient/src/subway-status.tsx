@@ -1,13 +1,13 @@
 import * as Immutable from 'immutable';
 import * as moment from "moment";
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 import * as React from "react"
 
 let UP_ARROW = "\u2191";
 let DOWN_ARROW = "\u2193";
 
 class SubwayStatusProps {
-  public status: proto.ISubwayStatusMessage[];
+  public status: webclient_api.ISubwayStatusMessage[];
   public priorityLines: Immutable.Set<string>;
 }
 
@@ -31,11 +31,11 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
     };
   }
 
-  private summarizeLines(lines: proto.IAffectedLineStatus[][]): string {
+  private summarizeLines(lines: webclient_api.IAffectedLineStatus[][]): string {
     return this.directionMapToString(this.extractDirectionMap(lines));
   }
 
-  private extractDirectionMap(lines: proto.IAffectedLineStatus[][]): Map<string, Directions> {
+  private extractDirectionMap(lines: webclient_api.IAffectedLineStatus[][]): Map<string, Directions> {
     let lineBits: Map<string, Directions> = new Map();
 
     for (let lineSet of lines) {
@@ -47,9 +47,9 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
             existing = new Directions();
           }
 
-          if (line.direction == proto.Direction.UPTOWN) {
+          if (line.direction == webclient_api.Direction.UPTOWN) {
             existing.uptown = true;
-          } else if(line.direction == proto.Direction.DOWNTOWN) {
+          } else if(line.direction == webclient_api.Direction.DOWNTOWN) {
             existing.downtown = true;
           }
 
@@ -72,13 +72,13 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return null;
     }
 
-    let statusCopy = this.props.status.filter((msg: proto.ISubwayStatusMessage) => {
-      return !msg.affectedLine || msg.affectedLine.map((line: proto.IAffectedLineStatus) => {
+    let statusCopy = this.props.status.filter((msg: webclient_api.ISubwayStatusMessage) => {
+      return !msg.affectedLine || msg.affectedLine.map((line: webclient_api.IAffectedLineStatus) => {
         return this.props.priorityLines.isEmpty() || this.props.priorityLines.contains(line.line);
       }).reduce((acc: boolean, next: boolean) => acc || next);
     });
 
-    statusCopy.sort((a: proto.ISubwayStatusMessage, b: proto.ISubwayStatusMessage) => {
+    statusCopy.sort((a: webclient_api.ISubwayStatusMessage, b: webclient_api.ISubwayStatusMessage) => {
       if (a.priority != b.priority) {
         return (b.priority as number) - (a.priority as number);
       }
@@ -86,7 +86,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return (b.publishTimestamp as number) - (a.publishTimestamp as number);
     });
 
-    let overallSummary = this.summarizeLines(this.props.status.map((fullMessage: proto.ISubwayStatusMessage) => {
+    let overallSummary = this.summarizeLines(this.props.status.map((fullMessage: webclient_api.ISubwayStatusMessage) => {
       return fullMessage.affectedLine;
     }));
     let toggleText = "Affected Service: " + overallSummary;
@@ -95,7 +95,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       return <div className="serviceStatus"><a href="#" onClick={this.toggleExpanded.bind(this)}>{toggleText}</a></div>;
     }
 
-    let lis = statusCopy.map((msg: proto.ISubwayStatusMessage) => {
+    let lis = statusCopy.map((msg: webclient_api.ISubwayStatusMessage) => {
       let lines = this.summarizeLines([msg.affectedLine]);
 
       let publishText = "";

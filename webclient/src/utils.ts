@@ -14,14 +14,14 @@
 
 import * as Immutable from 'immutable';
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 // TODO(mrjones): Get this from the generated file somehow
-export function directionName(direction: proto.Direction): string {
+export function directionName(direction: webclient_api.Direction): string {
   switch (direction) {
-    case proto.Direction.UPTOWN:
+    case webclient_api.Direction.UPTOWN:
       return "Uptown";
-    case proto.Direction.DOWNTOWN:
+    case webclient_api.Direction.DOWNTOWN:
       return "Downtown";
     default:
       console.log("Unknown Direction: " + direction);
@@ -29,25 +29,25 @@ export function directionName(direction: proto.Direction): string {
   }
 }
 
-export function linesForStation(station: proto.StationStatus): Immutable.OrderedSet<string> {
+export function linesForStation(station: webclient_api.StationStatus): Immutable.OrderedSet<string> {
   let lines = Immutable.OrderedSet<string>();
-  station.line.map((line: proto.LineArrivals) => {
+  station.line.map((line: webclient_api.LineArrivals) => {
     lines = lines.add(line.line);
   });
 
   return lines.sort().toOrderedSet();
 }
 
-export function directionsForStation(station: proto.StationStatus): Immutable.OrderedSet<proto.Direction> {
-  let directions = Immutable.Set<proto.Direction>();
-  station.line.map((line: proto.LineArrivals) => {
+export function directionsForStation(station: webclient_api.StationStatus): Immutable.OrderedSet<webclient_api.Direction> {
+  let directions = Immutable.Set<webclient_api.Direction>();
+  station.line.map((line: webclient_api.LineArrivals) => {
     directions = directions.add(line.direction);
   });
 
   return directions.sort().toOrderedSet();
 }
 
-export function lineVisible(line: proto.LineArrivals, lineVisibility: Immutable.Map<string, boolean>, directionVisibility: Immutable.Map<proto.Direction, boolean>): boolean {
+export function lineVisible(line: webclient_api.LineArrivals, lineVisibility: Immutable.Map<string, boolean>, directionVisibility: Immutable.Map<webclient_api.Direction, boolean>): boolean {
   let lineVisible = lineVisibility.get(line.line);
   if (lineVisible === undefined) { lineVisible = true; }
 

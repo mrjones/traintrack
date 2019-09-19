@@ -21,7 +21,7 @@ import * as moment from "moment";
 import * as querystring from "query-string";
 import * as history from "history";
 
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import { Loadable, itemIsBeingLoaded } from './async';
 import { DebuggableResult } from './datafetcher';
@@ -54,7 +54,7 @@ export class TrainItineraryQueryParams {
   public highlightedStations: Immutable.Set<string>;
 }
 
-function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResult<proto.ITrainItinerary>): InstallTrainItineraryAction {
+function installTrainItinerary(newTrainId: string, newTrainInfo: DebuggableResult<webclient_api.ITrainItinerary>): InstallTrainItineraryAction {
   return {
     type: TTActionTypes.INSTALL_TRAIN_ITINERARY,
     payload: [newTrainId, newTrainInfo],
@@ -76,7 +76,7 @@ function loadTrainItinerary(trainId: string) {
     dispatch(startLoadingTrainItinerary(trainId));
     // TODO(mrjones): check for errors which might wedge us in "loading"
     context.dataFetcher.fetchTrainItinerary(trainId).then(
-      (result: DebuggableResult<proto.ITrainItinerary>) => {
+      (result: DebuggableResult<webclient_api.ITrainItinerary>) => {
         dispatch(installTrainItinerary(trainId, result));
       });
   };
@@ -85,7 +85,7 @@ function loadTrainItinerary(trainId: string) {
 class TrainItineraryDataProps {
   public hasData: boolean;
   public loading: boolean;
-  public data: DebuggableResult<proto.ITrainItinerary>;
+  public data: DebuggableResult<webclient_api.ITrainItinerary>;
 }
 class TrainItineraryDispatchProps {
   public loadItinerary: (trainId: string) => any;
@@ -119,7 +119,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
     let body = <div>Loading...</div>;
     let dataTs = moment.unix(0);
     if (this.props.hasData) {
-      const rows = this.props.data.data.arrival.map((arrival: proto.TrainItineraryArrival) => {
+      const rows = this.props.data.data.arrival.map((arrival: webclient_api.TrainItineraryArrival) => {
         const time = moment.unix(arrival.timestamp as number);
         let stationElt = <span>Unknown station</span>;
         if (arrival.station && arrival.station.name && arrival.station.id) {
@@ -162,7 +162,7 @@ export class TrainItinerary extends React.Component<TrainItineraryProps, TrainIt
 }
 
 const mapStateToProps = (state: TTState, ownProps: TrainItineraryExplicitProps): TrainItineraryDataProps => {
-  let maybeData: Loadable<DebuggableResult<proto.ITrainItinerary>> =
+  let maybeData: Loadable<DebuggableResult<webclient_api.ITrainItinerary>> =
     state.core.trainItineraries.get(ownProps.trainId);
   if (maybeData !== undefined && maybeData.valid) {
     return {
@@ -174,7 +174,7 @@ const mapStateToProps = (state: TTState, ownProps: TrainItineraryExplicitProps):
     return {
       hasData: false,
       loading: true,
-     data: new DebuggableResult<proto.ITrainItinerary>(new proto.TrainItinerary(), null, null),
+     data: new DebuggableResult<webclient_api.ITrainItinerary>(new webclient_api.TrainItinerary(), null, null),
     };
   }
 };

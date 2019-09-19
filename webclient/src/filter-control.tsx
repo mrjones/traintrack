@@ -17,7 +17,7 @@ import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
-import * as proto from './webclient_api_pb';
+import { webclient_api } from './webclient_api_pb';
 
 import * as utils from './utils';
 
@@ -88,14 +88,14 @@ export class DimensionState<T> {
 }
 
 export class VisibilityState {
-  private directions: DimensionState<proto.Direction>;
+  private directions: DimensionState<webclient_api.Direction>;
   private lines: DimensionState<string>;
   private combined: boolean;
 
   // TODO(mrjones): Come up with a real experiment framework
   private showAlphaFeatures: boolean;
 
-  constructor(directions: DimensionState<proto.Direction>,
+  constructor(directions: DimensionState<webclient_api.Direction>,
               lines: DimensionState<string>,
               combined: boolean,
               showAlphaFeatures: boolean) {
@@ -118,11 +118,11 @@ export class VisibilityState {
     return this.combined;
   }
 
-  public toggleDirection(dir: proto.Direction) {
+  public toggleDirection(dir: webclient_api.Direction) {
     this.directions.toggle(dir);
   }
 
-  public includesDirection(dir: proto.Direction): boolean {
+  public includesDirection(dir: webclient_api.Direction): boolean {
     return this.directions.includes(dir);
   }
 
@@ -149,18 +149,18 @@ export class VisibilityState {
     let specParts = spec.length > 0 ? spec.split(":") : [];
 
     return new VisibilityState(
-      DimensionState.parseFromSpec<proto.Direction>(
+      DimensionState.parseFromSpec<webclient_api.Direction>(
         specParts.length > 0 ? specParts[0] : "",
         (dirSpec: String) => {
           if (dirSpec === "U") {
-            return proto.Direction.UPTOWN;
+            return webclient_api.Direction.UPTOWN;
           } else {
             // TODO(mrjones): error case
-            return proto.Direction.DOWNTOWN;
+            return webclient_api.Direction.DOWNTOWN;
           }
         },
-        (dir: proto.Direction) => {
-          if (dir === proto.Direction.UPTOWN) {
+        (dir: webclient_api.Direction) => {
+          if (dir === webclient_api.Direction.UPTOWN) {
             return "U";
           } else {
             return "D";
@@ -176,7 +176,7 @@ export class VisibilityState {
 }
 
 class FilterControlDataProps {
-  public allTrains: proto.StationStatus;
+  public allTrains: webclient_api.StationStatus;
 };
 class FilterControlDispatchProps { };
 class FilterControlExplicitProps {
@@ -198,7 +198,7 @@ const mapStateToProps = (state: TTState, ownProps: FilterControlExplicitProps): 
     };
   } else {
     return {
-      allTrains: new proto.StationStatus(),
+      allTrains: new webclient_api.StationStatus(),
     };
   }
 };
@@ -224,7 +224,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     let togglers = new Array<JSX.Element>();
     let queryString = this.props.queryParamsToPropagate.isEmpty() ? "" : "?" + this.props.queryParamsToPropagate.join("&");
 
-    utils.directionsForStation(this.props.allTrains).map((direction: proto.Direction) => {
+    utils.directionsForStation(this.props.allTrains).map((direction: webclient_api.Direction) => {
       let visible = this.props.visibilityState.includesDirection(direction);
       let className = "toggleButton autowidth " + (visible ? "active" : "inactive");
       let name = utils.directionName(direction);
@@ -240,7 +240,7 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     togglers.push(<div key="sep1" className="toggleSeparator" />);
 
     let lineColorsByName = new Map<string, string>();
-    this.props.allTrains.line.map((line: proto.LineArrivals) => {
+    this.props.allTrains.line.map((line: webclient_api.LineArrivals) => {
       lineColorsByName.set(line.line, line.lineColorHex);
     });
 
