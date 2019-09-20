@@ -18,12 +18,18 @@ extern crate std;
 use result;
 
 #[derive(Debug, Clone)]
-pub struct Stop {
-    pub id: String,
-    pub parent_id: Option<String>,
+pub struct Station {
+    pub gtfs_id: String,
+    pub parent_id: Option<String>, // TODO: ComplexId?
     pub name: String,
     pub complex_id: String,
     pub lines: std::collections::BTreeSet<String>,
+}
+
+pub struct Complex {
+    pub id: String,
+    pub name: String,
+    pub substation_gtfs_ids: std::collections::BTreeSet<String>,
 }
 
 #[derive(Clone)]
@@ -33,13 +39,11 @@ pub struct Route {
 }
 
 pub struct Stops {
-    stops: std::collections::HashMap<String, Stop>,
-//    trip_ids_by_route: std::collections::HashMap<String, Vec<String>>,
-//    stop_ids_by_trip: std::collections::HashMap<String, Vec<String>>,
-    stops_by_route: std::collections::HashMap<String, Vec<Stop>>,
+    stations: std::collections::HashMap<String, Station>,
+    stations_by_route: std::collections::HashMap<String, Vec<Station>>,
     routes: Vec<Route>,
 
-    complexes: std::collections::HashMap<String, Stop>,
+    complexes: std::collections::HashMap<String, Complex>,
 
     trips_by_id: std::collections::HashMap<String, TripCsvRecord>,
 }
@@ -135,25 +139,28 @@ struct RouteCsvRecord {
 
 
 impl Stops {
-    pub fn complexes_iter(&self) -> std::collections::hash_map::Values<String, Stop> {
+    pub fn complexes_iter(&self) -> std::collections::hash_map::Values<String, Complex> {
         return self.complexes.values();
     }
 
     pub fn gtfs_id_to_complex_id(&self, id: &str) -> Option<&str> {
-        return self.stops.get(id).map(|stop| stop.complex_id.as_ref());
+        return self.stations.get(id).map(|stop| stop.complex_id.as_ref());
     }
 
-    pub fn lookup_by_id(&self, id: &str) -> Option<&Stop> {
-        return self.complexes.get(id).or_else(
-            || { return self.stops.get(id); });
+    pub fn lookup_station_by_id(&self, id: &str) -> Option<&Station> {
+        return self.stations.get(id);
+    }
+
+    pub fn lookup_complex_by_id(&self, id: &str) -> Option<&Complex> {
+        return self.complexes.get(id);
     }
 
     pub fn lines(&self) -> Vec<Route> {
         return self.routes.clone();
     }
 
-    pub fn stops_for_route(&self, route_id: &str) -> result::TTResult<&Vec<Stop>> {
-        return self.stops_by_route.get(route_id).ok_or(
+    pub fn stations_for_route(&self, route_id: &str) -> result::TTResult<&Vec<Station>> {
+        return self.stations_by_route.get(route_id).ok_or(
             result::quick_err(&format!("No stops for route: {}", route_id)));
     }
 
@@ -198,9 +205,9 @@ impl Stops {
         }
 
         info!("Parsing MTA's Stations.csv");
-        let mut stops = std::collections::HashMap::new();
+        let mut stations = std::collections::HashMap::new();
         let mut complexes = std::collections::HashMap::new();
-        let mut stops_by_route: std::collections::HashMap<String, Vec<Stop>> = std::collections::HashMap::new();
+        let mut stations_by_route: std::collections::HashMap<String, Vec<Station>> = std::collections::HashMap::new();
         for record in stations_reader.deserialize() {
             let record: StationCsvRecord = record?;
             // TODO(mrjones): Station/Complex IDs used to be three zero-padded digits:
@@ -210,36 +217,41 @@ impl Stops {
             // In the future we should think harder about how to manage this.
             let complex_id = format!("{:0>3}", record.complex_id);
 
-            info!("complex_id: {}", complex_id);
-            let stop = Stop{
-                id: record.gtfs_stop_id.clone(),
+            let station = Station{
+                gtfs_id: record.gtfs_stop_id.clone(),
                 parent_id: None,
-                name: record.name,
+                name: record.name.clone(),
                 complex_id: complex_id.clone(),
                 lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
             };
 
-            stops.insert(record.gtfs_stop_id.clone(), stop.clone());
+            stations.insert(record.gtfs_stop_id.clone(), station.clone());
 
             if !complexes.contains_key(&complex_id) {
-                complexes.insert(complex_id, stop.clone());
+                complexes.insert(complex_id.clone(), Complex{
+                    id: complex_id.clone(),
+                    name: record.name.clone(),
+                    substation_gtfs_ids: btreeset![record.gtfs_stop_id],
+                });
             } else {
                 let existing = complexes.get_mut(&complex_id).unwrap();
-                existing.lines = existing.lines.union(&stop.lines).cloned().collect();
+                existing.substation_gtfs_ids.insert(record.gtfs_stop_id);
             }
 
             for route in record.daytime_routes.split(" ") {
-                if stops_by_route.contains_key(route) {
-                    stops_by_route.get_mut(route).unwrap().push(
-                        stop.clone());
+                if stations_by_route.contains_key(route) {
+                    // TODO(mrjones): Just insert an ID and not a clone?
+                    stations_by_route.get_mut(route).unwrap().push(
+                        station.clone());
                 } else {
-                    stops_by_route.insert(
+                    stations_by_route.insert(
                         route.to_string(),
-                        vec![stop.clone()]);
+                        vec![station.clone()]);
                 }
             }
         }
 
+        /*
         // Fix missing w4st entry?
         stops.insert("D20".to_string(), Stop{
             id: "D20".to_string(),
@@ -248,6 +260,7 @@ impl Stops {
             complex_id: "167".to_string(),
             lines: std::collections::BTreeSet::new(), // TODO
         });
+         */
 
         info!("Parsing trips.txt");
         let mut trips_by_id = std::collections::HashMap::new();
@@ -261,10 +274,8 @@ impl Stops {
         }
 
         return Ok(Stops{
-            stops: stops,
-            //                trip_ids_by_route: std::collections::HashMap::new(),
-            //                stop_ids_by_trip: std::collections::HashMap::new(),
-            stops_by_route: stops_by_route,
+            stations: stations,
+            stations_by_route: stations_by_route,
             routes: routes,
             complexes: complexes,
             trips_by_id: trips_by_id,

@@ -84,8 +84,9 @@ pub fn station_detail_handler_guts(
     let _all_span = timer.span("station_detail_api");
 
     let mut station_id: String;
-    let station;
+    let complex;
     {
+        // TODO(mrjones): Rename things here
         let _parse_query_span = timer.span("parse_query");
         station_id = station_id_param.ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
@@ -96,9 +97,9 @@ pub fn station_detail_handler_guts(
                 .next()
                 .unwrap_or("028".to_string());
         }
-        station = stops.lookup_by_id(&station_id).ok_or(
+        complex = stops.lookup_complex_by_id(&station_id).ok_or(
             result::TTError::Uncategorized(
-                format!("No station with ID {}", station_id)))?;
+                format!("No complex with ID {}", station_id)))?;
     }
 
     let upcoming;
@@ -124,8 +125,8 @@ pub fn station_detail_handler_guts(
 
     let _build_proto_span = timer.span("build_proto");
     return Ok(webclient_api::StationStatus{
-        name: Some(station.name.clone()),
-        id: Some(station.complex_id.clone()),
+        name: Some(complex.name.clone()),
+        id: Some(complex.id.clone()),
         line: upcoming.trains_by_route_and_direction.iter().flat_map(|(route_id, trains)| {
             return trains.iter().map(|(ref direction, ref stop_times)| {
                 // TODO(mrjones): handle differently to remove side-effect
@@ -167,21 +168,25 @@ pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: ru
     let mut priority_responses = std::collections::BTreeMap::new();
 
     let mut response = webclient_api::StationList::default();
-    for &ref stop in tt_context.stops.complexes_iter() {
-        let mut station = webclient_api::Station::default();
-        station.name = Some(stop.name.clone());
-        station.id = Some(stop.complex_id.clone());
-        for x in &stop.lines {
-            station.lines.push(x.to_string());
+    for &ref complex in tt_context.stops.complexes_iter() {
+        let mut station_proto = webclient_api::Station::default();
+        station_proto.name = Some(complex.name.clone());
+        station_proto.id = Some(complex.id.clone());
+        for station_id in &complex.substation_gtfs_ids {
+            let station = tt_context.stops.lookup_station_by_id(&station_id)
+                .expect(&format!("Corruption in stops.rs can't find station_id={} for complex_id={}", station_id, complex.id));
+            for x in &station.lines {
+                station_proto.lines.push(x.to_string());
+            }
         }
         // TODO(mrjones): recent_stations should be short-ish
         // But it's not ideal to linear search it repeatedly.
-        match recent_stations.iter().position(|id| id == &stop.complex_id) {
+        match recent_stations.iter().position(|id| id == &complex.id) {
             Some(pos) => {
-                priority_responses.insert(pos, station);
+                priority_responses.insert(pos, station_proto);
             },
             None => {
-                response.station.push(station);
+                response.station.push(station_proto);
             }
         }
     }
@@ -200,7 +205,7 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
         .map(|x| x.to_string())?;
 
     let mut response = webclient_api::StationList{
-        station: tt_context.stops.stops_for_route(&desired_line)?.iter().map(|stop| {
+        station: tt_context.stops.stations_for_route(&desired_line)?.iter().map(|stop| {
             webclient_api::Station{
                 name: Some(stop.name.clone()),
                 id: Some(stop.complex_id.clone()),
@@ -237,7 +242,7 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
                                     timestamp: Some(arrival.time()),
                                     station: utils::possible_stop_ids(stu.stop_id()).iter().filter_map(|candidate| {
                                         if let Some(complex_id) = tt_context.stops.gtfs_id_to_complex_id(&candidate) {
-                                            if let Some(info) = tt_context.stops.lookup_by_id(&complex_id) {
+                                            if let Some(info) = tt_context.stops.lookup_complex_by_id(&complex_id) {
                                                 return Some(webclient_api::Station{
                                                     id: Some(complex_id.to_string()),
                                                     name: Some(info.name.clone()),
