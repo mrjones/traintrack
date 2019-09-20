@@ -20,7 +20,6 @@ use result;
 #[derive(Debug, Clone)]
 pub struct Station {
     pub gtfs_id: String,
-    pub parent_id: Option<String>, // TODO: ComplexId?
     pub name: String,
     pub complex_id: String,
     pub lines: std::collections::BTreeSet<String>,
@@ -219,7 +218,6 @@ impl Stops {
 
             let station = Station{
                 gtfs_id: record.gtfs_stop_id.clone(),
-                parent_id: None,
                 name: record.name.clone(),
                 complex_id: complex_id.clone(),
                 lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
@@ -250,17 +248,6 @@ impl Stops {
                 }
             }
         }
-
-        /*
-        // Fix missing w4st entry?
-        stops.insert("D20".to_string(), Stop{
-            id: "D20".to_string(),
-            parent_id: None,
-            name: "W 4 St".to_string(),
-            complex_id: "167".to_string(),
-            lines: std::collections::BTreeSet::new(), // TODO
-        });
-         */
 
         info!("Parsing trips.txt");
         let mut trips_by_id = std::collections::HashMap::new();
