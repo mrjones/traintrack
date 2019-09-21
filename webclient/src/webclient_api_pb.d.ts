@@ -241,6 +241,9 @@ export namespace webclient_api {
         /** LineArrivals arrivals */
         arrivals?: (webclient_api.ILineArrival[]|null);
 
+        /** LineArrivals directionName */
+        directionName?: (string|null);
+
         /** LineArrivals debugInfo */
         debugInfo?: (webclient_api.IDebugInfo|null);
     }
@@ -265,6 +268,9 @@ export namespace webclient_api {
 
         /** LineArrivals arrivals. */
         public arrivals: webclient_api.ILineArrival[];
+
+        /** LineArrivals directionName. */
+        public directionName: string;
 
         /** LineArrivals debugInfo. */
         public debugInfo?: (webclient_api.IDebugInfo|null);

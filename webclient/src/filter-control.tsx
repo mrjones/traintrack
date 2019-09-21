@@ -227,12 +227,12 @@ export class FilterControl extends React.Component<FilterControlProps, FilterCon
     utils.directionsForStation(this.props.allTrains).map((direction: webclient_api.Direction) => {
       let visible = this.props.visibilityState.includesDirection(direction);
       let className = "toggleButton autowidth " + (visible ? "active" : "inactive");
-      let name = utils.directionName(direction);
+      let name = utils.directionName(null, direction);
 
       let newVisibility = this.props.visibilityState.clone();
       newVisibility.toggleDirection(direction);
       let link = '/app/station/' + this.props.stationId + "/" + newVisibility.toSpec() + queryString;
-      togglers.push(<div key={utils.directionName(direction)} className={className}>
+      togglers.push(<div key={utils.directionName(null, direction)} className={className}>
                       <ReactRouter.Link to={link}>{name}</ReactRouter.Link>
                     </div>);
     });

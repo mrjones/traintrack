@@ -562,6 +562,7 @@ $root.webclient_api = (function() {
          * @property {webclient_api.Direction|null} [direction] LineArrivals direction
          * @property {string|null} [lineColorHex] LineArrivals lineColorHex
          * @property {Array.<webclient_api.ILineArrival>|null} [arrivals] LineArrivals arrivals
+         * @property {string|null} [directionName] LineArrivals directionName
          * @property {webclient_api.IDebugInfo|null} [debugInfo] LineArrivals debugInfo
          */
 
@@ -614,6 +615,14 @@ $root.webclient_api = (function() {
         LineArrivals.prototype.arrivals = $util.emptyArray;
 
         /**
+         * LineArrivals directionName.
+         * @member {string} directionName
+         * @memberof webclient_api.LineArrivals
+         * @instance
+         */
+        LineArrivals.prototype.directionName = "";
+
+        /**
          * LineArrivals debugInfo.
          * @member {webclient_api.IDebugInfo|null|undefined} debugInfo
          * @memberof webclient_api.LineArrivals
@@ -656,6 +665,8 @@ $root.webclient_api = (function() {
             if (message.arrivals != null && message.arrivals.length)
                 for (var i = 0; i < message.arrivals.length; ++i)
                     $root.webclient_api.LineArrival.encode(message.arrivals[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+            if (message.directionName != null && message.hasOwnProperty("directionName"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.directionName);
             return writer;
         };
 
@@ -703,6 +714,9 @@ $root.webclient_api = (function() {
                     if (!(message.arrivals && message.arrivals.length))
                         message.arrivals = [];
                     message.arrivals.push($root.webclient_api.LineArrival.decode(reader, reader.uint32()));
+                    break;
+                case 7:
+                    message.directionName = reader.string();
                     break;
                 case 5:
                     message.debugInfo = $root.webclient_api.DebugInfo.decode(reader, reader.uint32());
@@ -765,6 +779,9 @@ $root.webclient_api = (function() {
                         return "arrivals." + error;
                 }
             }
+            if (message.directionName != null && message.hasOwnProperty("directionName"))
+                if (!$util.isString(message.directionName))
+                    return "directionName: string expected";
             if (message.debugInfo != null && message.hasOwnProperty("debugInfo")) {
                 var error = $root.webclient_api.DebugInfo.verify(message.debugInfo);
                 if (error)
@@ -809,6 +826,8 @@ $root.webclient_api = (function() {
                     message.arrivals[i] = $root.webclient_api.LineArrival.fromObject(object.arrivals[i]);
                 }
             }
+            if (object.directionName != null)
+                message.directionName = String(object.directionName);
             if (object.debugInfo != null) {
                 if (typeof object.debugInfo !== "object")
                     throw TypeError(".webclient_api.LineArrivals.debugInfo: object expected");
@@ -837,6 +856,7 @@ $root.webclient_api = (function() {
                 object.direction = options.enums === String ? "UPTOWN" : 0;
                 object.lineColorHex = "";
                 object.debugInfo = null;
+                object.directionName = "";
             }
             if (message.line != null && message.hasOwnProperty("line"))
                 object.line = message.line;
@@ -851,6 +871,8 @@ $root.webclient_api = (function() {
                 for (var j = 0; j < message.arrivals.length; ++j)
                     object.arrivals[j] = $root.webclient_api.LineArrival.toObject(message.arrivals[j], options);
             }
+            if (message.directionName != null && message.hasOwnProperty("directionName"))
+                object.directionName = message.directionName;
             return object;
         };
 

@@ -17,7 +17,10 @@ import * as Immutable from 'immutable';
 import { webclient_api } from './webclient_api_pb';
 
 // TODO(mrjones): Get this from the generated file somehow
-export function directionName(direction: webclient_api.Direction): string {
+export function directionName(directionName: string, direction: webclient_api.Direction): string {
+  if (directionName != null && directionName != undefined) {
+    return directionName;
+  }
   switch (direction) {
     case webclient_api.Direction.UPTOWN:
       return "Uptown";

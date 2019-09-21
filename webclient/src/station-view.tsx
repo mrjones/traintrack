@@ -99,7 +99,7 @@ class StationIntermingledLines extends React.Component<StationIntermingledLinePr
 
         return <li key={key} className={className}><span className="lineName" style={style}>{info.line}</span> <ReactRouter.Link to={`/app/train/${info.tripId}?highlight=${this.props.stationId}`}>{time.format("LT")}</ReactRouter.Link> ({time.fromNow()})</li>;
       });
-      directionUls.push(<div key={directionData[0]} className="intermingledArrivals"><div className="header">{utils.directionName(directionData[0])}</div><ul>{lis}</ul></div>);
+      directionUls.push(<div key={directionData[0]} className="intermingledArrivals"><div className="header">{utils.directionName(null, directionData[0])}</div><ul>{lis}</ul></div>);
     }
 
     return <div>{directionUls}</div>;
@@ -165,7 +165,7 @@ class StationSingleLine extends React.Component<StationSingleLineProps, undefine
 
     return (
       <div className="stationLine">
-        <div className="header" style={lineStyle}>{this.props.data.line} - {utils.directionName(this.props.data.direction)}</div>
+        <div className="header" style={lineStyle}>{this.props.data.line} - {utils.directionName(this.props.data.directionName, this.props.data.direction)}</div>
         <ul>{arrivals}</ul>
       </div>);
   }
