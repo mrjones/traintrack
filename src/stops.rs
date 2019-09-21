@@ -23,6 +23,8 @@ pub struct Station {
     pub name: String,
     pub complex_id: String,
     pub lines: std::collections::BTreeSet<String>,
+    pub north_label: String,
+    pub south_label: String,
 }
 
 pub struct Complex {
@@ -82,6 +84,12 @@ struct StationCsvRecord {
 
     #[serde(rename = "GTFS Longitude")]
     longitude: f32,
+
+    #[serde(rename = "North Direction Label")]
+    north_label: String,
+
+    #[serde(rename = "South Direction Label")]
+    south_label: String,
 }
 
 // For Stops.txt
@@ -221,6 +229,8 @@ impl Stops {
                 name: record.name.clone(),
                 complex_id: complex_id.clone(),
                 lines: record.daytime_routes.split(" ").map(|x| x.to_string()).collect(),
+                north_label: record.north_label,
+                south_label: record.south_label,
             };
 
             stations.insert(record.gtfs_stop_id.clone(), station.clone());

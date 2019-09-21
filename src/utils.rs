@@ -108,14 +108,16 @@ pub struct Arrival {
     pub timestamp: chrono::DateTime<chrono::Utc>,
     pub trip_id: String,
     pub headsign: String,
+    pub platform: String,
 }
 
 impl Arrival {
-    pub fn new(timestamp: chrono::DateTime<chrono::Utc>, trip_id: &str, headsign: &str) -> Arrival {
+    pub fn new(timestamp: chrono::DateTime<chrono::Utc>, trip_id: &str, headsign: &str, platform: &str) -> Arrival {
         return Arrival{
             timestamp: timestamp,
             trip_id: trip_id.to_string(),
             headsign: headsign.to_string(),
+            platform: platform.to_string(),
         };
     }
 }
@@ -162,7 +164,11 @@ pub fn get_nyct_extension(generic_trip: &transit_realtime::TripDescriptor) -> Op
 }
 */
 
-pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime::FeedMessage>, stops: &stops::Stops) -> UpcomingTrainsResult {
+pub fn all_upcoming_trains_vec_ref(
+    complex_id: &str,
+    feeds: &Vec<&transit_realtime::FeedMessage>,
+    stops: &stops::Stops) -> UpcomingTrainsResult {
+
     let mut upcoming: std::collections::BTreeMap<String, std::collections::BTreeMap<Direction, Vec<Arrival>>> = std::collections::BTreeMap::new();
 
     let mut min_relevant_ts = chrono::Utc::now().timestamp() as u64;
@@ -174,7 +180,7 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
                 //                let maybe_nyct_extension = get_nyct_extension(trip);
                 let maybe_nyct_extension = None;
                 for stop_time_update in &trip_update.stop_time_update {
-                    if stop_matches(stop_time_update.stop_id(), stop_id, stops) {
+                    if stop_matches(stop_time_update.stop_id(), complex_id, stops) {
                         min_relevant_ts = std::cmp::min(min_relevant_ts, feed.header.timestamp());
                         let direction = match maybe_nyct_extension {
                             Some(ref nyct) => infer_direction_from_nyct_descriptor(nyct),
@@ -202,13 +208,15 @@ pub fn all_upcoming_trains_vec_ref(stop_id: &str, feeds: &Vec<&transit_realtime:
                                 Arrival::new(
                                     timestamp,
                                     trip.trip_id(),
-                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref()));
+                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref(),
+                                    stop_time_update.stop_id()));
                         } else {
                             route_trains.insert(direction, vec![
                                 Arrival::new(
                                     timestamp,
                                     trip.trip_id(),
-                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref())]);
+                                    stops.trip_headsign_for_id(&nyct_train_id_or_empty).unwrap_or("".to_string()).as_ref(),
+                                    stop_time_update.stop_id())]);
                         }
                     }
                 }

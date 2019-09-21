@@ -24,6 +24,7 @@ message LineArrivals {
   optional Direction direction = 2;
   optional string line_color_hex = 4;
   repeated LineArrival arrivals = 6;
+  optional string direction_name = 7;
 
   optional DebugInfo debug_info = 5;
 

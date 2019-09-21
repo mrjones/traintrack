@@ -137,6 +137,19 @@ pub fn station_detail_handler_guts(
                         utils::Direction::UPTOWN => webclient_api::Direction::Uptown as i32,
                         utils::Direction::DOWNTOWN => webclient_api::Direction::Downtown as i32,
                     }),
+                    // Hacky: This assumes all trains stop at the same platform
+                    // and we can just use the first one.
+                    direction_name: stop_times.iter().next().and_then(|arrival| {
+                        if arrival.platform.ends_with("N") {
+                            let station_id = arrival.platform.trim_end_matches("N");
+                            return stops.lookup_station_by_id(station_id).map(|station| station.north_label.clone());
+                        } else if arrival.platform.ends_with("S") {
+                            let station_id = arrival.platform.trim_end_matches("S");
+                            return stops.lookup_station_by_id(station_id).map(|station| station.south_label.clone());
+                        } else {
+                            return None;
+                        };
+                    }),
                     arrivals: stop_times.iter().map(|a| {
                         webclient_api::LineArrival{
                             timestamp: Some(a.timestamp.timestamp()),
