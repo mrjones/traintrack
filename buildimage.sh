@@ -29,12 +29,6 @@ then
 fi
 tag=$1
 
-push="false"
-if [[ $2 == "push" ]]
-then
-    push="true"
-fi
-
 echo "=== Compiling binaries"
 TRAINTRACK_VERSION=${tag} cargo build --color=never --release
 mkdir -p bin
@@ -60,12 +54,7 @@ feedproxyGcrName="gcr.io/mrjones-gke/traintrack-feedproxy"
 docker build -t $feedproxyLocalName:$tag build/feedproxy
 docker tag $feedproxyLocalName:$tag $feedproxyGcrName:${tag}
 
-if [[ $push == "true" ]]
-then
-    echo "=== Pushing to docker hub"
-    gcloud docker -- push ${frontendGcrName}:${tag}
-    gcloud docker -- push ${feedproxyGcrName}:${tag}
-
-else
-    echo "=== Skipping push to docker hub"
-fi
+echo "=== Pushing to docker hub"
+gcloud auth configure-docker
+docker push ${frontendGcrName}:${tag}
+docker push ${feedproxyGcrName}:${tag}
