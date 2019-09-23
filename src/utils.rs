@@ -32,6 +32,8 @@ pub enum Direction {
     DOWNTOWN,
 }
 
+const RECENT_STATIONS_COOKIE_NAME: &str = "recentStations";
+
 pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::HashSet<String> {
     let mut active_lines = std::collections::HashSet::new();
 
@@ -280,7 +282,7 @@ impl <'h, 'm> CookieAccessor for RustfulCookies<'h, 'm> {
 }
 
 pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {
-    let matches = extract_cookie_values_for_key(context, "recentStations");
+    let matches = extract_cookie_values_for_key(context, RECENT_STATIONS_COOKIE_NAME);
 
     if matches.len() == 0 { return vec![]; }
 
@@ -288,7 +290,7 @@ pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<St
 }
 
 pub fn extract_recent_stations(cookies: &dyn CookieAccessor) -> Vec<String> {
-    let matches = cookies.get_cookie("recentStations");
+    let matches = cookies.get_cookie(RECENT_STATIONS_COOKIE_NAME);
 
     if matches.len() == 0 { return vec![]; }
 
@@ -300,7 +302,7 @@ pub fn add_recent_station_to_cookie(id: &str, cookies: &mut dyn CookieAccessor) 
     list.push(id.to_string());
     let newval = list.join(":");
 
-    cookies.set_cookie("recent_stations", &newval);
+    cookies.set_cookie(RECENT_STATIONS_COOKIE_NAME, &newval);
     return Ok(());
 }
 
