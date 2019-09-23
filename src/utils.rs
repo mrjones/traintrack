@@ -188,16 +188,12 @@ pub fn all_upcoming_trains_vec_ref(
                         };
 
                         let timestamp = chrono::Utc.timestamp(
-                            match stop_time_update.arrival {
-                                Some(ref arrival) => arrival.time(),
-                                None => match stop_time_update.departure {
-                                    Some(ref departure) => departure.time(),
-                                    None => {
-                                        warn!("No arrival or departure time: {:?}", stop_time_update);
-                                        0
-                                    }
-                                }
-                            }, 0);
+                            stop_time_update.arrival.as_ref().map(|a| a.time())
+                                .or(stop_time_update.departure.as_ref().map(|d| d.time()))
+                                .unwrap_or_else(|| {
+                                    warn!("No arrival or departure time: {:?}", stop_time_update);
+                                    return 0;
+                                }), 0);
 
                         if !upcoming.contains_key(trip.route_id()) {
                             upcoming.insert(trip.route_id().to_string(), btreemap![]);
