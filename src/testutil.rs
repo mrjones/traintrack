@@ -12,6 +12,29 @@ impl utils::CookieAccessor for EmptyCookieAccessor {
     fn set_cookie(&mut self, _key: &str, _value: &str) { }
 }
 
+pub struct FakeCookieAccessor{
+    cookies: std::collections::HashMap<String, Vec<String>>,
+}
+
+impl FakeCookieAccessor {
+    pub fn new() -> FakeCookieAccessor {
+        return FakeCookieAccessor{
+            cookies: std::collections::HashMap::new(),
+        };
+    }
+}
+
+impl utils::CookieAccessor for FakeCookieAccessor {
+    // TODO(mrjones): Make the interface return a reference of some sort rather than cloning?
+    fn get_cookie(&self, key: &str) -> Vec<String> {
+        return self.cookies.get(key).map(|v| v.clone()).unwrap_or(vec![]);
+    }
+
+    fn set_cookie(&mut self, key: &str, value: &str) {
+        self.cookies.insert(key.to_string(), vec![value.to_string()]);
+    }
+}
+
 // TODO(mrjones): Decide whether filtered prod data or synthetic data is better
 fn routes_csv_data_from_prod(which_routes: WhichRoutes) -> String {
     let prod_data = include_str!("../data/routes.txt");

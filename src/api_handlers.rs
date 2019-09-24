@@ -176,17 +176,25 @@ pub fn station_detail_handler_guts(
 }
 
 pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let recent_stations = utils::extract_recent_stations_from_cookie(&rustful_context);
+    let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
+
+    let mut response = station_list_handler_guts(&tt_context.stops, &mut cookies)?;
+
+    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+}
+
+pub fn station_list_handler_guts(stops: &stops::Stops, cookies: &mut dyn utils::CookieAccessor) -> result::TTResult<webclient_api::StationList> {
+    let recent_stations = utils::extract_recent_stations(cookies);
 
     let mut priority_responses = std::collections::BTreeMap::new();
 
     let mut response = webclient_api::StationList::default();
-    for &ref complex in tt_context.stops.complexes_iter() {
+    for &ref complex in stops.complexes_iter() {
         let mut station_proto = webclient_api::Station::default();
         station_proto.name = Some(complex.name.clone());
         station_proto.id = Some(complex.id.clone());
         for station_id in &complex.substation_gtfs_ids {
-            let station = tt_context.stops.lookup_station_by_id(&station_id)
+            let station = stops.lookup_station_by_id(&station_id)
                 .expect(&format!("Corruption in stops.rs can't find station_id={} for complex_id={}", station_id, complex.id));
             for x in &station.lines {
                 station_proto.lines.push(x.to_string());
@@ -209,7 +217,7 @@ pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: ru
         response.station.insert(0, station);
     }
 
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return Ok(response);
 }
 
 pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
@@ -367,8 +375,10 @@ mod tests {
 
     // "GTFS Stop Id" and "Complex ID" columns from Stations.csv
     const UNION_ST_GTFS_ID: &str = "R32S";
-    const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
     const UNION_ST_MTA_COMPLEX_ID: &str = "028";
+
+    const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
+    const BARCLAYS_CTR_MTA_COMPLEX_ID: &str = "617";
 
     #[test]
     fn line_list_handler_test() {
@@ -478,5 +488,40 @@ mod tests {
 
         assert_eq!(1, station_data.line[1].arrivals.len());
         assert_eq!(3300, station_data.line[1].arrivals[0].timestamp());
+    }
+
+    #[test]
+    fn test_prioritizes_recently_viewed_stations() {
+        let stops = testutil::make_stops(testutil::WhichRoutes::All);
+        let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
+        let feeds = feedfetcher::LockedFeeds::new();
+        let mut cookies = testutil::FakeCookieAccessor::new();
+        let mut timer = context::RequestTimer::new(/* trace= */ false);
+
+        let _ = super::station_detail_handler_guts(
+            &stops,
+            empty_status_proto.clone(),
+            &feeds,
+            Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
+            &mut cookies,
+            /*is_prefetch=*/ false,
+            &mut timer).expect("union street station call");
+
+        let _ = super::station_detail_handler_guts(
+            &stops,
+            empty_status_proto.clone(),
+            &feeds,
+            Some(BARCLAYS_CTR_MTA_COMPLEX_ID.to_string()),
+            &mut cookies,
+            /*is_prefetch=*/ false,
+            &mut timer).expect("barclays center station call");
+
+        let station_list = super::station_list_handler_guts(&stops, &mut cookies)
+            .expect("station list call");
+
+        assert_eq!(Some(BARCLAYS_CTR_MTA_COMPLEX_ID.to_string()),
+                   station_list.station[0].id);
+        assert_eq!(Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
+                   station_list.station[1].id);
     }
 }
