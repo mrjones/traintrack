@@ -425,7 +425,7 @@ mod tests {
         // Things to test:
         // - Complexes with multiple stations
         // - System status (only showing affected routes).
-        // - Prefetching and setting of recent stations cookies
+        // - Prefetching
         simple_logger::init().unwrap();
 
         let stops = testutil::make_stops(testutil::WhichRoutes::All);
