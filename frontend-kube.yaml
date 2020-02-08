@@ -69,3 +69,15 @@ spec:
         - name: mrjones-traintrack-service-account-key
           secret:
             secretName: mrjones-traintrack-service-account-key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traintrack
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3837
+  selector:
+    run: traintrack
