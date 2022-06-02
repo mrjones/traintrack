@@ -12,7 +12,7 @@
     "google-protobuf": "^3.10.0-rc.1",
     "immutable": "^4.0.0-rc.12",
     "moment": "^2.24.0",
-    "protobufjs": "^6.8.8",
+    "protobufjs": "^6.11.3",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-g-analytics": "^0.4.2",
