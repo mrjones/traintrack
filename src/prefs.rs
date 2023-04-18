@@ -17,8 +17,8 @@ extern crate serde;
 extern crate serde_json;
 extern crate std;
 
-use auth;
-use result;
+use crate::auth;
+use crate::result;
 
 pub struct PrefStorage {
     google_service_account_pem_file: String,
@@ -147,7 +147,7 @@ impl PrefStorage {
         println!("JSON {}", request_json);
         println!("URL {}", url);
 
-        let client = reqwest::Client::new();
+        let client = reqwest::blocking::Client::new();
         let mut res = client
             .post(url)
             .bearer_auth(token)
@@ -263,7 +263,7 @@ impl PrefStorage {
 
         println!("URL {}", url);
 
-        let client = reqwest::Client::new();
+        let client = reqwest::blocking::Client::new();
         let mut res = client
             .post(&url)
             .bearer_auth(token)

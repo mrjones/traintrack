@@ -32,7 +32,7 @@ rustc-serialize = "*"
 # resolves this dependency, but hasn't been released to crates.
 # TODO(mrjones): Return to crates version of rustful when possible.
 #rustful = "*"
-#rustful = { git = "https://github.com/Ogeon/rustful" }
+rustful = { git = "https://github.com/Ogeon/rustful" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"

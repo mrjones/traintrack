@@ -1,12 +1,12 @@
 extern crate chrono;
 extern crate chrono_tz;
 
-use auth;
-use context;
-use feedfetcher;
-use result;
+use crate::auth;
+use crate::context;
+use crate::feedfetcher;
+use crate::result;
 use rustful;
-use utils;
+use crate::utils;
 
 pub fn debug_index(tt_context: &context::TTContext, _: rustful::Context, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();

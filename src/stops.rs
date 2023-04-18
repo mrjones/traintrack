@@ -15,7 +15,7 @@
 extern crate csv;
 extern crate std;
 
-use result;
+use crate::result;
 
 #[derive(Debug, Clone)]
 pub struct Station {

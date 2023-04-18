@@ -20,11 +20,11 @@ extern crate rustful;
 extern crate serde_json;
 extern crate std;
 
-use auth;
-use api_handlers;
-use debug_handlers;
-use context;
-use result;
+use crate::auth;
+use crate::api_handlers;
+use crate::debug_handlers;
+use crate::context;
+use crate::result;
 
 fn google_login_redirect_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let google_api_info = match tt_context.google_api_info {

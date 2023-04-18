@@ -18,13 +18,13 @@ extern crate std;
 
 use chrono::TimeZone;
 
-use context;
-use feedfetcher;
-use transit_realtime;
-use nyct_subway;
-use result;
+use crate::context;
+use crate::feedfetcher;
+use crate::transit_realtime;
+use crate::nyct_subway;
+use crate::result;
 use rustful;
-use stops;
+use crate::stops;
 
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Direction {

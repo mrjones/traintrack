@@ -236,8 +236,6 @@ let arr: &[u8] = &data;
         };
 
         if !response.status().is_success() {
-//            error!("{:?}", response.status());
-//            error!("{}", response.text().unwrap();
             return Err(result::quick_err(
                 format!("HTTP error: {}", response.status()).as_ref()));
         }

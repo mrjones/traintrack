@@ -1,12 +1,12 @@
 extern crate serde_json;
 
 use chrono;
-use context;
-use feedfetcher;
-use feedproxy_api;
-use transit_realtime;
+use crate::context;
+use crate::feedfetcher;
+use crate::feedproxy_api;
+use crate::transit_realtime;
 use prost;
-use result;
+use crate::result;
 use rustful;
 use std;
 use crate::stops;

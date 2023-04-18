@@ -130,7 +130,7 @@ fn main() {
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()); }
+        Err(f) => { panic!("{}", f.to_string()); }
     };
     let root_directory = matches.opt_str("root-directory").unwrap_or(
         ".".to_string());
@@ -200,10 +200,12 @@ fn main() {
         None => None,
     };
 
-    let build_timestamp = chrono::DateTime::from_utc(
-        chrono::NaiveDateTime::from_timestamp(
-            built::util::strptime(built_info::BUILT_TIME_UTC).timestamp(), 0),
-            chrono::Utc);
+    let build_timestamp = chrono::DateTime::<chrono::offset::Utc>::from_utc(chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), chrono::offset::Utc);
+
+//    let build_timestamp = chrono::DateTime::from_utc(
+//        chrono::NaiveDateTime::from_timestamp(
+//            built::util::strptime(built_info::BUILT_TIME_UTC).timestamp(), 0),
+//            chrono::Utc);
     println!("BUILD_TIMESTAMP={}", build_timestamp.to_rfc2822());
     let tt_version = option_env!("TRAINTRACK_VERSION").unwrap_or("<not set>");
     println!("TRAINTRACK_VERSION={}", tt_version);

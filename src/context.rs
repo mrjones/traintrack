@@ -1,9 +1,9 @@
-use feedfetcher;
+use crate::feedfetcher;
 use chrono;
-use prefs;
+use crate::prefs;
 use rustful;
 use std;
-use stops;
+use crate::stops;
 
 pub struct GoogleApiInfo {
     pub id: String,
