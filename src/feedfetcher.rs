@@ -21,11 +21,11 @@ extern crate time;
 use std::io::Read;
 use std::io::Write;
 
-use archive;
-use feedproxy_api;
-use transit_realtime;
-use result;
-use statusxml;
+use crate::archive;
+use crate::feedproxy_api;
+use crate::transit_realtime;
+use crate::result;
+use crate::statusxml;
 
 static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36, 51];
 
@@ -130,15 +130,14 @@ impl MtaFeedClient {
         let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
         debug!("Fetching URL: {}", url);
 
-        let mut response: reqwest::Response = reqwest::get(&url)?;
+        let mut response: reqwest::blocking::Response = reqwest::blocking::get(&url)?;
         if !response.status().is_success() {
             return Err(result::quick_err(
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut body = vec![];
-        response.read_to_end(&mut body)?;
-        return Ok(statusxml::parse(&body)?);
+        let mut body = response.text()?;
+        return Ok(statusxml::parse(body.as_bytes())?);
     }
 
     pub fn fetch_all_feeds(&self) {
@@ -176,8 +175,10 @@ impl MtaFeedClient {
         let mut data = Vec::new();
         file.read_to_end(&mut data)?;
         trace!("About to parse {} bytes", data.len());
+let arr: &[u8] = &data;
 
-        let feed = transit_realtime::FeedMessage::decode(&data)?;
+
+        let feed = transit_realtime::FeedMessage::decode(arr)?;
         trace!("Parsed: {:?}", feed.header);
 
         /*
@@ -195,13 +196,13 @@ impl MtaFeedClient {
         return Ok(feed);
     }
 
-    fn fetch_one_feed_legacy_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::Response> {
+    fn fetch_one_feed_legacy_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::blocking::Response> {
         let url = format!("http://datamine.mta.info/mta_esi.php?key={}&feed_id={}", api_key, feed_id);
         info!("Fetching URL: {}", url);
-        return Ok(reqwest::get(&url)?);
+        return Ok(reqwest::blocking::get(&url)?);
     }
 
-    fn fetch_one_feed_new_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::Response> {
+    fn fetch_one_feed_new_endpoint(&self, feed_id: i32, api_key: &str) -> result::TTResult<reqwest::blocking::Response> {
         // TODO(mrjones): Get rid of this mapping once we delete the legacy API code
         let legacy_feed_id_mapping = hashmap!{
             1 => "gtfs", // 123456
@@ -218,7 +219,7 @@ impl MtaFeedClient {
         let url = format!("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2F{}", feed_string);
 
         info!("Fetching URL: {}", url);
-        let client = reqwest::Client::new();
+        let client = reqwest::blocking::Client::new();
         return Ok(client.get(&url).header("x-api-key", api_key).send()?);
 
     }
@@ -229,27 +230,26 @@ impl MtaFeedClient {
             Some(ref result) => result.last_good_fetch,
         };
 
-        let mut response = match self.mta_endpoint {
+        let response = match self.mta_endpoint {
             MtaApiEndpoint::Legacy => self.fetch_one_feed_legacy_endpoint(feed_id, &self.mta_api_key)?,
             MtaApiEndpoint::New => self.fetch_one_feed_new_endpoint(feed_id, &self.mta_api_key)?,
         };
 
         if !response.status().is_success() {
-            error!("{:?}", response.status());
-            error!("{}", response.text().unwrap());
+//            error!("{:?}", response.status());
+//            error!("{}", response.text().unwrap();
             return Err(result::quick_err(
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut body = vec![];
-        response.read_to_end(&mut body)?;
+        let body = response.text()?;
         trace!("Response was {} bytes", body.len());
 
         let lastresponse_fname = format!("lastresponse_{}.txt", feed_id);
         let lastgood_fname = format!("lastgood_{}.txt", feed_id);
 
         let mut file = std::fs::File::create(&lastresponse_fname)?;
-        file.write_all(&body)?;
+        file.write_all(body.as_bytes())?;
 
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
@@ -263,7 +263,7 @@ impl MtaFeedClient {
                         trace!("About to write {}. {} bytes.",
                               &lastgood_fname, body.len());
                         let mut file = std::fs::File::create(&lastgood_fname)?;
-                        file.write_all(&body)?;
+                        file.write_all(body.as_bytes())?;
                         trace!("Succeeded writing {}. {} bytes.",
                                &lastgood_fname, body.len());
                     }
@@ -340,15 +340,14 @@ impl ProxyClient {
             status_url.push_str("/");
         }
         status_url.push_str("status");
-        let mut response: reqwest::Response = reqwest::get(&status_url)?;
+        let response: reqwest::blocking::Response = reqwest::blocking::get(&status_url)?;
         if !response.status().is_success() {
             return Err(result::quick_err(format!(
                 "HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut response_body = vec![];
-        response.read_to_end(&mut response_body)?;
-        return Ok(feedproxy_api::SubwayStatus::decode(&response_body)?);
+        let response_body = response.text()?;
+        return Ok(feedproxy_api::SubwayStatus::decode(response_body.as_bytes())?);
     }
 
     fn fetch_feed_from_proxy(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
@@ -359,15 +358,15 @@ impl ProxyClient {
             feed_url.push_str("/");
         }
         feed_url.push_str(format!("feed/{}", feed_id).as_ref());
-        let mut response: reqwest::Response = reqwest::get(&feed_url)?;
+        let response: reqwest::blocking::Response =
+            reqwest::blocking::get(&feed_url)?;
         if !response.status().is_success() {
             return Err(result::quick_err(format!(
                 "HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut response_body = vec![];
-        response.read_to_end(&mut response_body)?;
-        let proxy_response = feedproxy_api::FeedProxyResponse::decode(&response_body)?;
+        let response_body = response.text()?;
+        let proxy_response = feedproxy_api::FeedProxyResponse::decode(response_body.as_bytes())?;
 
         use chrono::TimeZone;
         return Ok(FetchResult{

@@ -18,7 +18,7 @@ extern crate frank_jwt;
 extern crate reqwest;
 extern crate std;
 
-use result;
+use crate::result;
 
 #[derive(Debug, Deserialize)]
 struct GoogleResponse {
@@ -52,7 +52,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
 
     println!("URL: {}", url);
 
-    let client = reqwest::Client::new();
+    let client = reqwest::blocking::Client::new();
     let mut res = client.post(url)
         .form(&params)
         .send()?;
@@ -108,7 +108,7 @@ pub fn generate_google_bearer_token(
     let token = frank_jwt::encode(header, &path.to_path_buf(), &payload, frank_jwt::Algorithm::RS256)?;
 
     // println!("TOKEN: {}", token);
-    let client = reqwest::Client::new();
+    let client = reqwest::blocking::Client::new();
 
     let google_access_url = "https://www.googleapis.com/oauth2/v4/token";
     let params = [
@@ -120,7 +120,9 @@ pub fn generate_google_bearer_token(
         .send()?;
 
     if !res.status().is_success() {
-        return Err(result::quick_err(format!("RESPONSE: {:?} {}", res.status(), res.text()?).as_ref()));
+        return Err(result::quick_err(
+            format!("RESPONSE: {:?} {}", res.status(), res.text()?).as_ref()
+        ));
     }
 
     #[derive(Debug, Deserialize)]
@@ -128,8 +130,8 @@ pub fn generate_google_bearer_token(
         access_token: String,
         token_type: String,
         expires_in: i64,
-    };
-    let response_json: GoogleAccessResponse = res.json().unwrap();
+    }
+    let response_json: GoogleAccessResponse = res.json::<GoogleAccessResponse>().unwrap();
 
 //    println!("RESPONSE: {:?}", response_json);
 
@@ -140,7 +142,7 @@ pub fn generate_google_bearer_token(
 pub fn do_firestore_request(google_api_key: &str, bearer_token: &str) -> result::TTResult<String> {
     let url = format!("https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key={}", google_api_key);
 
-    let client = reqwest::Client::new();
+    let client = reqwest::blocking::Client::new();
     let mut decode_res = client
         .get(&url)
         .bearer_auth(bearer_token)

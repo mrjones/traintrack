@@ -4,9 +4,9 @@ extern crate serde_xml_rs;
 extern crate tendril;
 extern crate xml5ever;
 
-use feedproxy_api;
-use result;
-use webclient_api;
+use crate::feedproxy_api;
+use crate::result;
+use crate::webclient_api;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]

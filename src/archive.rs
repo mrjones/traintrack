@@ -15,9 +15,9 @@
 extern crate reqwest;
 extern crate std;
 
-use auth;
-use transit_realtime;
-use result;
+use crate::auth;
+use crate::transit_realtime;
+use crate::result;
 
 pub struct GcsArchiveOptions {
     pub bucket_name: String,
@@ -77,7 +77,7 @@ impl FeedArchive {
         use prost::Message;
         message.encode(&mut buf)?;
 
-        let client = reqwest::Client::new();
+        let client = reqwest::blocking::Client::new();
         let mut response = client.post(&url)
             .bearer_auth(token)
             .body(buf)

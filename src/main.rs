@@ -24,7 +24,7 @@ extern crate log4rs;
 extern crate maplit;
 extern crate prost;
 extern crate rustc_serialize;
-extern crate rustful;
+//extern crate rustful;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]

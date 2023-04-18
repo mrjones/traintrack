@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate core;
 extern crate chrono;
 extern crate frank_jwt;
 extern crate getopts;
@@ -20,7 +21,6 @@ extern crate log;
 extern crate log4rs;
 #[macro_use]
 extern crate maplit;
-extern crate prost;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -98,6 +98,7 @@ fn handle(feed_id_str: &str, fetcher: &feedfetcher::MtaFeedClient) -> result::TT
 }
 
 fn main() {
+    println!("MAIN");
     let args: Vec<String> = std::env::args().collect();
 
     let mut opts = getopts::Options::new();
@@ -111,7 +112,7 @@ fn main() {
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()); }
+        Err(f) => { panic!("{}", f.to_string()); }
     };
 
     let root_directory = matches.opt_str("root-directory").unwrap_or(
@@ -178,9 +179,9 @@ fn main() {
         let url_parts: Vec<&str> = url_clone.split('/').collect();
 
         if url_parts.len() == 2 && url_parts[1] == "status" {
-            use prost::Message;
             let status_proto = mta_client.latest_status();
             let mut reply_bytes = vec![];
+            use prost::Message;
             status_proto.encode(&mut reply_bytes).unwrap();
             let response = tiny_http::Response::from_data(reply_bytes);
             request.respond(response).unwrap();
@@ -188,8 +189,8 @@ fn main() {
             // New style url /status
             match handle(url_parts[2], &mta_client) {
                 Ok(reply_proto) => {
-                    use prost::Message;
                     let mut reply_bytes = vec![];
+                    use prost::Message;
                     reply_proto.encode(&mut reply_bytes).unwrap();
                     let response = tiny_http::Response::from_data(reply_bytes);
                     request.respond(response).unwrap();
@@ -220,8 +221,8 @@ fn main() {
             }
             info!("REPLYING!");
 
-            use prost::Message;
             let mut reply_bytes = vec![];
+            use prost::Message;
             reply_data.encode(&mut reply_bytes).unwrap();
             let response = tiny_http::Response::from_data(reply_bytes);
             request.respond(response).unwrap();

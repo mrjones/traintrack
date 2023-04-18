@@ -23,9 +23,9 @@ fn main() {
     config.type_attribute(".", "#[derive(Serialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"camelCase\")]");
     config.compile_protos(&["proto/feedproxy_api.proto",
-                                  "proto/gtfs-realtime.proto",
-                                  "proto/nyct-subway.proto",
-                                  "proto/webclient_api.proto"],
-                                &["proto/"]).unwrap();
+                            "proto/gtfs-realtime.proto",
+                            "proto/nyct-subway.proto",
+                            "proto/webclient_api.proto"],
+                          &["proto/"]).unwrap();
 
 }

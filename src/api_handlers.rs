@@ -9,9 +9,9 @@ use prost;
 use result;
 use rustful;
 use std;
-use stops;
-use utils;
-use webclient_api;
+use crate::stops;
+use crate::utils;
+use crate::webclient_api;
 
 fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient_api::DebugInfo {
     if info.is_none() {

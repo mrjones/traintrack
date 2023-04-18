@@ -3,6 +3,7 @@ name = "traintrack"
 version = "0.1.0"
 authors = ["Matt Jones <jonesmr@gmail.com>"]
 build = "build.rs"
+edition = "2021"
 
 [dependencies]
 base64 = "*"
@@ -17,10 +18,11 @@ log = "*"
 log4rs = "*"
 maplit = "*"
 prost = "*"
+prost-types = "*"
 # protobuf = "*"
 # protobuf-json = "*"
 regex = "*"
-reqwest = "*"
+reqwest = { version = "*", features = ["blocking", "json"] }
 rustc-serialize = "*"
 # The latest version of rustful in crates.io is 0.9.0, this
 # eventually depends on openssl-sys v0.7.17. However reqwest
@@ -30,7 +32,7 @@ rustc-serialize = "*"
 # resolves this dependency, but hasn't been released to crates.
 # TODO(mrjones): Return to crates version of rustful when possible.
 #rustful = "*"
-rustful = { git = "https://github.com/Ogeon/rustful" }
+#rustful = { git = "https://github.com/Ogeon/rustful" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
