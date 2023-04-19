@@ -136,8 +136,8 @@ impl MtaFeedClient {
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut body = response.text()?;
-        return Ok(statusxml::parse(body.as_bytes())?);
+        let mut body = response.bytes()?;
+        return Ok(statusxml::parse(body.as_ref())?);
     }
 
     pub fn fetch_all_feeds(&self) {
@@ -240,14 +240,14 @@ let arr: &[u8] = &data;
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
 
-        let body = response.text()?;
+        let body = response.bytes()?;
         trace!("Response was {} bytes", body.len());
 
         let lastresponse_fname = format!("lastresponse_{}.txt", feed_id);
         let lastgood_fname = format!("lastgood_{}.txt", feed_id);
 
         let mut file = std::fs::File::create(&lastresponse_fname)?;
-        file.write_all(body.as_bytes())?;
+        file.write_all(body.as_ref())?;
 
         let mut first_err = None;
         // TODO(mrjones): Don't re-parse lastgood here:
@@ -261,7 +261,7 @@ let arr: &[u8] = &data;
                         trace!("About to write {}. {} bytes.",
                               &lastgood_fname, body.len());
                         let mut file = std::fs::File::create(&lastgood_fname)?;
-                        file.write_all(body.as_bytes())?;
+                        file.write_all(body.as_ref())?;
                         trace!("Succeeded writing {}. {} bytes.",
                                &lastgood_fname, body.len());
                     }
@@ -344,8 +344,8 @@ impl ProxyClient {
                 "HTTP error: {}", response.status()).as_ref()));
         }
 
-        let response_body = response.text()?;
-        return Ok(feedproxy_api::SubwayStatus::decode(response_body.as_bytes())?);
+        let response_body = response.bytes()?;
+        return Ok(feedproxy_api::SubwayStatus::decode(response_body.as_ref())?);
     }
 
     fn fetch_feed_from_proxy(&self, proxy_url: &str, feed_id: i32) -> result::TTResult<FetchResult> {
@@ -363,8 +363,8 @@ impl ProxyClient {
                 "HTTP error: {}", response.status()).as_ref()));
         }
 
-        let response_body = response.text()?;
-        let proxy_response = feedproxy_api::FeedProxyResponse::decode(response_body.as_bytes())?;
+        let response_body = response.bytes()?;
+        let proxy_response = feedproxy_api::FeedProxyResponse::decode(response_body.as_ref())?;
 
         use chrono::TimeZone;
         return Ok(FetchResult{
