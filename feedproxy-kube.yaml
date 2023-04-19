@@ -15,12 +15,15 @@
 # kubectl create secret generic traintrack-creds --from-literal=mta-api-key=$MTA_API_KEY
 # kubectl apply -f kubernets.yaml
 # kubectl expose deployment traintrack --type=LoadBalancer --port=80 --target-port=3837
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: traintrack-feedproxy
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      run: traintrack-feedproxy
   template:
     metadata:
       labels:
@@ -28,7 +31,7 @@ spec:
     spec:
       containers:
       - name: feedproxy
-        image: gcr.io/mrjones-gke/traintrack-feedproxy:2019-09-11.1
+        image: gcr.io/mrjones-gke/traintrack-feedproxy:2023-04-18.3
         imagePullPolicy: IfNotPresent
         env:
         - name: MTA_API_KEY

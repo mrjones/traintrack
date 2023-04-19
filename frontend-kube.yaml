@@ -17,13 +17,16 @@
 # kubectl create secret generic traintrack-google-creds --from-literal=google-api-id=<xxx>.apps.googleusercontent.com --from-literal=google-api-secret=$GOOGLE_API_KEY
 # kubectl apply -f kubernets.yaml
 # kubectl expose deployment traintrack --type=LoadBalancer --port=80 --target-port=3837
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: traintrack
 spec:
   replicas: 2
   revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      run: traintrack
   template:
     metadata:
       labels:
@@ -31,7 +34,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2019-09-23.0
+        image: gcr.io/mrjones-gke/traintrack:2023-04-18.3
         imagePullPolicy: IfNotPresent
         env:
         - name: GOOGLE_API_ID

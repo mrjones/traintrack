@@ -27,7 +27,7 @@ use crate::transit_realtime;
 use crate::result;
 use crate::statusxml;
 
-static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36, 51];
+static FEED_IDS: &'static [i32] = &[1, 2, 16, 21, 26, 31, 36];
 
 #[derive(Clone)]
 pub struct FetchResult {
