@@ -38,7 +38,7 @@ module.exports = {
           },
           {
             // First convert TS w/ ES6 syntax to JS (also ES6)
-            loader: 'awesome-typescript-loader',
+            loader: 'ts-loader',
           }
         ],
       },
@@ -46,7 +46,7 @@ module.exports = {
   },
   plugins: [
     new CompressionPlugin({
-      asset: "[path].gz",
+      include: "[path].gz",
       algorithm: "gzip",
     }),
     new webpack.BannerPlugin({

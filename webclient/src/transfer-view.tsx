@@ -378,11 +378,11 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
             let candidate = candidateLine.arrivals[i];
 
             // If this candidate is after the inbound connection
-            if (candidate.timestamp >= inboundTs &&
+            if (Number(candidate.timestamp) >= inboundTs &&
                 // And either we don't have any other connection...
                 (connectionInfo === undefined ||
                  // .. or this is better than our best connection so far.
-                 candidate.timestamp < connectionInfo.outboundTimestamp)) {
+                 Number(candidate.timestamp) < connectionInfo.outboundTimestamp)) {
               connectionInfo = {
                 line: candidateLine.line,
                 inboundTimestamp: inboundTs,
@@ -433,8 +433,17 @@ class TransferPage extends React.Component<TransferPageProps, TransferPageLocalS
 
 export let ConnectedTransferPage = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(TransferPage);
 
-export class TransferPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  constructor(props: ReactRouter.RouteComponentProps<any>) {
+export const TransferPageWrapper = () => {
+  const params = ReactRouter.useParams();
+
+  return <ConnectedTransferPage
+  rootSpec={params.rootSpec ? params.rootSpec : "028-R-U"}
+  transferSpecs={params.transferSpec ? params.transferSpec : "617-D-U:026-B-U:636-AC-U"} />
+}
+
+  /*
+export class TransferPageWrapper extends React.Component<any, any> {
+  constructor(props: any) {
     super(props);
   }
 
@@ -445,3 +454,4 @@ export class TransferPageWrapper extends React.Component<ReactRouter.RouteCompon
     transferSpecs={this.props.match.params.transferSpec ? this.props.match.params.transferSpec : "617-D-U:026-B-U:636-AC-U"}/>;
   }
 }
+*/

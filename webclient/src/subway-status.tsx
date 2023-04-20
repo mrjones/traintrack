@@ -99,7 +99,7 @@ export class SubwayStatus extends React.Component<SubwayStatusProps, SubwayStatu
       let lines = this.summarizeLines([msg.affectedLine]);
 
       let publishText = "";
-      if (msg.publishTimestamp && msg.publishTimestamp > 0) {
+      if (msg.publishTimestamp && Number(msg.publishTimestamp) > 0) {
         const publishMoment = moment.unix(msg.publishTimestamp as number);
 
         publishText = publishMoment.fromNow();

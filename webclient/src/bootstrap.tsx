@@ -14,13 +14,15 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import * as ReactDOMClient from "react-dom/client";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as ReduxThunk from "redux-thunk";
 
 
-import { BrowserRouter } from "react-g-analytics";
+//import { BrowserRouter } from "react-g-analytics";
+//import { BrowserRouter } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
 import { LineViewRouterWrapper } from './lineview';
@@ -42,14 +44,20 @@ let store: Redux.Store<TTState> = Redux.createStore(
   Redux.applyMiddleware((ReduxThunk.default.withExtraArgument(context) as ReduxThunk.ThunkMiddleware<TTState>)));
 
 let prefetcher = new Prefetcher(ENABLE_PREFETCHING, context, store);
+//  <BrowserRouter id="UA-102249880-1">
+//  <!/BrowserRouter>
+// <ReactRouter.Route path='/app/debug/prefetcher' element={<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
 
-ReactDOM.render(
+const container = document.getElementById('tt_app');
+const root = ReactDOMClient.createRoot(container);
+
+root.render(
   <ReactRedux.Provider store={store}>
     <div>
       <Helmet>
         <meta name="viewport" content="initial-scale=1" />
       </Helmet>
-      <BrowserRouter id="UA-102249880-1">
+      <ReactRouter.BrowserRouter>
         <div className="app">
           <div className="app_title">
             <ReactRouter.Link to={`/app`}>
@@ -57,25 +65,23 @@ ReactDOM.render(
             </ReactRouter.Link>
           </div>
           <div className="app_content">
-            <ReactRouter.Switch>
-              <ReactRouter.Route path='/app/lines' component={LinePickerRouterWrapper}/>
-              <ReactRouter.Route path='/app/line/:lineId' component={LineViewRouterWrapper}/>
-              <ReactRouter.Route path='/app/station/:initialStationId/:visibilitySpec' component={StationPageWrapper} />
-              <ReactRouter.Route path='/app/station/:initialStationId' component={StationPageWrapper} />
-              <ReactRouter.Route path='/app/train/:trainId' component={TrainItineraryWrapper}/>
-              <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' component={TransferPageWrapper}/>
-              <ReactRouter.Route path='/app/transfer' component={TransferPageWrapper}/>
-              <ReactRouter.Route path='/app/debug/prefetcher' render={(props) => (<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
-              <ReactRouter.Route path='/app/about' component={AboutPage}/>
-              <ReactRouter.Route path='/app' component={StationPageWrapper}/>
-              <ReactRouter.Route path='/' component={StationPageWrapper}/>
-            </ReactRouter.Switch>
+            <ReactRouter.Routes>
+              <ReactRouter.Route path='/app/lines' element={<LinePickerRouterWrapper/>}/>
+              <ReactRouter.Route path='/app/line/:lineId' element={<LineViewRouterWrapper/>}/>
+              <ReactRouter.Route path='/app/station/:initialStationId/:visibilitySpec' element={<StationPageWrapper/>} />
+              <ReactRouter.Route path='/app/station/:initialStationId' element={<StationPageWrapper/>} />
+              <ReactRouter.Route path='/app/train/:trainId' element={<TrainItineraryWrapper/>}/>
+              <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' element={<TransferPageWrapper/>}/>
+              <ReactRouter.Route path='/app/transfer' element={<TransferPageWrapper/>}/>
+              <ReactRouter.Route path='/app/about' element={<AboutPage/>}/>
+              <ReactRouter.Route path='/app' element={<StationPageWrapper/>}/>
+              <ReactRouter.Route path='/' element={<StationPageWrapper/>}/>
+            </ReactRouter.Routes>
         </div>
       </div>
-      </BrowserRouter>
+      </ReactRouter.BrowserRouter>
     </div>
-  </ReactRedux.Provider>,
-  document.getElementById('tt_app'));
+  </ReactRedux.Provider>);
 
 if (ENABLE_PREFETCHING) {
   console.log("Prefetching enabled");

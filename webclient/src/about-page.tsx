@@ -26,7 +26,7 @@ export class AboutPage extends React.Component<any, any> {
       <p>TrainTrack was was developed by <a href="http://mrjon.es">Matt Jones</a>. It is written in Rust and React (source on <a href="http://github.com/mrjones/traintrack">GitHub</a>) and powered by <a href="http://datamine.mta.info/list-of-feeds">data feeds from the MTA</a>.</p>
 
       <p>Please send feedback to <a href="mailto:traintrack@mrjon.es">traintrack@mrjon.es</a>.</p>
-      <p><b>Recent changes</b>
+      <p><b>Recent changes</b></p>
       <ul>
       <li>2018-07-02: Enabled basic data prefetching.</li>
       <li>2018-06-02: Better indication of when data is being fetched.</li>
@@ -39,7 +39,6 @@ export class AboutPage extends React.Component<any, any> {
       <li>2019-09-11: Added support for a new MTA API endpoint, which hopefully (?) will provide more reliable data, but could also lead to new bugs.</li>
       <li>2019-09-21: Replaced generic "Uptown" and "Downtown" labels with MTA-provided descriptions for each platform.</li>
       </ul>
-      </p>
       </div>;
 
   }

@@ -122,12 +122,7 @@ const mapDispatchToProps = (dispatch: TTThunkDispatch): LineViewDispatchProps =>
 
 export let ConnectedLineView = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(LineView);
 
-export class LineViewRouterWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  constructor(props: ReactRouter.RouteComponentProps<any>) {
-    super(props);
-  }
-
-  public render(): JSX.Element {
-    return <ConnectedLineView lineId={this.props.match.params.lineId} />;
-  }
+export const LineViewRouterWrapper = () => {
+  const params = ReactRouter.useParams();
+  return <ConnectedLineView lineId={params.lineId} />
 }

@@ -14,12 +14,12 @@
 
 import * as Immutable from 'immutable';
 import * as moment from "moment";
-import * as querystring from "query-string";
 import * as React from "react";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as history from "history";
+import querystring from "query-string";
 
 import { webclient_api } from './webclient_api_pb';
 import * as utils from './utils';
@@ -316,22 +316,14 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
   }
 }
 
-export class StationPageWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  constructor(props: ReactRouter.RouteComponentProps<any>) {
-    super(props);
-  }
+export const StationPageWrapper = () => {
+  const params = ReactRouter.useParams();
+  const location = ReactRouter.useLocation();
 
-  private stationId(): string {
-    return this.props.match.params.initialStationId ? this.props.match.params.initialStationId : "default";
-  }
+  console.log("HACK: " + JSON.stringify(params));
 
-  private visibilitySpec(): string {
-    return this.props.match.params.visibilitySpec ? this.props.match.params.visibilitySpec : "";
-  }
-
-  public render() {
-    return <div>
-      <StationPage initialStationId={this.stationId()} visibilityState={VisibilityState.parseFromSpec(this.visibilitySpec())} queryParams={StationPageQueryParams.parseFrom(this.props.location.search)}/>
-    </div>;
-  }
+  return <StationPage
+      initialStationId={params.initialStationId ? params.initialStationId : "028"}
+      visibilityState={VisibilityState.parseFromSpec(params.visibilitySpec ? params.visibilitySpec : "default")}
+      queryParams={StationPageQueryParams.parseFrom(location.search)} />;
 }

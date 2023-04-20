@@ -18,8 +18,8 @@ import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as moment from "moment";
-import * as querystring from "query-string";
 import * as history from "history";
+import querystring from "query-string";
 
 import { webclient_api } from './webclient_api_pb';
 
@@ -187,12 +187,10 @@ const mapDispatchToProps = (dispatch: TTThunkDispatch): TrainItineraryDispatchPr
 
 export let ConnectedTrainItinerary = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(TrainItinerary);
 
-export class TrainItineraryWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  constructor(props: ReactRouter.RouteComponentProps<any>) {
-    super(props);
-  }
+export const TrainItineraryWrapper = () => {
+  const params = ReactRouter.useParams();
+  const location = ReactRouter.useLocation();
 
-  public render(): JSX.Element {
-    return <ConnectedTrainItinerary trainId={this.props.match.params.trainId} queryParams={TrainItineraryQueryParams.parseFrom(this.props.location.search)}/>;
-  }
+  return <ConnectedTrainItinerary
+  trainId={params.trainId} queryParams={TrainItineraryQueryParams.parseFrom(location.search)} />
 }

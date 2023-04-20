@@ -85,8 +85,8 @@ const mapLineDispatchToProps = (dispatch: TTThunkDispatch): LinePickerDispatchPr
 
 export let ConnectedLinePicker = ReactRedux.connect(mapLineStateToProps, mapLineDispatchToProps)(LinePicker);
 
-export class LinePickerRouterWrapper extends React.Component<ReactRouter.RouteComponentProps<any>, any> {
-  constructor(props: ReactRouter.RouteComponentProps<any>) {
+export class LinePickerRouterWrapper extends React.Component<any, any> {
+  constructor(props: any) {
     super(props);
   }
 
