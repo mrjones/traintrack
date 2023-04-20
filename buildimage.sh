@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+!/bin/bash -eu
 #
 # Copyright 2018 Google LLC
 #
@@ -38,7 +38,7 @@ cp target/release/feedproxy build/feedproxy/feedproxy
 echo "=== Compiling JavaScript/WebClient"
 pushd .
 cd webclient
-webpack -p --config webpack-prod.config.js
+webpack --mode=production --config webpack-prod.config.js
 popd
 
 echo "=== Creating frontend image"
