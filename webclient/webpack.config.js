@@ -46,7 +46,6 @@ module.exports = {
   },
   plugins: [
     new CompressionPlugin({
-      include: "[path].gz",
       algorithm: "gzip",
     }),
     new webpack.BannerPlugin({

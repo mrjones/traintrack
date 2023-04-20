@@ -47,7 +47,7 @@ let store: Redux.Store<TTState> = Redux.createStore(
 let prefetcher = new Prefetcher(ENABLE_PREFETCHING, context, store);
 // <ReactRouter.Route path='/app/debug/prefetcher' element={<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
 
-ReactGA.initialize("G-RVVV1VSRRM", { debug: true, titleCase: false });
+ReactGA.initialize("G-RVVV1VSRRM", { debug: false });
 
 
 const history = History.createBrowserHistory();
