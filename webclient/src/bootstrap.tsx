@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as History from "history"
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
+import * as ReactGA from "react-ga";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
 import * as ReduxThunk from "redux-thunk";
-
 
 //import { BrowserRouter } from "react-g-analytics";
 //import { BrowserRouter } from "react-router-dom";
@@ -44,12 +45,38 @@ let store: Redux.Store<TTState> = Redux.createStore(
   Redux.applyMiddleware((ReduxThunk.default.withExtraArgument(context) as ReduxThunk.ThunkMiddleware<TTState>)));
 
 let prefetcher = new Prefetcher(ENABLE_PREFETCHING, context, store);
-//  <BrowserRouter id="UA-102249880-1">
-//  <!/BrowserRouter>
 // <ReactRouter.Route path='/app/debug/prefetcher' element={<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
+
+ReactGA.initialize("G-RVVV1VSRRM", { debug: true, titleCase: false });
+
+
+const history = History.createBrowserHistory();
 
 const container = document.getElementById('tt_app');
 const root = ReactDOMClient.createRoot(container);
+
+const App = () => {
+  const location = ReactRouter.useLocation();
+
+  React.useEffect(() => {
+    ReactGA.pageview(location.pathname + location.search);
+    console.log("REPORTING TO GA: " + location.pathname + location.search);
+  }, [location.pathname]);
+
+  return <ReactRouter.Routes>
+      <ReactRouter.Route path='/app/lines' element={<LinePickerRouterWrapper/>}/>
+      <ReactRouter.Route path='/app/line/:lineId' element={<LineViewRouterWrapper/>}/>
+      <ReactRouter.Route path='/app/station/:initialStationId/:visibilitySpec' element={<StationPageWrapper/>} />
+      <ReactRouter.Route path='/app/station/:initialStationId' element={<StationPageWrapper/>} />
+      <ReactRouter.Route path='/app/train/:trainId' element={<TrainItineraryWrapper/>}/>
+      <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' element={<TransferPageWrapper/>}/>
+      <ReactRouter.Route path='/app/transfer' element={<TransferPageWrapper/>}/>
+      <ReactRouter.Route path='/app/about' element={<AboutPage/>}/>
+      <ReactRouter.Route path='/app' element={<StationPageWrapper/>}/>
+      <ReactRouter.Route path='/' element={<StationPageWrapper/>}/>
+    </ReactRouter.Routes>
+
+}
 
 root.render(
   <ReactRedux.Provider store={store}>
@@ -65,20 +92,9 @@ root.render(
             </ReactRouter.Link>
           </div>
           <div className="app_content">
-            <ReactRouter.Routes>
-              <ReactRouter.Route path='/app/lines' element={<LinePickerRouterWrapper/>}/>
-              <ReactRouter.Route path='/app/line/:lineId' element={<LineViewRouterWrapper/>}/>
-              <ReactRouter.Route path='/app/station/:initialStationId/:visibilitySpec' element={<StationPageWrapper/>} />
-              <ReactRouter.Route path='/app/station/:initialStationId' element={<StationPageWrapper/>} />
-              <ReactRouter.Route path='/app/train/:trainId' element={<TrainItineraryWrapper/>}/>
-              <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' element={<TransferPageWrapper/>}/>
-              <ReactRouter.Route path='/app/transfer' element={<TransferPageWrapper/>}/>
-              <ReactRouter.Route path='/app/about' element={<AboutPage/>}/>
-              <ReactRouter.Route path='/app' element={<StationPageWrapper/>}/>
-              <ReactRouter.Route path='/' element={<StationPageWrapper/>}/>
-            </ReactRouter.Routes>
+            <App />
+          </div>
         </div>
-      </div>
       </ReactRouter.BrowserRouter>
     </div>
   </ReactRedux.Provider>);
