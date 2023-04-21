@@ -318,6 +318,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
 }
 
 const defaultStation = () => {
+  // TODO(mrjones): Create a recent-stations module to avoid everyone manually interpreting the cookie.
   const recentStationStr = Cookie.get("recentStations");
   console.log("recentStationStr: " + recentStationStr);
   const recentStationIds = recentStationStr.split(":").reverse();
