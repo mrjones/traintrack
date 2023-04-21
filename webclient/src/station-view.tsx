@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as Cookie from "es-cookie";
 import * as Immutable from 'immutable';
 import * as moment from "moment";
 import * as React from "react";
@@ -31,6 +30,7 @@ import { ApiDebugger } from './debug';
 import { ConnectedFilterControl, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
+import { recentStationsFromCookie } from './recent-stations';
 import { TTState } from './state-machine';
 import { loadStationDetails } from './state-actions';
 import { SubwayStatus } from './subway-status';
@@ -318,10 +318,7 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
 }
 
 const defaultStation = () => {
-  // TODO(mrjones): Create a recent-stations module to avoid everyone manually interpreting the cookie.
-  const recentStationStr = Cookie.get("recentStations");
-  console.log("recentStationStr: " + recentStationStr);
-  const recentStationIds = recentStationStr.split(":").reverse();
+  const recentStationIds: string[] = recentStationsFromCookie();
 
   if (recentStationIds.length == 0) {
     console.log("No recent station cookie, defaulting to 028");
