@@ -16,6 +16,7 @@ struct SubwayStatusXml {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
+#[allow(dead_code)]
 struct ServiceDeliveryNode {
     response_timestamp: String,
 
@@ -25,6 +26,7 @@ struct ServiceDeliveryNode {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
+#[allow(dead_code)]
 struct SituationExchangeNode {
     response_timestamp: String,
     status: String,
@@ -40,6 +42,7 @@ struct SituationNode {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
+#[allow(dead_code)]
 struct PtSituationElement {
     creation_time: String,
     situation_number: String,

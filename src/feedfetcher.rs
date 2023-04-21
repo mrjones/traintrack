@@ -130,13 +130,13 @@ impl MtaFeedClient {
         let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
         debug!("Fetching URL: {}", url);
 
-        let mut response: reqwest::blocking::Response = reqwest::blocking::get(&url)?;
+        let response: reqwest::blocking::Response = reqwest::blocking::get(&url)?;
         if !response.status().is_success() {
             return Err(result::quick_err(
                 format!("HTTP error: {}", response.status()).as_ref()));
         }
 
-        let mut body = response.bytes()?;
+        let body = response.bytes()?;
         return Ok(statusxml::parse(body.as_ref())?);
     }
 

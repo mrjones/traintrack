@@ -78,7 +78,7 @@ impl FeedArchive {
         message.encode(&mut buf)?;
 
         let client = reqwest::blocking::Client::new();
-        let mut response = client.post(&url)
+        let response = client.post(&url)
             .bearer_auth(token)
             .body(buf)
             .send()?;

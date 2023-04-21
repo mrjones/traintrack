@@ -21,6 +21,7 @@ extern crate std;
 use crate::result;
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct GoogleResponse {
     access_token: String,
     token_type: String,
@@ -53,7 +54,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
     println!("URL: {}", url);
 
     let client = reqwest::blocking::Client::new();
-    let mut res = client.post(url)
+    let res = client.post(url)
         .form(&params)
         .send()?;
 
@@ -67,7 +68,7 @@ pub fn exchange_google_auth_code_for_user_info(auth_code: &str, google_client_id
                              response_json.id_token);
     println!("DECODE URL: {}", decode_url);
 
-    let mut decode_res = client.get(&decode_url).send().expect("decode http");
+    let decode_res = client.get(&decode_url).send().expect("decode http");
     assert!(decode_res.status().is_success());
     let id_token: GoogleIdToken = decode_res.json().expect("decode json");
 
@@ -115,7 +116,7 @@ pub fn generate_google_bearer_token(
         ("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
         ("assertion", &token)
     ];
-    let mut res = client.post(google_access_url)
+    let res = client.post(google_access_url)
         .form(&params)
         .send()?;
 
@@ -126,6 +127,7 @@ pub fn generate_google_bearer_token(
     }
 
     #[derive(Debug, Deserialize)]
+    #[allow(dead_code)]
     struct GoogleAccessResponse {
         access_token: String,
         token_type: String,
@@ -143,7 +145,7 @@ pub fn do_firestore_request(google_api_key: &str, bearer_token: &str) -> result:
     let url = format!("https://firestore.googleapis.com/v1beta1/projects/mrjones-traintrack/databases/(default)/documents/saved-links/A2ueJ0dBkTMWWGkuBH6L?key={}", google_api_key);
 
     let client = reqwest::blocking::Client::new();
-    let mut decode_res = client
+    let decode_res = client
         .get(&url)
         .bearer_auth(bearer_token)
         .send().expect("decode http");

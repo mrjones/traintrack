@@ -142,13 +142,13 @@ impl PrefStorage {
     }
 
     fn post_json<J: serde::ser::Serialize>(
-        &self, url: &str, request: J, token: &str) -> result::TTResult<(String)> {
+        &self, url: &str, request: J, token: &str) -> result::TTResult<String> {
         let request_json = serde_json::to_string(&request)?;
         println!("JSON {}", request_json);
         println!("URL {}", url);
 
         let client = reqwest::blocking::Client::new();
-        let mut res = client
+        let res = client
             .post(url)
             .bearer_auth(token)
             .body(request_json)
@@ -217,7 +217,7 @@ impl PrefStorage {
         return Ok(());
     }
 
-    pub fn get_default_station(&self, user_id: &str) -> result::TTResult<(String)> {
+    pub fn get_default_station(&self, user_id: &str) -> result::TTResult<String> {
         // TODO(mrjones): Cache and reuse
         let token = auth::generate_google_bearer_token(
             &self.google_service_account_pem_file,
@@ -264,7 +264,7 @@ impl PrefStorage {
         println!("URL {}", url);
 
         let client = reqwest::blocking::Client::new();
-        let mut res = client
+        let res = client
             .post(&url)
             .bearer_auth(token)
             .body(query_json)

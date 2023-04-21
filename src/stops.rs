@@ -50,7 +50,8 @@ pub struct Stops {
 }
 
 // For Stations.csv
-#[derive(Debug, Deserialize, RustcDecodable)]
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct StationCsvRecord {
     #[serde(rename = "Station ID")]
     mta_station_id: String,
@@ -93,7 +94,8 @@ struct StationCsvRecord {
 }
 
 // For Stops.txt
-#[derive(Debug, Deserialize, RustcDecodable)]
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct StopCsvRecord {
     stop_id: String,
     stop_code: Option<String>,
@@ -107,7 +109,8 @@ struct StopCsvRecord {
     parent_station: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, RustcDecodable)]
+#[derive(Clone, Debug, Deserialize)]
+#[allow(dead_code)]
 struct TripCsvRecord {
     pub route_id: String,
     pub service_id: String,
@@ -118,7 +121,8 @@ struct TripCsvRecord {
     pub shape_id: String,
 }
 
-#[derive(Debug, Deserialize, RustcDecodable)]
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct StopTimeCsvRecord {
     trip_id: String,
     arrival_time: String,
@@ -131,7 +135,8 @@ struct StopTimeCsvRecord {
     shape_dist_traveled: Option<String>
 }
 
-#[derive(Debug, Deserialize, RustcDecodable)]
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct RouteCsvRecord {
     route_id: String,
     agency_id: String,
