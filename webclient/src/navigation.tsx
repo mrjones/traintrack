@@ -22,6 +22,7 @@ import { webclient_api } from './webclient_api_pb';
 import { Loadable } from './async';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
+import { recentStationsFromCookie } from './recent-stations';
 import { TTActionTypes, TTContext, TTState } from './state-machine';
 import { fetchStationList, loadLineList } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
@@ -148,19 +149,53 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
     }
     let i = 0;
     const max = 10;
-    let done = false;
-    let stationLis = this.props.allStations.data.station.map(
+    let andMore = false;
+
+    let matchingStationMap = new Map<string, webclient_api.Station>();
+    this.props.allStations.data.station.forEach(
       (station: webclient_api.Station) => {
-        if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) > -1) {
-          if (i++ < max && !done) {
-            // TODO(mrjones): Inject the link URL for flexibility
-            return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name} ({station.lines.join(" ")})</ReactRouter.Link></li>;
-          } else if (!done) {
-            done = true;
-            return <li className="more">And more...</li>;
-          }
+        if (station.name.toLowerCase().indexOf(this.state.currentFilterText.toLowerCase()) >= 0) {
+          matchingStationMap.set(station.id, station);
         }
       });
+
+    let stationsInOrder: webclient_api.Station[] = [];
+
+    // Put recent stations first
+    recentStationsFromCookie().forEach((stationId: string) => {
+      if (i >= max) {
+        andMore = true;
+        return;
+      }
+
+      let maybeStation: webclient_api.Station = matchingStationMap.get(stationId);
+      if (maybeStation) {
+        stationsInOrder.push(maybeStation)
+        matchingStationMap.delete(stationId);
+        i++;
+      }
+    });
+
+    // Then random other stations until we have "max"
+    // TODO(mrjones): Maybe sort somehow? Alphabetically?
+    matchingStationMap.forEach((station: webclient_api.Station) => {
+      if (i >= max) {
+        andMore = true;
+        return;
+      }
+
+      stationsInOrder.push(station)
+      i++;
+    });
+
+    let stationLis = stationsInOrder.map(
+      (station: webclient_api.Station) => {
+        return <li key={station.id}><ReactRouter.Link to={`/app/station/${station.id}`}>{station.name} ({station.lines.join(" ")})</ReactRouter.Link></li>;
+      });
+
+    if (andMore) {
+      stationLis.push(<li key="andMore" className="more">And more...</li>);
+    };
 
     return (<div className="stationPicker">
   <input autoFocus type="text" value={this.state.currentFilterText} onChange={this.handleFilterTextChanged.bind(this)} autoComplete="off" placeholder="Filter stations"/>
