@@ -18,6 +18,7 @@ extern crate reqwest;
 extern crate std;
 extern crate time;
 
+use anyhow::Context;
 use std::io::Read;
 use std::io::Write;
 
@@ -126,18 +127,18 @@ impl MtaFeedClient {
         }
     }
 
-    fn fetch_subway_status(&self) -> result::TTResult<feedproxy_api::SubwayStatus> {
+    fn fetch_subway_status(&self) -> anyhow::Result<feedproxy_api::SubwayStatus> {
         let url = format!("http://web.mta.info/status/ServiceStatusSubway.xml");
         debug!("Fetching URL: {}", url);
 
         let response: reqwest::blocking::Response = reqwest::blocking::get(&url)?;
         if !response.status().is_success() {
-            return Err(result::quick_err(
-                format!("HTTP error: {}", response.status()).as_ref()));
+            bail!("HTTP error: {}", response.status());
         }
 
         let body = response.bytes()?;
-        return Ok(statusxml::parse(body.as_ref())?);
+        return Ok(statusxml::parse(body.as_ref())
+                .with_context(|| format!("Failed to parse XML from {}", url))?);
     }
 
     pub fn fetch_all_feeds(&self) {

@@ -4,8 +4,9 @@ extern crate serde_xml_rs;
 extern crate tendril;
 extern crate xml5ever;
 
+use anyhow::Context;
+
 use crate::feedproxy_api;
-use crate::result;
 use crate::webclient_api;
 
 #[derive(Debug, Deserialize)]
@@ -73,7 +74,7 @@ struct VehicleJourneyList {
 #[serde(rename_all = "PascalCase")]
 struct VehicleJourney {
     line_ref: String,
-    direction_ref: i32,
+    direction_ref: Option<i32>,
 }
 
 struct XmlStripper<'a> {
@@ -120,8 +121,9 @@ fn strip_xml(input: &str) -> String {
     return result;
 }
 
-pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
-    let parsed: SubwayStatusXml = serde_xml_rs::from_reader(xml)?;
+pub fn parse(xml: &[u8]) -> anyhow::Result<feedproxy_api::SubwayStatus> {
+    let parsed: SubwayStatusXml = serde_xml_rs::from_reader(xml)
+        .context("during serde_xml_rs::from_reader")?;
 
     let mut result = feedproxy_api::SubwayStatus::default();
 
@@ -146,7 +148,7 @@ pub fn parse(xml: &[u8]) -> result::TTResult<feedproxy_api::SubwayStatus> {
             proto_line.line = Some(xml_line.line_ref.clone().replace("MTA NYCT_", ""));
             proto_line.set_direction(
                 match xml_line.direction_ref {
-                    0 => webclient_api::Direction::Uptown,
+                    Some(0) => webclient_api::Direction::Uptown,
                     _ => webclient_api::Direction::Downtown,
                 });
             proto_sit.affected_line.push(proto_line);
