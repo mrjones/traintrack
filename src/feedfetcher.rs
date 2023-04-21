@@ -150,8 +150,8 @@ impl MtaFeedClient {
                         *feed_id,
                         FetchResult{
                             feed: new_feed.clone(),
-                            timestamp: chrono::Utc.timestamp(
-                                new_feed.header.timestamp() as i64, 0),
+                            timestamp: chrono::Utc.timestamp_opt(
+                                new_feed.header.timestamp() as i64, 0).unwrap(),
                             // TODO(mrjones): This timestamp business is gross.
                             // TODO(mrjones): Use the cached file's timestamp when using it
                             last_good_fetch: Some(chrono::Utc::now()),
@@ -369,12 +369,12 @@ impl ProxyClient {
         use chrono::TimeZone;
         return Ok(FetchResult{
             feed: proxy_response.feed.clone().unwrap(),
-            timestamp: chrono::Utc.timestamp(
-                proxy_response.feed.as_ref().unwrap().header.timestamp() as i64, 0),
-            last_good_fetch: Some(chrono::Utc.timestamp(
-                proxy_response.last_good_fetch_timestamp(), 0)),
-            last_any_fetch: Some(chrono::Utc.timestamp(
-                proxy_response.last_attempted_fetch_timestamp(), 0)),
+            timestamp: chrono::Utc.timestamp_opt(
+                proxy_response.feed.as_ref().unwrap().header.timestamp() as i64, 0).unwrap(),
+            last_good_fetch: Some(chrono::Utc.timestamp_opt(
+                proxy_response.last_good_fetch_timestamp(), 0).unwrap()),
+            last_any_fetch: Some(chrono::Utc.timestamp_opt(
+                proxy_response.last_attempted_fetch_timestamp(), 0).unwrap()),
         });
     }
 }

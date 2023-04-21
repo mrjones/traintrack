@@ -189,13 +189,13 @@ pub fn all_upcoming_trains_vec_ref(
                             None => infer_direction_for_trip_id(trip.trip_id()),
                         };
 
-                        let timestamp = chrono::Utc.timestamp(
+                        let timestamp = chrono::Utc.timestamp_opt(
                             stop_time_update.arrival.as_ref().map(|a| a.time())
                                 .or(stop_time_update.departure.as_ref().map(|d| d.time()))
                                 .unwrap_or_else(|| {
                                     warn!("No arrival or departure time: {:?}", stop_time_update);
                                     return 0;
-                                }), 0);
+                                }), 0).unwrap();
 
                         if !upcoming.contains_key(trip.route_id()) {
                             upcoming.insert(trip.route_id().to_string(), btreemap![]);
@@ -236,7 +236,7 @@ pub fn all_upcoming_trains_vec_ref(
     }
     return UpcomingTrainsResult {
         trains_by_route_and_direction: upcoming,
-        underlying_data_timestamp: chrono::Utc.timestamp(min_relevant_ts as i64, 0),
+        underlying_data_timestamp: chrono::Utc.timestamp_opt(min_relevant_ts as i64, 0).unwrap(),
     }
 }
 
