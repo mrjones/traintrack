@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as Cookie from "es-cookie";
 import * as Immutable from 'immutable';
 import * as moment from "moment";
 import * as React from "react";
@@ -316,14 +317,26 @@ export class StationPage extends React.Component<StationPageProps, StationPageSt
   }
 }
 
+const defaultStation = () => {
+  const recentStationStr = Cookie.get("recentStations");
+  console.log("recentStationStr: " + recentStationStr);
+  const recentStationIds = recentStationStr.split(":").reverse();
+
+  if (recentStationIds.length == 0) {
+    console.log("No recent station cookie, defaulting to 028");
+    return "028";  // A classic choice
+  }
+
+  console.log("using recent station: " + recentStationIds[0]);
+  return recentStationIds[0];
+}
+
 export const StationPageWrapper = () => {
   const params = ReactRouter.useParams();
   const location = ReactRouter.useLocation();
 
-  console.log("HACK: " + JSON.stringify(params));
-
   return <StationPage
-      initialStationId={params.initialStationId ? params.initialStationId : "028"}
+      initialStationId={params.initialStationId ? params.initialStationId : defaultStation()}
       visibilityState={VisibilityState.parseFromSpec(params.visibilitySpec ? params.visibilitySpec : "default")}
       queryParams={StationPageQueryParams.parseFrom(location.search)} />;
 }
