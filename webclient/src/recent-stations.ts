@@ -25,7 +25,6 @@ export class StationStats {
     const SUPPRESS_WINDOW_MS = 60 * 1000;
     if (stationId == this.recentStations[0] &&
         (nowMs - this.lastUpdateTimestamp < SUPPRESS_WINDOW_MS)) {
-      console.log("suppressing dupe");
       this.lastUpdateTimestamp = nowMs;
       return;
     }
@@ -62,6 +61,31 @@ export class StationStats {
     }
   }
 
+  rankStations(): string[] {
+    // For now, we rank solely on most-frequent.
+    // TODO(mrjones): It would be nice to include most-recent somehow as well.
+    class IdAndFreq {
+      id: string;
+      freq: number;
+
+      constructor(id: string, freq: number) {
+        this.id = id;
+        this.freq = freq;
+      }
+    }
+    let idsAndFreqs: IdAndFreq[] = [];
+
+    this.frequentStations.forEach((freq: number, id: string) => {
+      idsAndFreqs.push(new IdAndFreq(id, freq));
+    })
+    idsAndFreqs = idsAndFreqs.sort((x: IdAndFreq, y: IdAndFreq) => {
+      if (x.freq < y.freq) return 1;
+      if (x.freq > y.freq) return -1;
+      return 0;
+    });
+    return idsAndFreqs.map((x: IdAndFreq) => { return x.id; });
+  }
+
   serialize(): string {
     return JSON.stringify(this, replacer);
   }
@@ -73,7 +97,6 @@ export class StationStats {
 
   static fromCookie(): StationStats {
     const serializedStationStats = Cookie.get("stationStats");
-    console.log("got cookie: " + serializedStationStats);
 
     if (serializedStationStats) {
       return StationStats.deserialize(serializedStationStats);

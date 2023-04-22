@@ -161,9 +161,9 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
 
     let stationsInOrder: webclient_api.Station[] = [];
 
-    // Put recent stations first
+    // Put highly-ranked stations first
     let stationStats = StationStats.fromCookie();
-    stationStats.recentStations.forEach((stationId: string) => {
+    stationStats.rankStations().forEach((stationId: string) => {
       if (i >= max) {
         andMore = true;
         return;
