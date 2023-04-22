@@ -30,7 +30,7 @@ import { ApiDebugger } from './debug';
 import { ConnectedFilterControl, VisibilityState } from './filter-control';
 import { ConnectedStationPicker } from './navigation';
 import { PubInfo } from './pub-info';
-import { recentStationsFromCookie } from './recent-stations';
+import { recentStationsFromCookie, StationStats } from './recent-stations';
 import { TTState } from './state-machine';
 import { loadStationDetails } from './state-actions';
 import { SubwayStatus } from './subway-status';
@@ -333,8 +333,15 @@ export const StationPageWrapper = () => {
   const params = ReactRouter.useParams();
   const location = ReactRouter.useLocation();
 
+  const stationId = params.initialStationId ? params.initialStationId : defaultStation();
+
+  let stats: StationStats = StationStats.fromCookie();
+  console.log(stats);
+  stats.recordStationAccess(stationId);
+  stats.saveToCookie();
+
   return <StationPage
-      initialStationId={params.initialStationId ? params.initialStationId : defaultStation()}
+      initialStationId={stationId}
       visibilityState={VisibilityState.parseFromSpec(params.visibilitySpec ? params.visibilitySpec : "default")}
       queryParams={StationPageQueryParams.parseFrom(location.search)} />;
 }

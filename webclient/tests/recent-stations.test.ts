@@ -1,8 +1,8 @@
 import { StationStats } from '../src/recent-stations'
 
-describe("recency", () => {
+describe("StationStats", () => {
   it("should keep track of 10 recent stations, in order", () => {
-    let stats = new StationStats();
+    let stats = StationStats.empty();
 
     stats.recordStationAccess("1");
     expect(stats.recentStations).toStrictEqual(["1"]);
@@ -18,11 +18,9 @@ describe("recency", () => {
     }
     expect(stats.recentStations).toStrictEqual(["11", "10", "9", "8", "7", "6", "5", "4", "3", "1"]);  // only keeps 10
   });
-});
 
-describe("frequency", () => {
   it("should perfectly keep track of <= 10 frequent stations", () => {
-    let stats = new StationStats();
+    let stats = StationStats.empty();
 
     stats.recordStationAccess("1");
     expect(stats.frequentStations).toEqual(new Map<string, number>([["1", 1]]));
@@ -51,7 +49,7 @@ describe("frequency", () => {
   });
 
   it("should allow new stations to enter, even when full", () => {
-    let stats = new StationStats();
+    let stats = StationStats.empty();
 
     for (let i = 1; i <= 10; i++) {
       stats.recordStationAccess("" + i);
@@ -71,5 +69,29 @@ describe("frequency", () => {
 
     expect(stats.frequentStations).toContainEqual(["A", 10]);
     expect(stats.frequentStations).toContainEqual(["B", 10]);
+  });
+
+  it("should be serialize+deserialize to the same thing", () => {
+    let stats = StationStats.empty();
+
+    for (let i = 1; i <= 10; i++) {
+      stats.recordStationAccess("" + i);
+      stats.recordStationAccess("" + i);
+    }
+    expect(stats.frequentStations).toEqual(new Map<string, number>([
+      ["1", 2], ["2", 2], ["3", 2], ["4", 2], ["5", 2],
+      ["6", 2], ["7", 2], ["8", 2], ["9", 2], ["10", 2]]));
+    expect(stats.recentStations).toEqual(
+      ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]);
+
+    const serialized = stats.serialize();
+    console.log("SERIALIZED: " + serialized);
+     const copy = StationStats.deserialize(serialized);
+     expect(copy).toEqual(stats);
+    expect(copy.frequentStations).toEqual(new Map<string, number>([
+      ["1", 2], ["2", 2], ["3", 2], ["4", 2], ["5", 2],
+      ["6", 2], ["7", 2], ["8", 2], ["9", 2], ["10", 2]]));
+    expect(copy.recentStations).toEqual(
+      ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]);
   });
 });
