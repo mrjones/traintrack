@@ -22,7 +22,7 @@ import { webclient_api } from './webclient_api_pb';
 import { Loadable } from './async';
 import { ApiDebugger } from './debug';
 import { DebuggableResult } from './datafetcher';
-import { recentStationsFromCookie } from './recent-stations';
+import { StationStats } from './recent-stations';
 import { TTActionTypes, TTContext, TTState } from './state-machine';
 import { fetchStationList, loadLineList } from './state-actions';
 import { TTThunkDispatch } from './thunk-types';
@@ -162,7 +162,8 @@ export class StationPicker extends React.Component<StationPickerAllProps, Statio
     let stationsInOrder: webclient_api.Station[] = [];
 
     // Put recent stations first
-    recentStationsFromCookie().forEach((stationId: string) => {
+    let stationStats = StationStats.fromCookie();
+    stationStats.recentStations.forEach((stationId: string) => {
       if (i >= max) {
         andMore = true;
         return;

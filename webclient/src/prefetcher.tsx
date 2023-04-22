@@ -4,7 +4,7 @@ import * as Redux from "redux";
 import { webclient_api } from './webclient_api_pb';
 import { Loadable } from './async';
 import { DebuggableResult, RequestInitiator } from './datafetcher';
-import { recentStationsFromCookie } from './recent-stations';
+import { StationStats } from './recent-stations';
 import { TTContext, TTState } from './state-machine';
 import { fetchStationList, loadLineList, loadStationDetails } from './state-actions';
 
@@ -48,7 +48,8 @@ export class Prefetcher {
   private prefetchMissingData() {
     const currentState = this.reduxStore.getState();
 
-    this.prefetchStations(recentStationsFromCookie().slice(0, 3), currentState);
+    let stationStats: StationStats = StationStats.fromCookie();
+    this.prefetchStations(stationStats.recentStations.slice(0, 3), currentState);
 
     if (!currentState.core.allLines.valid &&
         !currentState.core.allLines.loading) {

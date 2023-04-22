@@ -7,21 +7,33 @@ const RECENT_STATION_GRACE_WINDOW = 5;  // This many recently used stations can'
 export class StationStats {
   recentStations: string[];  // Most recent first
   frequentStations: Map<string, number>;  // Station ID -> usage count
+  lastUpdateTimestamp: number;
 
-  constructor(recentStations: string[], frequentStations: Map<string, number>) {
+  constructor(recentStations: string[], frequentStations: Map<string, number>, lastUpdateTimestamp: number) {
     this.recentStations = recentStations;
     this.frequentStations = frequentStations;
+    this.lastUpdateTimestamp = lastUpdateTimestamp;
   }
 
   static empty(): StationStats {
-    return new StationStats([], new Map());
+    return new StationStats([], new Map(), 0);
   }
 
-  recordStationAccess(stationId: string) {
+  recordStationAccess(stationId: string, nowMs: number) {
+    // Suppress duplicates within a short window: It's probably the user editing the
+    // UI controls, and not navigating to the same station again.
+    const SUPPRESS_WINDOW_MS = 60 * 1000;
+    if (stationId == this.recentStations[0] &&
+        (nowMs - this.lastUpdateTimestamp < SUPPRESS_WINDOW_MS)) {
+      console.log("suppressing dupe");
+      this.lastUpdateTimestamp = nowMs;
+      return;
+    }
+    this.lastUpdateTimestamp = nowMs;
+
     this.recentStations = this.recentStations.filter((x: string) => x != stationId);
     this.recentStations.unshift(stationId);
     this.recentStations = this.recentStations.slice(0, RECENT_STATION_COUNT);
-
 
     if (this.frequentStations.has(stationId)) {
       // Update existing entry
@@ -56,7 +68,7 @@ export class StationStats {
 
   static deserialize(serialized: string): StationStats {
     let data = JSON.parse(serialized, reviver);
-    return new StationStats(data.recentStations, data.frequentStations);
+    return new StationStats(data.recentStations, data.frequentStations, data.lastUpdateTimestamp);
   }
 
   static fromCookie(): StationStats {
@@ -99,7 +111,7 @@ function reviver(key: string, value: any) {
 
 
 // Ordered with newest stations at the front.
-export function recentStationsFromCookie(): string[] {
+function recentStationsFromCookie(): string[] {
   const recentStationsStr = Cookie.get("recentStations");
 
   if (recentStationsStr) {
