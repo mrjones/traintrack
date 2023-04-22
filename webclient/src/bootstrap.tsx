@@ -16,7 +16,7 @@ import * as History from "history"
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
-import * as ReactGA from "react-ga";
+import ReactGA  from "react-ga4";
 import * as ReactRedux from "react-redux";
 import * as ReactRouter from "react-router-dom";
 import * as Redux from "redux";
@@ -47,7 +47,7 @@ let store: Redux.Store<TTState> = Redux.createStore(
 let prefetcher = new Prefetcher(ENABLE_PREFETCHING, context, store);
 // <ReactRouter.Route path='/app/debug/prefetcher' element={<PrefetcherDebuggerPage prefetcher={prefetcher} />)} />
 
-ReactGA.initialize("G-RVVV1VSRRM", { debug: false });
+ReactGA.initialize("G-RVVV1VSRRM");
 
 
 const history = History.createBrowserHistory();
@@ -59,8 +59,7 @@ const App = () => {
   const location = ReactRouter.useLocation();
 
   React.useEffect(() => {
-    ReactGA.pageview(location.pathname + location.search);
-    console.log("REPORTING TO GA: " + location.pathname + location.search);
+    ReactGA.send("pageview");
   }, [location.pathname]);
 
   return <ReactRouter.Routes>
