@@ -108,7 +108,7 @@ export class StationStats {
   saveToCookie() {
     const serializedStationStats = this.serialize();
     console.log("SetCookie('stationStats', '" + serializedStationStats + "')");
-    Cookie.set("stationStats", serializedStationStats);
+    Cookie.set("stationStats", serializedStationStats, {expires: 365 * 2});
   }
 };
 

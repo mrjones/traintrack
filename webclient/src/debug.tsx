@@ -20,6 +20,7 @@ import * as proto from './webclient_api_pb';
 
 import { DebuggableResult } from './datafetcher';
 import { Prefetcher } from './prefetcher';
+import { StationStats } from './recent-stations';
 
 export class ClientDebugInfo {
   public fetchStarted: moment.Moment;
@@ -117,4 +118,32 @@ export class PrefetcherDebuggerPage extends React.Component<PrefetcherDebuggerPa
   public render() {
     return <div><h2>Prefetcher (Debug)</h2>{this.props.prefetcher.statusPage()}</div>;
   }
+}
+
+export function StationStatsDebugger() {
+  let stationStats = StationStats.fromCookie();
+
+  let recentLis = stationStats.recentStations.map((stationId: string) => {
+    return <li key={stationId}>
+      <ReactRouter.Link to={`/app/station/${stationId}`}>
+        {stationId}
+      </ReactRouter.Link>
+    </li>;
+  });
+
+  let frequentLis = Array.from(stationStats.frequentStations).map((e: [string, number]) => {
+    return <li key={e[0]}>{<ReactRouter.Link to={`/app/station/${e[0]}`}>{e[0]}</ReactRouter.Link>} =&gt; {e[1]}</li>;
+  });
+
+  return <div>
+    <div>
+      Recent Stations (most recent first)
+      <ul>{recentLis}</ul>
+    </div>
+    <div>
+      Frequent Stations
+      <ul>{frequentLis}</ul>
+    </div>
+    <div>Raw JSON: <pre>{stationStats.serialize()}</pre></div>
+  </div>;
 }

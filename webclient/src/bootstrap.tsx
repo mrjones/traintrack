@@ -30,7 +30,7 @@ import { LineViewRouterWrapper } from './lineview';
 import { LinePickerRouterWrapper } from './navigation';
 import { StationPageWrapper } from './station-view';
 import { AboutPage } from './about-page';
-import { PrefetcherDebuggerPage } from './debug';
+import { StationStatsDebugger, PrefetcherDebuggerPage } from './debug';
 import { Prefetcher } from './prefetcher';
 import { TrainItineraryWrapper } from './train-itinerary';
 import { TransferPageWrapper } from './transfer-view';
@@ -71,6 +71,7 @@ const App = () => {
       <ReactRouter.Route path='/app/transfer/:rootSpec/:transferSpec' element={<TransferPageWrapper/>}/>
       <ReactRouter.Route path='/app/transfer' element={<TransferPageWrapper/>}/>
       <ReactRouter.Route path='/app/about' element={<AboutPage/>}/>
+      <ReactRouter.Route path='/app/debug/stats' element={<StationStatsDebugger/>}/>
       <ReactRouter.Route path='/app' element={<StationPageWrapper/>}/>
       <ReactRouter.Route path='/' element={<StationPageWrapper/>}/>
     </ReactRouter.Routes>
