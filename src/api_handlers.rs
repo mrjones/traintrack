@@ -13,6 +13,25 @@ use crate::stops;
 use crate::utils;
 use crate::webclient_api;
 
+pub trait HttpServerContext {
+    fn param_value(&self, key: &str) -> Option<String>;
+    fn query_value(&self, key: &str) -> Option<String>;
+}
+
+pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
+    pub context: &'a rustful::Context<'a, 'b, 'c, 'd>
+}
+
+impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd> {
+   fn param_value(&self, key: &str) -> Option<String> {
+       return self.context.variables.get(key).map(|x| x.to_string());
+   }
+
+   fn query_value(&self, key: &str) -> Option<String> {
+       return self.context.query.get(key).map(|x| x.to_string());
+   }
+}
+
 fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient_api::DebugInfo {
     if info.is_none() {
         *info = Some(webclient_api::DebugInfo::default());
@@ -20,11 +39,11 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
     return info.as_mut().unwrap();
 }
 
-pub fn line_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn line_list_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut response = line_list_handler_guts(
         &tt_context.latest_feeds().all_feeds_cloned(),
         &tt_context.stops)?;
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 fn line_list_handler_guts(
@@ -46,12 +65,11 @@ fn line_list_handler_guts(
 
 pub fn station_detail_handler(
     tt_context: &context::TTContext,
-    rustful_context: rustful::Context,
+    rustful_context: &rustful::Context,
+    http_context: &dyn HttpServerContext,
     per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
-    let station_id_param: Option<String> = rustful_context.variables.get("station_id")
-        .map(|cow| cow.into_owned());
-    let prefetch_param: Option<String> = rustful_context.query.get("prefetch")
-        .map(|cow| cow.into_owned());
+    let station_id_param: Option<String> = http_context.param_value("station_id");
+    let prefetch_param: Option<String> = http_context.query_value("prefetch");
 
     let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
@@ -67,7 +85,7 @@ pub fn station_detail_handler(
     let result;
     {
         let _build_response_span = per_request_context.timer.span("build_response");
-        result = api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+        result = api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
     }
 
     return result;
@@ -175,12 +193,12 @@ pub fn station_detail_handler_guts(
     });
 }
 
-pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
     let mut response = station_list_handler_guts(&tt_context.stops, &mut cookies)?;
 
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 pub fn station_list_handler_guts(stops: &stops::Stops, cookies: &mut dyn utils::CookieAccessor) -> result::TTResult<webclient_api::StationList> {
@@ -220,8 +238,8 @@ pub fn station_list_handler_guts(stops: &stops::Stops, cookies: &mut dyn utils::
     return Ok(response);
 }
 
-pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_line = rustful_context.variables.get("line_id")
+pub fn stations_byline_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let desired_line = http_context.param_value("line_id")
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
 
@@ -236,11 +254,11 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, rustful_context:
         debug_info: None,
     };
 
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_train = rustful_context.variables.get("train_id")
+pub fn train_detail_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let desired_train = http_context.param_value("train_id")
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
 
@@ -284,13 +302,13 @@ pub fn train_detail_handler(tt_context: &context::TTContext, rustful_context: ru
         }).collect::<Vec<webclient_api::TrainItinerary>>().into_iter();
     }).nth(0).ok_or(result::quick_err("No matching train."))?;
 
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_context: rustful::Context, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let station_id_str = rustful_context.variables.get("station_id").ok_or(
+pub fn train_arrival_history_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let station_id_str = http_context.param_value("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
-    let train_id_str = rustful_context.variables.get("train_id").ok_or(
+    let train_id_str = http_context.param_value("train_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
 
     let mut response = webclient_api::TrainArrivalHistory::default();
@@ -317,7 +335,7 @@ pub fn train_arrival_history_handler(tt_context: &context::TTContext, rustful_co
     }
 
 
-    return api_response(&mut response, tt_context, &rustful_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
+    return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
 type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
@@ -325,7 +343,7 @@ type DebugInfoGetter<M> = fn(&mut M) -> &mut webclient_api::DebugInfo;
 fn api_response<M: prost::Message + serde::Serialize>(
     data: &mut M,
     tt_context: &context::TTContext,
-    rustful_context: &rustful::Context,
+    http_context: &dyn HttpServerContext,
     per_request_context: &mut context::PerRequestContext,
     debug_getter: Option<DebugInfoGetter<M>>) -> result::TTResult<Vec<u8>> {
     match debug_getter {
@@ -342,7 +360,7 @@ fn api_response<M: prost::Message + serde::Serialize>(
         None => {},
     }
 
-    let format: Option<String> = rustful_context.query.get("format")
+    let format: Option<String> = http_context.query_value("format")
         .map(|x| String::from(x));
 
     match format.as_ref().map(String::as_ref) {
