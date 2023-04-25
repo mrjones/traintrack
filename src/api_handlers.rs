@@ -65,21 +65,16 @@ fn line_list_handler_guts(
 
 pub fn station_detail_handler(
     tt_context: &context::TTContext,
-    rustful_context: &rustful::Context,
+    _: &rustful::Context,
     http_context: &dyn HttpServerContext,
     per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
     let station_id_param: Option<String> = http_context.param_value("station_id");
-    let prefetch_param: Option<String> = http_context.query_value("prefetch");
-
-    let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
 
     let mut response = station_detail_handler_guts(
         &tt_context.stops,
         tt_context.proxy_client.latest_status(),
         tt_context.latest_feeds(),
         station_id_param,
-        &mut cookies,
-        prefetch_param == Some("true".to_string()),
         &mut per_request_context.timer)?;
 
     let result;
@@ -96,8 +91,6 @@ pub fn station_detail_handler_guts(
     system_status: feedproxy_api::SubwayStatus,
     feeds: &feedfetcher::LockedFeeds,
     station_id_param: Option<String>,
-    cookies: &mut dyn utils::CookieAccessor,
-    is_prefetch: bool,
     timer: &mut context::RequestTimer) -> result::TTResult<webclient_api::StationStatus> {
     let _all_span = timer.span("station_detail_api");
 
@@ -109,11 +102,7 @@ pub fn station_detail_handler_guts(
         station_id = station_id_param.ok_or(
             result::TTError::Uncategorized("Missing station_id".to_string()))?;
         if station_id == "default" {
-            station_id = utils::extract_recent_stations(cookies)
-                .into_iter()
-                .rev()
-                .next()
-                .unwrap_or("028".to_string());
+            station_id = "028".to_string();
         }
         complex = stops.lookup_complex_by_id(&station_id).ok_or(
             result::TTError::Uncategorized(
@@ -135,11 +124,6 @@ pub fn station_detail_handler_guts(
     let colors_by_route = stops.lines().iter()
         .map(|route| (route.id.clone(), route.color.clone()))
         .collect::<std::collections::HashMap<String, String>>();
-
-    // TODO(mrjones): Consider not failing the whole request if this fails.
-    if !is_prefetch {
-        utils::add_recent_station_to_cookie(&station_id, cookies)?;
-    }
 
     let _build_proto_span = timer.span("build_proto");
     return Ok(webclient_api::StationStatus{
@@ -193,19 +177,13 @@ pub fn station_detail_handler_guts(
     });
 }
 
-pub fn station_list_handler(tt_context: &context::TTContext, rustful_context: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut per_request_context.response_modifiers);
-
-    let mut response = station_list_handler_guts(&tt_context.stops, &mut cookies)?;
+pub fn station_list_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let mut response = station_list_handler_guts(&tt_context.stops)?;
 
     return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-pub fn station_list_handler_guts(stops: &stops::Stops, cookies: &mut dyn utils::CookieAccessor) -> result::TTResult<webclient_api::StationList> {
-    let recent_stations = utils::extract_recent_stations(cookies);
-
-    let mut priority_responses = std::collections::BTreeMap::new();
-
+pub fn station_list_handler_guts(stops: &stops::Stops) -> result::TTResult<webclient_api::StationList> {
     let mut response = webclient_api::StationList::default();
     for &ref complex in stops.complexes_iter() {
         let mut station_proto = webclient_api::Station::default();
@@ -218,21 +196,7 @@ pub fn station_list_handler_guts(stops: &stops::Stops, cookies: &mut dyn utils::
                 station_proto.lines.push(x.to_string());
             }
         }
-        // TODO(mrjones): recent_stations should be short-ish
-        // But it's not ideal to linear search it repeatedly.
-        match recent_stations.iter().position(|id| id == &complex.id) {
-            Some(pos) => {
-                priority_responses.insert(pos, station_proto);
-            },
-            None => {
-                response.station.push(station_proto);
-            }
-        }
-    }
-
-    // TODO(mrjones): This gets the order right but is not as clear as it could be.
-    for (_, station) in priority_responses {
-        response.station.insert(0, station);
+        response.station.push(station_proto);
     }
 
     return Ok(response);
