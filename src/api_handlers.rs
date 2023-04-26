@@ -348,19 +348,18 @@ mod tests {
     extern crate stringreader;
     extern crate simple_logger;
 
-    use context;
-    use feedfetcher;
-    use feedproxy_api;
-    use testutil;
-    use utils;
-    use webclient_api;
+    use crate::context;
+    use crate::feedfetcher;
+    use crate::feedproxy_api;
+    use crate::testutil;
+    use crate::utils;
+    use crate::webclient_api;
 
     // "GTFS Stop Id" and "Complex ID" columns from Stations.csv
     const UNION_ST_GTFS_ID: &str = "R32S";
     const UNION_ST_MTA_COMPLEX_ID: &str = "028";
 
     const BARCLAYS_CTR_GTFS_ID: &str = "R31S";
-    const BARCLAYS_CTR_MTA_COMPLEX_ID: &str = "617";
 
     #[test]
     fn line_list_handler_test() {
@@ -413,7 +412,6 @@ mod tests {
         let stops = testutil::make_stops(testutil::WhichRoutes::All);
         let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
         let feeds = feedfetcher::LockedFeeds::new();
-        let mut cookies = testutil::EmptyCookieAccessor{};
         let mut timer = context::RequestTimer::new(/* trace= */ false);
 
         feeds.update(1, &testutil::make_feed(
@@ -451,8 +449,6 @@ mod tests {
             empty_status_proto,
             &feeds,
             Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
-            &mut cookies,
-            /*is_prefetch=*/ false,
             &mut timer).expect("station_detail_handler_guts call");
 
         assert_eq!("Union St".to_string(), station_data.name());
@@ -470,40 +466,5 @@ mod tests {
 
         assert_eq!(1, station_data.line[1].arrivals.len());
         assert_eq!(3300, station_data.line[1].arrivals[0].timestamp());
-    }
-
-    #[test]
-    fn test_prioritizes_recently_viewed_stations() {
-        let stops = testutil::make_stops(testutil::WhichRoutes::All);
-        let empty_status_proto = feedproxy_api::SubwayStatus{status: vec![]};
-        let feeds = feedfetcher::LockedFeeds::new();
-        let mut cookies = testutil::FakeCookieAccessor::new();
-        let mut timer = context::RequestTimer::new(/* trace= */ false);
-
-        let _ = super::station_detail_handler_guts(
-            &stops,
-            empty_status_proto.clone(),
-            &feeds,
-            Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
-            &mut cookies,
-            /*is_prefetch=*/ false,
-            &mut timer).expect("union street station call");
-
-        let _ = super::station_detail_handler_guts(
-            &stops,
-            empty_status_proto.clone(),
-            &feeds,
-            Some(BARCLAYS_CTR_MTA_COMPLEX_ID.to_string()),
-            &mut cookies,
-            /*is_prefetch=*/ false,
-            &mut timer).expect("barclays center station call");
-
-        let station_list = super::station_list_handler_guts(&stops, &mut cookies)
-            .expect("station list call");
-
-        assert_eq!(Some(BARCLAYS_CTR_MTA_COMPLEX_ID.to_string()),
-                   station_list.station[0].id);
-        assert_eq!(Some(UNION_ST_MTA_COMPLEX_ID.to_string()),
-                   station_list.station[1].id);
     }
 }

@@ -1,38 +1,15 @@
 extern crate chrono;
 
-use feedfetcher;
-use stops;
-use transit_realtime;
-use utils;
+use crate::feedfetcher;
+use crate::stops;
+use crate::transit_realtime;
+use crate::utils;
 
 pub struct EmptyCookieAccessor{ }
 
 impl utils::CookieAccessor for EmptyCookieAccessor {
     fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
     fn set_cookie(&mut self, _key: &str, _value: &str) { }
-}
-
-pub struct FakeCookieAccessor{
-    cookies: std::collections::HashMap<String, Vec<String>>,
-}
-
-impl FakeCookieAccessor {
-    pub fn new() -> FakeCookieAccessor {
-        return FakeCookieAccessor{
-            cookies: std::collections::HashMap::new(),
-        };
-    }
-}
-
-impl utils::CookieAccessor for FakeCookieAccessor {
-    // TODO(mrjones): Make the interface return a reference of some sort rather than cloning?
-    fn get_cookie(&self, key: &str) -> Vec<String> {
-        return self.cookies.get(key).map(|v| v.clone()).unwrap_or(vec![]);
-    }
-
-    fn set_cookie(&mut self, key: &str, value: &str) {
-        self.cookies.insert(key.to_string(), vec![value.to_string()]);
-    }
 }
 
 // TODO(mrjones): Decide whether filtered prod data or synthetic data is better
@@ -130,7 +107,7 @@ pub fn make_feed<'a>(timestamp: i64, trips: Vec<TripSpec<'a>>) -> feedfetcher::F
         }).collect(),
     };
 
-    let chrono_timestamp = chrono::Utc.timestamp(timestamp, 0);
+    let chrono_timestamp = chrono::Utc.timestamp_opt(timestamp, 0).unwrap();
     return feedfetcher::FetchResult{
         feed: feed_proto,
         timestamp: chrono_timestamp,
