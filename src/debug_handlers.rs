@@ -6,9 +6,8 @@ use crate::api_handlers;
 use crate::context;
 use crate::feedfetcher;
 use crate::result;
-use rustful;
 
-pub fn debug_index(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn debug_index(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();
 
     vec!["dump_proto", "dump_status", "fetch_now", "freshness"].iter().map(
@@ -19,7 +18,7 @@ pub fn debug_index(tt_context: &context::TTContext, _: &rustful::Context, _: &dy
 }
 
 pub fn dump_feed_links(
-    tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
 
     let mut body = "<h1>Dump Proto</h1><ul>".to_string();
     for feed_id in tt_context.latest_feeds().known_feed_ids() {
@@ -30,11 +29,11 @@ pub fn dump_feed_links(
     return Ok(body.as_bytes().to_vec());
 }
 
-pub fn dump_status(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn dump_status(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     return Ok(format!("{:#?}", tt_context.proxy_client.latest_status()).as_bytes().to_vec());
 }
 
-pub fn dump_proto(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn dump_proto(tt_context: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let desired_feed_str = http_context.param_value("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
         .map(|x| x.to_string())?;
@@ -79,7 +78,7 @@ pub fn dump_proto(tt_context: &context::TTContext, _: &rustful::Context, http_co
 }
 
 pub fn feed_freshness(
-    tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = "<h1>Dump Proto</h1><ul>".to_string();
     let now = chrono::Utc::now();
     for feed_id in tt_context.latest_feeds().known_feed_ids() {
@@ -99,12 +98,12 @@ pub fn feed_freshness(
     return Ok(body.as_bytes().to_vec());
 }
 
-pub fn fetch_now(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn fetch_now(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     tt_context.proxy_client.fetch_once();
     return Ok("OK".to_string().as_bytes().to_vec());
 }
 
-pub fn create_user(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn create_user(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     match tt_context.pref_storage {
         Some(ref storage) => {
             let user = auth::GoogleIdToken{
@@ -121,7 +120,7 @@ pub fn create_user(tt_context: &context::TTContext, _: &rustful::Context, _: &dy
     }
 }
 
-pub fn set_homepage(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn set_homepage(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     match tt_context.pref_storage {
         Some(ref storage) => {
             storage.set_default_station(12345, 67890)?;
@@ -133,7 +132,7 @@ pub fn set_homepage(tt_context: &context::TTContext, _: &rustful::Context, _: &d
     }
 }
 
-pub fn get_homepage(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn get_homepage(tt_context: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let user_id = http_context.query_value("user")
         .map(|x| x.to_string())
         .unwrap_or("12345".to_string());
@@ -150,7 +149,7 @@ pub fn get_homepage(tt_context: &context::TTContext, _: &rustful::Context, http_
     }
 }
 
-pub fn firestore(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn firestore(tt_context: &context::TTContext, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     match tt_context.google_service_account_pem_file {
         Some(ref pem_path) => {
             let token = auth::generate_google_bearer_token(

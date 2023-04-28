@@ -19,6 +19,8 @@ pub trait HttpServerContext {
 
     // Value from query string, e.g. /app/page?foo=bar
     fn query_value(&self, key: &str) -> Option<String>;
+
+    fn host_header(&self) -> Option<String>;
 }
 
 pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
@@ -33,6 +35,11 @@ impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd>
    fn query_value(&self, key: &str) -> Option<String> {
        return self.context.query.get(key).map(|x| x.to_string());
    }
+
+    fn host_header(&self) -> Option<String> {
+        return self.context.headers.get::<rustful::header::Host>()
+            .map(|h| h.to_string());
+   }
 }
 
 fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient_api::DebugInfo {
@@ -42,7 +49,7 @@ fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient
     return info.as_mut().unwrap();
 }
 
-pub fn line_list_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn line_list_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut response = line_list_handler_guts(
         &tt_context.latest_feeds().all_feeds_cloned(),
         &tt_context.stops)?;
@@ -68,7 +75,6 @@ fn line_list_handler_guts(
 
 pub fn station_detail_handler(
     tt_context: &context::TTContext,
-    _: &rustful::Context,
     http_context: &dyn HttpServerContext,
     per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
     let station_id_param: Option<String> = http_context.param_value("station_id");
@@ -180,7 +186,7 @@ pub fn station_detail_handler_guts(
     });
 }
 
-pub fn station_list_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn station_list_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut response = station_list_handler_guts(&tt_context.stops)?;
 
     return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
@@ -205,7 +211,7 @@ pub fn station_list_handler_guts(stops: &stops::Stops) -> result::TTResult<webcl
     return Ok(response);
 }
 
-pub fn stations_byline_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn stations_byline_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let desired_line = http_context.param_value("line_id")
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
@@ -224,7 +230,7 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, _: &rustful::Con
     return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-pub fn train_detail_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn train_detail_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let desired_train = http_context.param_value("train_id")
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
@@ -272,7 +278,7 @@ pub fn train_detail_handler(tt_context: &context::TTContext, _: &rustful::Contex
     return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
 }
 
-pub fn train_arrival_history_handler(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+pub fn train_arrival_history_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let station_id_str = http_context.param_value("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
     let train_id_str = http_context.param_value("train_id").ok_or(

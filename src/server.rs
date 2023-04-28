@@ -26,29 +26,30 @@ use crate::debug_handlers;
 use crate::context;
 use crate::result;
 
-fn google_login_redirect_handler(tt_context: &context::TTContext, rustful_context: &rustful::Context, _: &dyn api_handlers::HttpServerContext, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+fn google_login_redirect_handler(tt_context: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let google_api_info = match tt_context.google_api_info {
         Some(ref google_api_info) => Ok(google_api_info),
         None => Err(result::TTError::Uncategorized("Google login not configured".to_string()))
     }?;
 
-    let code = rustful_context.query.get("code")
+    let code = http_context.query_value("code")
         .ok_or(result::TTError::Uncategorized("Missing code".to_string()))
         .map(|x| x.to_string())?;
 
-    let host = rustful_context.headers.get::<rustful::header::Host>()
+    let host = http_context.host_header()
         .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
 
-    let host_str = match host.port {
-        Some(port) => format!("{}:{}", host.hostname, port),
-        None => host.hostname.clone(),
-    };
+//    let host_str = match host.port {
+//        Some(port) => format!("{}:{}", host.hostname, port),
+//        None => host.hostname.clone(),
+//    };
 
     let google_id = auth::exchange_google_auth_code_for_user_info(
         &code,
         &google_api_info.id,
         &google_api_info.secret,
-        &host_str);
+        &host);
+//        &host_str);
 
     println!("Pusing modifier");
     prc.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
@@ -62,16 +63,16 @@ fn google_login_redirect_handler(tt_context: &context::TTContext, rustful_contex
     return Ok(format!("Welcome {:?}", google_id).as_bytes().to_vec());
 }
 
-fn login_link(_: &context::TTContext, rustful_context: &rustful::Context,  _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let host = rustful_context.headers.get::<rustful::header::Host>()
+fn login_link(_: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let host = http_context.host_header()
         .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
 
-    let host_str = match host.port {
-        Some(port) => format!("{}%3A{}", host.hostname, port),
-        None => host.hostname.clone(),
-    };
+//    let host_str = match host.port {
+//        Some(port) => format!("{}%3A{}", host.hostname, port),
+//        None => host.hostname.clone(),
+//    };
 
-    return Ok(format!("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2F{}%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>", host_str).as_bytes().to_vec());
+    return Ok(format!("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2F{}%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>", host).as_bytes().to_vec());
 }
 
 enum Encoding {
@@ -80,7 +81,7 @@ enum Encoding {
 }
 
 enum PageType {
-    Dynamic(fn(&context::TTContext, &rustful::Context, &dyn api_handlers::HttpServerContext, &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>),
+    Dynamic(fn(&context::TTContext, &dyn api_handlers::HttpServerContext, &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>),
     Static(std::path::PathBuf, Encoding, Option<std::time::Duration>),
 }
 
@@ -136,7 +137,7 @@ impl rustful::Handler for PageType {
                             let http_context = api_handlers::RustfulServerContext{
                                 context: &rustful_context,
                             };
-                            result = execute(tt_context, &rustful_context, &http_context, &mut prc);
+                            result = execute(tt_context, &http_context, &mut prc);
                         }
                         match result {
                             Ok(body) => {
