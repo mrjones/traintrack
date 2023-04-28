@@ -26,55 +26,6 @@ use crate::debug_handlers;
 use crate::context;
 use crate::result;
 
-fn google_login_redirect_handler(tt_context: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let google_api_info = match tt_context.google_api_info {
-        Some(ref google_api_info) => Ok(google_api_info),
-        None => Err(result::TTError::Uncategorized("Google login not configured".to_string()))
-    }?;
-
-    let code = http_context.query_value("code")
-        .ok_or(result::TTError::Uncategorized("Missing code".to_string()))
-        .map(|x| x.to_string())?;
-
-    let host = http_context.host_header()
-        .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
-
-//    let host_str = match host.port {
-//        Some(port) => format!("{}:{}", host.hostname, port),
-//        None => host.hostname.clone(),
-//    };
-
-    let google_id = auth::exchange_google_auth_code_for_user_info(
-        &code,
-        &google_api_info.id,
-        &google_api_info.secret,
-        &host);
-//        &host_str);
-
-    println!("Pusing modifier");
-    prc.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
-        println!("modifier executing");
-        response.headers_mut().set(
-            rustful::header::SetCookie(vec![
-                "foo2=bar2".to_string(),
-            ]));
-    }));
-
-    return Ok(format!("Welcome {:?}", google_id).as_bytes().to_vec());
-}
-
-fn login_link(_: &context::TTContext, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let host = http_context.host_header()
-        .ok_or(result::TTError::Uncategorized("Missing host header".to_string()))?;
-
-//    let host_str = match host.port {
-//        Some(port) => format!("{}%3A{}", host.hostname, port),
-//        None => host.hostname.clone(),
-//    };
-
-    return Ok(format!("<html><body><a href='https://accounts.google.com/o/oauth2/v2/auth?scope=openid%20email&access_type=offline&include_granted_scopes=true&state=state_parameter_passthrough_value&redirect_uri=http%3A%2F%2F{}%2Fgoogle_login_redirect&response_type=code&client_id=408500450335-e0k65jsfot431mm7ns88qmvoe643243g.apps.googleusercontent.com'>Login</a></html>", host).as_bytes().to_vec());
-}
-
 enum Encoding {
     Normal,
     Gzipped,
@@ -99,33 +50,9 @@ impl PageType {
     }
 }
 
-fn extract_login_cookie(cookie_header: &rustful::header::Cookie) -> Option<String> {
-    let matches = cookie_header.iter().filter_map(|one_cookie| {
-        // TODO(mrjones): This split doesn't work:
-        // Splitting: foo2=bar2 -> ["foo2=bar2"]
-        let cookie_parts: std::vec::Vec<&str> = one_cookie.splitn(1, '=').collect();
-        if cookie_parts.len() == 2 && cookie_parts[0] == "foo2" {
-            return Some(cookie_parts[1]);
-        } else {
-            return None;
-        }
-    }).collect::<std::vec::Vec<&str>>();
-
-//    println!("Matches: {:?} len={}", matches, matches.len());
-
-    if matches.len() == 0 {
-        return None;
-    } else {
-        return Some(matches[0].to_string());
-    }
-}
-
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
         let mut prc = context::PerRequestContext::new();
-        // TODO(mrjones): Do something with this
-        let _login_cookie = rustful_context.headers.get::<rustful::header::Cookie>().and_then(
-            |cookie_header| { return extract_login_cookie(cookie_header); });
 
         match self {
             &PageType::Dynamic(execute) => {
@@ -240,8 +167,6 @@ pub fn serve(context: context::TTContext, port: u16, static_dir: &str, js_bundle
                 node.path("webclient.js").then().on_get(PageType::new_static_gzipped_page(path));
             }
         }
-        node.path("login").then().on_get(PageType::Dynamic(login_link));
-        node.path("google_login_redirect").then().on_get(PageType::Dynamic(google_login_redirect_handler));
         node.path("api").many(|node| {
             node.path("lines").then().on_get(PageType::Dynamic(api_handlers::line_list_handler));
             node.path("station").many(|node| {
