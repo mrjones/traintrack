@@ -1,7 +1,6 @@
 use crate::feedfetcher;
 use chrono;
 use crate::prefs;
-use rustful;
 use std;
 use crate::stops;
 
@@ -31,11 +30,9 @@ pub struct RequestTimer {
     pub trace: bool,
 }
 
-pub type ResponseModifier = Box<dyn Fn(&mut rustful::Response)>;
-
 pub struct PerRequestContext {
     pub timer: RequestTimer,
-    pub response_modifiers: std::vec::Vec<ResponseModifier>,
+    pub response_headers: std::collections::BTreeMap<String, String>,
 }
 
 pub struct RequestSpan {
@@ -80,7 +77,7 @@ impl PerRequestContext {
         return PerRequestContext {
             // TODO(mrjones): conditionally enable tracing
             timer: RequestTimer::new(false),
-            response_modifiers: vec![],
+            response_headers: btreemap![],
         }
     }
 }

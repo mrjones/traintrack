@@ -20,7 +20,6 @@ extern crate rustful;
 extern crate serde_json;
 extern crate std;
 
-use crate::auth;
 use crate::api_handlers;
 use crate::debug_handlers;
 use crate::context;
@@ -32,7 +31,7 @@ enum Encoding {
 }
 
 enum PageType {
-    Dynamic(fn(&context::TTContext, &dyn api_handlers::HttpServerContext, &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>),
+    Dynamic(fn(&context::TTContext, &dyn HttpServerContext, &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>),
     Static(std::path::PathBuf, Encoding, Option<std::time::Duration>),
 }
 
@@ -50,6 +49,35 @@ impl PageType {
     }
 }
 
+pub trait HttpServerContext {
+    // Value from path, e.g. /app/station/:station_id
+    fn param_value(&self, key: &str) -> Option<String>;
+
+    // Value from query string, e.g. /app/page?foo=bar
+    fn query_value(&self, key: &str) -> Option<String>;
+
+    fn host_header(&self) -> Option<String>;
+}
+
+pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
+    pub context: &'a rustful::Context<'a, 'b, 'c, 'd>
+}
+
+impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd> {
+    fn param_value(&self, key: &str) -> Option<String> {
+       return self.context.variables.get(key).map(|x| x.to_string());
+   }
+
+   fn query_value(&self, key: &str) -> Option<String> {
+       return self.context.query.get(key).map(|x| x.to_string());
+   }
+
+    fn host_header(&self) -> Option<String> {
+        return self.context.headers.get::<rustful::header::Host>()
+            .map(|h| h.to_string());
+   }
+}
+
 impl rustful::Handler for PageType {
     fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
         let mut prc = context::PerRequestContext::new();
@@ -61,15 +89,20 @@ impl rustful::Handler for PageType {
                         let result;
                         {
                             let _execute_span = prc.timer.span("execute");
-                            let http_context = api_handlers::RustfulServerContext{
+                            let http_context = RustfulServerContext{
                                 context: &rustful_context,
                             };
                             result = execute(tt_context, &http_context, &mut prc);
                         }
                         match result {
                             Ok(body) => {
-                                prc.response_modifiers.iter().for_each(|mod_fn| {
-                                    mod_fn(&mut response);
+                                prc.response_headers.iter().for_each(|(h, val)| {
+                                    if h == "Content-Type" && val == "application/json" {
+                                        response.headers_mut().set(
+                                            rustful::header::ContentType::json());
+                                    } else {
+                                        panic!("unsupported header: {} = {}", h, val);
+                                    }
                                 });
                                 response.send(body);
                             }

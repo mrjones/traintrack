@@ -7,40 +7,12 @@ use crate::feedproxy_api;
 use crate::transit_realtime;
 use prost;
 use crate::result;
-use rustful;
 use std;
 use crate::stops;
 use crate::utils;
 use crate::webclient_api;
 
-pub trait HttpServerContext {
-    // Value from path, e.g. /app/station/:station_id
-    fn param_value(&self, key: &str) -> Option<String>;
-
-    // Value from query string, e.g. /app/page?foo=bar
-    fn query_value(&self, key: &str) -> Option<String>;
-
-    fn host_header(&self) -> Option<String>;
-}
-
-pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
-    pub context: &'a rustful::Context<'a, 'b, 'c, 'd>
-}
-
-impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd> {
-    fn param_value(&self, key: &str) -> Option<String> {
-       return self.context.variables.get(key).map(|x| x.to_string());
-   }
-
-   fn query_value(&self, key: &str) -> Option<String> {
-       return self.context.query.get(key).map(|x| x.to_string());
-   }
-
-    fn host_header(&self) -> Option<String> {
-        return self.context.headers.get::<rustful::header::Host>()
-            .map(|h| h.to_string());
-   }
-}
+use crate::server::HttpServerContext;
 
 fn get_debug_info(info: &mut Option<webclient_api::DebugInfo>) -> &mut webclient_api::DebugInfo {
     if info.is_none() {
@@ -339,9 +311,8 @@ fn api_response<M: prost::Message + serde::Serialize>(
     match format.as_ref().map(String::as_ref) {
         Some("textproto") => return Ok(format!("{:?}", data).as_bytes().to_vec()),
         Some("json") => {
-            per_request_context.response_modifiers.push(Box::new(|response: &mut rustful::Response| {
-                response.headers_mut().set(rustful::header::ContentType::json());
-            }));
+            per_request_context.response_headers.insert(
+                "Content-Type".to_string(), "application/json".to_string());
             return Ok(serde_json::to_vec(data).expect("json encode"));
         },
         _ => {
