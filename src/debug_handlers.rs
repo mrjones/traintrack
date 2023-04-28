@@ -7,7 +7,6 @@ use crate::context;
 use crate::feedfetcher;
 use crate::result;
 use rustful;
-use crate::utils;
 
 pub fn debug_index(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     let mut body = format!("<html><head><title>TTDebug</title></head><body><h1>Debug</h1>Build version: {} ({})<ul>", tt_context.build_info.version, tt_context.build_info.timestamp.to_rfc2822()).to_string();
@@ -35,11 +34,11 @@ pub fn dump_status(tt_context: &context::TTContext, _: &rustful::Context, _: &dy
     return Ok(format!("{:#?}", tt_context.proxy_client.latest_status()).as_bytes().to_vec());
 }
 
-pub fn dump_proto(tt_context: &context::TTContext, rustful_context: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_feed_str = rustful_context.variables.get("feed_id")
+pub fn dump_proto(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let desired_feed_str = http_context.param_value("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
         .map(|x| x.to_string())?;
-    let desired_index_str = rustful_context.variables.get("archive_number")
+    let desired_index_str = http_context.param_value("archive_number")
         .map(|x| x.to_string());
 
     let desired_feed = desired_feed_str.parse::<i32>()?;
@@ -134,8 +133,8 @@ pub fn set_homepage(tt_context: &context::TTContext, _: &rustful::Context, _: &d
     }
 }
 
-pub fn get_homepage(tt_context: &context::TTContext, rustful_context: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let user_id = rustful_context.query.get("user")
+pub fn get_homepage(tt_context: &context::TTContext, _: &rustful::Context, http_context: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    let user_id = http_context.query_value("user")
         .map(|x| x.to_string())
         .unwrap_or("12345".to_string());
 
@@ -149,16 +148,6 @@ pub fn get_homepage(tt_context: &context::TTContext, rustful_context: &rustful::
             return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
         }
     }
-}
-
-pub fn get_recent_stations(_: &context::TTContext, rustful_context: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    return Ok(utils::extract_recent_stations_from_cookie(&rustful_context).join(":").as_bytes().to_vec());
-}
-
-pub fn add_recent_station(_: &context::TTContext, rustful_context: &rustful::Context, _: &dyn api_handlers::HttpServerContext, prc: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-        let mut cookies = utils::RustfulCookies::new(&rustful_context.headers, &mut prc.response_modifiers);
-    utils::add_recent_station_to_cookie("42", &mut cookies)?;
-    return Ok("Done?".to_string().as_bytes().to_vec());
 }
 
 pub fn firestore(tt_context: &context::TTContext, _: &rustful::Context, _: &dyn api_handlers::HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {

@@ -217,8 +217,6 @@ pub fn serve(context: context::TTContext, port: u16, static_dir: &str, js_bundle
             node.path("mkuser").then().on_get(PageType::Dynamic(debug_handlers::create_user));
             node.path("set_homepage").then().on_get(PageType::Dynamic(debug_handlers::set_homepage));
             node.path("get_homepage").then().on_get(PageType::Dynamic(debug_handlers::get_homepage));
-            node.path("recent").then().on_get(PageType::Dynamic(debug_handlers::get_recent_stations));
-            node.path("add_recent").then().on_get(PageType::Dynamic(debug_handlers::add_recent_station));
         });
 
         node.path("style.css").then().on_get(PageType::new_static_page(

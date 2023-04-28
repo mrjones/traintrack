@@ -5,13 +5,6 @@ use crate::stops;
 use crate::transit_realtime;
 use crate::utils;
 
-pub struct EmptyCookieAccessor{ }
-
-impl utils::CookieAccessor for EmptyCookieAccessor {
-    fn get_cookie(&self, _key: &str) -> Vec<String> { return vec![]; }
-    fn set_cookie(&mut self, _key: &str, _value: &str) { }
-}
-
 // TODO(mrjones): Decide whether filtered prod data or synthetic data is better
 fn routes_csv_data_from_prod(which_routes: WhichRoutes) -> String {
     let prod_data = include_str!("../data/routes.txt");

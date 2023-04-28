@@ -18,12 +18,9 @@ extern crate std;
 
 use chrono::TimeZone;
 
-use crate::context;
 use crate::feedfetcher;
 use crate::transit_realtime;
 use crate::nyct_subway;
-use crate::result;
-use rustful;
 use crate::stops;
 
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -32,7 +29,6 @@ pub enum Direction {
     DOWNTOWN,
 }
 
-const RECENT_STATIONS_COOKIE_NAME: &str = "recentStations";
 
 pub fn active_lines(feeds: &Vec<feedfetcher::FetchResult>) -> std::collections::HashSet<String> {
     let mut active_lines = std::collections::HashSet::new();
@@ -237,91 +233,5 @@ pub fn all_upcoming_trains_vec_ref(
     return UpcomingTrainsResult {
         trains_by_route_and_direction: upcoming,
         underlying_data_timestamp: chrono::Utc.timestamp_opt(min_relevant_ts as i64, 0).unwrap(),
-    }
-}
-
-// TODO(mrjones): Move to cookies mod?
-
-pub trait CookieAccessor {
-    fn get_cookie(&self, key: &str) -> Vec<String>;
-    fn set_cookie(&mut self, key: &str, value: &str);
-}
-
-pub struct RustfulCookies<'h, 'm> {
-    request_headers: &'h rustful::header::Headers,
-    response_modifiers: &'m mut Vec<context::ResponseModifier>,
-}
-
-impl <'h, 'm> RustfulCookies<'h, 'm> {
-    pub fn new(
-        request_headers: &'h rustful::header::Headers,
-        response_modifiers: &'m mut Vec<context::ResponseModifier>) -> RustfulCookies<'h, 'm> {
-        return RustfulCookies{
-            request_headers: request_headers,
-            response_modifiers: response_modifiers,
-        };
-    }
-}
-
-impl <'h, 'm> CookieAccessor for RustfulCookies<'h, 'm> {
-    fn get_cookie(&self, key: &str) -> Vec<String> {
-        return extract_cookie_values(self.request_headers, key);
-    }
-
-    fn set_cookie(&mut self, key: &str, value: &str) {
-        let key = key.to_string();
-        let value = value.to_string();
-        self.response_modifiers.push(Box::new(
-            move |response: &mut rustful::Response| {
-                response.headers_mut().set(
-                    rustful::header::SetCookie(vec![
-                format!("{}={}; Path=/", key, value).to_string(),
-                    ]))
-            }));
-    }
-}
-
-pub fn extract_recent_stations_from_cookie(context: &rustful::Context) -> Vec<String> {
-    let matches = extract_cookie_values_for_key(context, RECENT_STATIONS_COOKIE_NAME);
-
-    if matches.len() == 0 { return vec![]; }
-
-    return matches[0].split(':').map(|x| x.to_string()).collect();
-}
-
-pub fn extract_recent_stations(cookies: &dyn CookieAccessor) -> Vec<String> {
-    let matches = cookies.get_cookie(RECENT_STATIONS_COOKIE_NAME);
-
-    if matches.len() == 0 { return vec![]; }
-
-    return matches[0].split(':').map(|x| x.to_string()).collect();
-}
-
-pub fn add_recent_station_to_cookie(id: &str, cookies: &mut dyn CookieAccessor) -> result::TTResult<()> {
-    let mut list: Vec<String> = extract_recent_stations(cookies).into_iter().filter(|x| x != id).take(15).collect();
-    list.push(id.to_string());
-    let newval = list.join(":");
-
-    cookies.set_cookie(RECENT_STATIONS_COOKIE_NAME, &newval);
-    return Ok(());
-}
-
-fn extract_cookie_values_for_key(context: &rustful::Context, key: &str) -> Vec<String> {
-    return extract_cookie_values(&context.headers, key);
-}
-
-fn extract_cookie_values(headers: &rustful::header::Headers, key: &str) -> Vec<String> {
-    match headers.get::<rustful::header::Cookie>() {
-        None => { return vec![] },
-        Some(ref cookies) => {
-            return cookies.iter().filter_map(|cookie| {
-                let parts: std::vec::Vec<&str> = cookie.splitn(2, '=').collect();
-                if parts.len() == 2 && parts[0] == key {
-                    return Some(parts[1].to_string());
-                } else {
-                    return None;
-                }
-            }).collect::<std::vec::Vec<String>>();
-        },
     }
 }

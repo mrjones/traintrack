@@ -14,7 +14,10 @@ use crate::utils;
 use crate::webclient_api;
 
 pub trait HttpServerContext {
+    // Value from path, e.g. /app/station/:station_id
     fn param_value(&self, key: &str) -> Option<String>;
+
+    // Value from query string, e.g. /app/page?foo=bar
     fn query_value(&self, key: &str) -> Option<String>;
 }
 
@@ -23,7 +26,7 @@ pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
 }
 
 impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd> {
-   fn param_value(&self, key: &str) -> Option<String> {
+    fn param_value(&self, key: &str) -> Option<String> {
        return self.context.variables.get(key).map(|x| x.to_string());
    }
 
