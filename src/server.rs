@@ -16,7 +16,6 @@ extern crate base64;
 extern crate chrono;
 extern crate log;
 extern crate regex;
-extern crate rustful;
 extern crate serde_json;
 extern crate std;
 
@@ -25,11 +24,13 @@ use crate::debug_handlers;
 use crate::context;
 use crate::result;
 
+#[derive(Clone)]
 enum Encoding {
     Normal,
     Gzipped,
 }
 
+#[derive(Clone)]
 enum PageType {
     Dynamic(fn(&context::TTContext, &dyn HttpServerContext, &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>),
     Static(std::path::PathBuf, Encoding, Option<std::time::Duration>),
@@ -51,188 +52,185 @@ impl PageType {
 
 pub trait HttpServerContext {
     // Value from path, e.g. /app/station/:station_id
-    fn param_value(&self, key: &str) -> Option<String>;
+    fn path_param(&self, key: &str) -> Option<String>;
 
     // Value from query string, e.g. /app/page?foo=bar
-    fn query_value(&self, key: &str) -> Option<String>;
-
-    fn host_header(&self) -> Option<String>;
+    fn query_param(&self, key: &str) -> Option<String>;
 }
 
-pub struct RustfulServerContext<'a, 'b: 'a, 'c, 'd> {
-    pub context: &'a rustful::Context<'a, 'b, 'c, 'd>
-}
-
-impl <'a, 'b, 'c, 'd> HttpServerContext for RustfulServerContext<'a, 'b, 'c, 'd> {
-    fn param_value(&self, key: &str) -> Option<String> {
-       return self.context.variables.get(key).map(|x| x.to_string());
-   }
-
-   fn query_value(&self, key: &str) -> Option<String> {
-       return self.context.query.get(key).map(|x| x.to_string());
-   }
-
-    fn host_header(&self) -> Option<String> {
-        return self.context.headers.get::<rustful::header::Host>()
-            .map(|h| h.to_string());
-   }
-}
-
-impl rustful::Handler for PageType {
-    fn handle(&self, rustful_context: rustful::Context, mut response: rustful::Response) {
-        let mut prc = context::PerRequestContext::new();
-
-        match self {
-            &PageType::Dynamic(execute) => {
-                match rustful_context.global.get::<context::TTContext>() {
-                    Some(ref tt_context) => {
-                        let result;
-                        {
-                            let _execute_span = prc.timer.span("execute");
-                            let http_context = RustfulServerContext{
-                                context: &rustful_context,
-                            };
-                            result = execute(tt_context, &http_context, &mut prc);
-                        }
-                        match result {
-                            Ok(body) => {
-                                prc.response_headers.iter().for_each(|(h, val)| {
-                                    if h == "Content-Type" && val == "application/json" {
-                                        response.headers_mut().set(
-                                            rustful::header::ContentType::json());
-                                    } else {
-                                        panic!("unsupported header: {} = {}", h, val);
-                                    }
-                                });
-                                response.send(body);
-                            }
-                            Err(err) => response.send(format!("ERROR: {}", err)),
-                        }
-                    },
-                    None => {
-                        response.send(format!("Internal error: Could not get context"));
-                    }
-                }
-            },
-            &PageType::Static(ref file_path, ref encoding, ref cache_duration) => {
-                match encoding {
-                    Encoding::Gzipped => {
-                      response.headers_mut().set(
-                          rustful::header::ContentEncoding(vec![
-                              rustful::header::Encoding::Gzip,
-                          ]));
-                      },
-                    _ => {},
-                };
-
-                cache_duration.map(|cache_duration| {
-                    response.headers_mut().set(
-                        rustful::header::CacheControl(vec![
-                            rustful::header::CacheDirective::MaxAge(
-                                cache_duration.as_secs() as u32),
-                            rustful::header::CacheDirective::Public,
-                        ]));
-                });
-
-                match response.send_file_with_mime(file_path, rustful::file::ext_to_mime) {
-                    Ok(_) => {},
-                    Err(rustful::response::FileError::Open(io_err, mut response)) => {
-                        error!("failed to open '{:?}': {}", file_path, io_err);
-                        response.set_status(rustful::StatusCode::InternalServerError);
-                    },
-                    Err(err) => {
-                        error!("Error sending static file '{:?}': {}", file_path, err);
-                    }
-                }
-            },
-        }
-    }
-}
 
 pub enum JsBundleFile {
     Raw(String),
     Gzipped(String),
 }
 
-pub fn serve(context: context::TTContext, port: u16, static_dir: &str, js_bundle: &JsBundleFile) {
-    let global: rustful::server::Global = Box::new(context).into();
-    assert!(!global.get::<context::TTContext>().is_none());
+struct TinyServerContext<'a> {
+    path_params: std::collections::HashMap<String, String>,
+    url_params: &'a qstring::QString,
+}
 
-    let mut router = rustful::DefaultRouter::<PageType>::new();
-    router.build().many(|node| {
-        node.then().on_get(PageType::new_static_page(
-            format!("{}/singlepage.html", static_dir)));
-        node.path("debug").many(|node| {
-            node.then().on_get(PageType::Dynamic(debug_handlers::debug_index));
-            node.path("dump_status").then().on_get(PageType::Dynamic(debug_handlers::dump_status));
-            node.path("dump_proto").many(|node| {
-                node.then().on_get(PageType::Dynamic(debug_handlers::dump_feed_links));
-                node.path(":feed_id").many(|node| {
-                    node.then().on_get(PageType::Dynamic(debug_handlers::dump_proto));
-                    node.path(":archive_number").then().on_get(PageType::Dynamic(debug_handlers::dump_proto));
+impl <'a> HttpServerContext for TinyServerContext<'a> {
+    fn path_param(&self, key: &str) -> Option<String> {
+        return self.path_params.get(key).map(|s| s.to_string());
+    }
+
+    fn query_param(&self, key: &str) -> Option<String> {
+        return self.url_params.get(key).map(|s| s.to_string());
+    }
+}
+
+pub struct TinyHttpServer {
+    s: tiny_http::Server,
+    tt_context: context::TTContext,
+    routes: Vec<(regex::Regex, PageType)>,
+}
+
+impl TinyHttpServer {
+    pub fn new(tt_context: context::TTContext, port: u16, static_dir: &str, js_bundle: &JsBundleFile) -> TinyHttpServer {
+        let raw_routes: Vec<(&str, PageType)> = vec![
+            ("/debug/dump_status", PageType::Dynamic(debug_handlers::dump_status)),
+            ("/debug/dump_proto/(?P<feed_id>.*/(?P<archive_number>.*))", PageType::Dynamic(debug_handlers::dump_proto)),
+            ("/debug/dump_proto/(?P<feed_id>.*)", PageType::Dynamic(debug_handlers::dump_proto)),
+            ("/debug/dump_proto", PageType::Dynamic(debug_handlers::dump_feed_links)),
+            ("/debug/freshness", PageType::Dynamic(debug_handlers::feed_freshness)),
+            ("/debug/fetch_now", PageType::Dynamic(debug_handlers::fetch_now)),
+            ("/debug", PageType::Dynamic(debug_handlers::debug_index)),
+            ("/api/lines", PageType::Dynamic(api_handlers::line_list_handler)),
+            ("/api/station/(?P<station_id>.*)/train_history/(?P<train_id>.*)", PageType::Dynamic(api_handlers::train_arrival_history_handler)),
+            ("/api/station/(?P<station_id>.*)", PageType::Dynamic(api_handlers::station_detail_handler)),
+            ("/api/train/(?P<train_id>.*)", PageType::Dynamic(api_handlers::train_detail_handler)),
+            ("/api/stations/byline/(?P<line_id>.*)", PageType::Dynamic(api_handlers::stations_byline_handler)),
+            ("/api/stations", PageType::Dynamic(api_handlers::station_list_handler)),
+
+            match js_bundle {
+                JsBundleFile::Raw(ref path) => ("/webclient.js", PageType::new_static_page(path)),
+                JsBundleFile::Gzipped(ref path) => ("/webclient.js", PageType::new_static_gzipped_page(path)),
+            },
+
+            ("/style.css", PageType::new_static_page(format!("{}/style.css", static_dir))),
+            ("/favicon.ico", PageType::new_static_page(format!("{}/favicon.ico", static_dir))),
+            ("/app/.*", PageType::new_static_page(format!("{}/singlepage.html", static_dir))),
+            ("/", PageType::new_static_page(format!("{}/singlepage.html", static_dir))),
+        ];
+
+        return TinyHttpServer{
+            s: tiny_http::Server::http(format!("0.0.0.0:{}", port)).unwrap(),
+            tt_context: tt_context,
+            routes: raw_routes.into_iter().map(|(regex_str, page)| {
+                let full_regex_string = format!("^{}$", regex_str);
+                return (regex::Regex::new(&full_regex_string).unwrap(), page);
+            }).collect(),
+        }
+    }
+
+    pub fn serve(&self) {
+        const NUM_WORKERS: usize = 4;
+        let mut handles = Vec::with_capacity(NUM_WORKERS);
+
+        for _ in 0..NUM_WORKERS {
+            let handle = crossbeam::thread::scope(|s| {
+                s.spawn(|_| {
+                    for request in self.s.incoming_requests() {
+                        TinyHttpServer::handle_request(request, &self.routes, &self.tt_context);
+                    }
                 });
             });
-            node.path("freshness").then().on_get(PageType::Dynamic(debug_handlers::feed_freshness));
-            node.path("fetch_now").then().on_get(PageType::Dynamic(debug_handlers::fetch_now));
-            node.path("firestore").then().on_get(PageType::Dynamic(debug_handlers::firestore));
-            node.path("mkuser").then().on_get(PageType::Dynamic(debug_handlers::create_user));
-            node.path("set_homepage").then().on_get(PageType::Dynamic(debug_handlers::set_homepage));
-            node.path("get_homepage").then().on_get(PageType::Dynamic(debug_handlers::get_homepage));
-        });
+            handles.push(handle);
+        }
+    }
 
-        node.path("style.css").then().on_get(PageType::new_static_page(
-                    format!("{}/style.css", static_dir)));
-        node.path("favicon.ico").then().on_get(PageType::new_static_page(
-                    format!("{}/favicon.ico", static_dir)));
-        node.path("hack559.js").then().on_get(PageType::new_static_page(
-                    format!("{}/hack559.js", static_dir)));
-        node.path("app").many(|node| {
-            node.then().on_get(PageType::new_static_page(
-                format!("{}/singlepage.html", static_dir)));
-            node.path("*").then().on_get(PageType::new_static_page(
-                format!("{}/singlepage.html", static_dir)));
-        });
-        match js_bundle {
-            JsBundleFile::Raw(ref path) => {
-                node.path("webclient.js").then().on_get(PageType::new_static_page(path));
+    fn handle_request(request: tiny_http::Request, routes: &Vec<(regex::Regex, PageType)>, tt_context: &context::TTContext) {
+        info!("Handling {} {}", request.method(), request.url());
+        let mut prc = context::PerRequestContext::new();
+
+        let path_and_query = request.url();
+        let mut path_and_query_parts = path_and_query.splitn(2, '?');
+        let path = path_and_query_parts.next().unwrap();
+        let query_string = path_and_query_parts.next().unwrap_or("");
+
+        let qstring: qstring::QString = qstring::QString::from(query_string);
+
+        let route: Option<(PageType, std::collections::HashMap<String, String>)> = TinyHttpServer::route_request(path, routes);
+        match route {
+            Some((handler, params)) => {
+                let response = TinyHttpServer::serve_page(&handler, params, &qstring, &mut prc, tt_context).unwrap();
+                request.respond(response).unwrap();
             },
-            JsBundleFile::Gzipped(ref path) => {
-                node.path("webclient.js").then().on_get(PageType::new_static_gzipped_page(path));
+            None => {},
+        }
+    }
+
+    fn serve_page(page_type: &PageType, params: std::collections::HashMap<String, String>, qstring: &qstring::QString, prc: &mut context::PerRequestContext, tt_context: &context::TTContext) -> result::TTResult<tiny_http::Response<std::io::Cursor<Vec<u8>>>> {
+        let http_context = TinyServerContext{
+            path_params: params,
+            url_params: &qstring,
+        };
+        let _execute_span = prc.timer.span("execute");
+        match page_type {
+            PageType::Dynamic(handle_fn) => {
+                let response_bytes = handle_fn(tt_context, &http_context, prc)?;
+                let mut response = tiny_http::Response::from_data(response_bytes);
+                for (h, val) in prc.response_headers.iter() {
+                    response = response.with_header(tiny_http::Header::from_bytes(
+                        h.clone().into_bytes(), val.clone().into_bytes()).unwrap());
+                }
+                return Ok(response);
+            },
+            PageType::Static(path, encoding, opt_cache_duration) => {
+                use std::io::Read;
+
+                let f = std::fs::File::open(path)?;
+                let mut reader = std::io::BufReader::new(f);
+                let mut response_bytes: Vec<u8> = vec![];
+                reader.read_to_end(&mut response_bytes)?;
+
+                let mut response = tiny_http::Response::from_data(response_bytes);
+
+                match encoding {
+                    Encoding::Gzipped => {
+                        response = response.with_header(tiny_http::Header::from_bytes(
+                            &b"Content-Encoding"[..], &b"gzip"[..]).unwrap());
+                    },
+                    _ => {},
+                }
+
+                match opt_cache_duration {
+                    Some(cache_duration) => {
+                        let v = format!("public, max-age={}", cache_duration.as_secs());
+                        response = response.with_header(tiny_http::Header::from_bytes(
+                            &b"Cache-Control"[..], v.into_bytes()).unwrap());
+                    },
+                    _ => {},
+                }
+
+                return Ok(response);
+            },
+        }
+    }
+
+    fn route_request(url: &str, routes: &Vec<(regex::Regex, PageType)>) -> Option<(PageType, std::collections::HashMap<String, String>)> {
+        for (regex, handler) in routes {
+            if regex.is_match(url) {
+                debug!("Matched: '{}' with '{}'", url, regex);
+                let captures: Option<regex::Captures> = regex.captures(url);
+
+                let capture_kvs: std::collections::HashMap<String, String> =
+                    match captures {
+                        Some(captures) =>
+                            regex.capture_names().flatten().filter_map(|cap_name: &str| {
+                                return match captures.name(cap_name) {
+                                    Some(capture) => Some((cap_name.to_string(), capture.as_str().to_string())),
+                                    None => None,
+                                }
+                            }).collect(),
+                        None => hashmap![],
+                    };
+                return Some((handler.clone(), capture_kvs));
             }
         }
-        node.path("api").many(|node| {
-            node.path("lines").then().on_get(PageType::Dynamic(api_handlers::line_list_handler));
-            node.path("station").many(|node| {
-                node.path(":station_id").many(|node| {
-                    node.then().on_get(PageType::Dynamic(api_handlers::station_detail_handler));
-                    node.path("train_history").many(|node| {
-                        node.path(":train_id").then().on_get(PageType::Dynamic(api_handlers::train_arrival_history_handler));
-                    });
-                });
-            });
-            node.path("train").many(|node| {
-                node.path(":train_id").then().on_get(PageType::Dynamic(api_handlers::train_detail_handler));
-            });
-            node.path("stations").many(|node| {
-                node.then().on_get(PageType::Dynamic(api_handlers::station_list_handler));
-                node.path("byline").many(|node| {
-                    node.path(":line_id").then().on_get(
-                        PageType::Dynamic(api_handlers::stations_byline_handler));
-                });
-            });
-        });
-    });
 
-    let server_result = rustful::Server {
-        host: port.into(),
-        global: global,
-        threads: Some(32),
-        handlers: router,
-        ..rustful::Server::default()
-    }.run();
-
-    match server_result {
-        Ok(_server) => {},
-        Err(err) => error!("could not start server: {}", err)
+        // TODO: 404 page
+        error!("Unhandled URL: {}", url);
+        return None;
     }
 }

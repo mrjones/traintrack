@@ -49,7 +49,7 @@ pub fn station_detail_handler(
     tt_context: &context::TTContext,
     http_context: &dyn HttpServerContext,
     per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>>{
-    let station_id_param: Option<String> = http_context.param_value("station_id");
+    let station_id_param: Option<String> = http_context.path_param("station_id");
 
     let mut response = station_detail_handler_guts(
         &tt_context.stops,
@@ -184,7 +184,7 @@ pub fn station_list_handler_guts(stops: &stops::Stops) -> result::TTResult<webcl
 }
 
 pub fn stations_byline_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_line = http_context.param_value("line_id")
+    let desired_line = http_context.path_param("line_id")
         .ok_or(result::TTError::Uncategorized("Missing line_id".to_string()))
         .map(|x| x.to_string())?;
 
@@ -203,7 +203,7 @@ pub fn stations_byline_handler(tt_context: &context::TTContext, http_context: &d
 }
 
 pub fn train_detail_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_train = http_context.param_value("train_id")
+    let desired_train = http_context.path_param("train_id")
         .ok_or(result::TTError::Uncategorized("Missing train_id".to_string()))
         .map(|x| x.to_string())?;
 
@@ -251,9 +251,9 @@ pub fn train_detail_handler(tt_context: &context::TTContext, http_context: &dyn 
 }
 
 pub fn train_arrival_history_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let station_id_str = http_context.param_value("station_id").ok_or(
+    let station_id_str = http_context.path_param("station_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
-    let train_id_str = http_context.param_value("train_id").ok_or(
+    let train_id_str = http_context.path_param("train_id").ok_or(
         result::TTError::Uncategorized("Missing station_id".to_string()))?;
 
     let mut response = webclient_api::TrainArrivalHistory::default();
@@ -305,7 +305,7 @@ fn api_response<M: prost::Message + serde::Serialize>(
         None => {},
     }
 
-    let format: Option<String> = http_context.query_value("format")
+    let format: Option<String> = http_context.query_param("format")
         .map(|x| String::from(x));
 
     match format.as_ref().map(String::as_ref) {

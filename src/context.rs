@@ -1,6 +1,5 @@
 use crate::feedfetcher;
 use chrono;
-use crate::prefs;
 use std;
 use crate::stops;
 
@@ -22,7 +21,6 @@ pub struct TTContext {
     pub firebase_api_key: Option<String>,
     // TODO(mrjones): Make this a std::path?
     pub google_service_account_pem_file: Option<String>,
-    pub pref_storage: Option<prefs::PrefStorage>,
 }
 
 pub struct RequestTimer {
@@ -32,6 +30,7 @@ pub struct RequestTimer {
 
 pub struct PerRequestContext {
     pub timer: RequestTimer,
+    // TODO: these don't really belong here
     pub response_headers: std::collections::BTreeMap<String, String>,
 }
 
@@ -59,11 +58,6 @@ impl TTContext {
             google_api_info: google_api_info,
             firebase_api_key: firebase_api_key.clone(),
             google_service_account_pem_file: google_service_account_pem_file.clone(),
-            pref_storage: firebase_api_key.and_then(|k| {
-                return google_service_account_pem_file.map(|p| {
-                    return prefs::PrefStorage::new(p, k);
-                });
-            }),
         }
     }
 

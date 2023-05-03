@@ -1,7 +1,6 @@
 extern crate chrono;
 extern crate chrono_tz;
 
-use crate::auth;
 use crate::context;
 use crate::feedfetcher;
 use crate::result;
@@ -34,10 +33,10 @@ pub fn dump_status(tt_context: &context::TTContext, _: &dyn HttpServerContext, _
 }
 
 pub fn dump_proto(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let desired_feed_str = http_context.param_value("feed_id")
+    let desired_feed_str = http_context.path_param("feed_id")
         .ok_or(result::TTError::Uncategorized("Missing feed_id".to_string()))
         .map(|x| x.to_string())?;
-    let desired_index_str = http_context.param_value("archive_number")
+    let desired_index_str = http_context.path_param("archive_number")
         .map(|x| x.to_string());
 
     let desired_feed = desired_feed_str.parse::<i32>()?;
@@ -101,67 +100,4 @@ pub fn feed_freshness(
 pub fn fetch_now(tt_context: &context::TTContext, _: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
     tt_context.proxy_client.fetch_once();
     return Ok("OK".to_string().as_bytes().to_vec());
-}
-
-pub fn create_user(tt_context: &context::TTContext, _: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    match tt_context.pref_storage {
-        Some(ref storage) => {
-            let user = auth::GoogleIdToken{
-                email: "jonesmr@gmail.com".to_string(),
-                name: "Matt".to_string(),
-                sub: "98989898".to_string(),
-            };
-            storage.create_user(&user)?;
-            return Ok("Done".to_string().as_bytes().to_vec());
-
-        }, None => {
-            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
-        }
-    }
-}
-
-pub fn set_homepage(tt_context: &context::TTContext, _: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    match tt_context.pref_storage {
-        Some(ref storage) => {
-            storage.set_default_station(12345, 67890)?;
-            return Ok("Done".to_string().as_bytes().to_vec());
-
-        }, None => {
-            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
-        }
-    }
-}
-
-pub fn get_homepage(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    let user_id = http_context.query_value("user")
-        .map(|x| x.to_string())
-        .unwrap_or("12345".to_string());
-
-
-    match tt_context.pref_storage {
-        Some(ref storage) => {
-            let s = storage.get_default_station(&user_id)?;
-            return Ok(s.as_bytes().to_vec());
-
-        }, None => {
-            return Ok("Prefs storage not configured".to_string().as_bytes().to_vec());
-        }
-    }
-}
-
-pub fn firestore(tt_context: &context::TTContext, _: &dyn HttpServerContext, _: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
-    match tt_context.google_service_account_pem_file {
-        Some(ref pem_path) => {
-            let token = auth::generate_google_bearer_token(
-                pem_path,
-                vec!["https://www.googleapis.com/auth/datastore".to_string()])?;
-
-            match tt_context.firebase_api_key {
-                Some(ref key) => return auth::do_firestore_request(key, &token).map(|t| t.as_bytes().to_vec()),
-                None => return Ok("Missing --firebase-api-key".to_string().as_bytes().to_vec()),
-            }
-        }, None => {
-            return Ok("Missing --google-service-account-pem-file".to_string().as_bytes().to_vec());
-        }
-    }
 }

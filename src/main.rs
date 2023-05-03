@@ -26,7 +26,6 @@ extern crate log4rs;
 extern crate maplit;
 extern crate prost;
 extern crate rustc_serialize;
-//extern crate rustful;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -41,7 +40,6 @@ mod auth;
 mod context;
 mod debug_handlers;
 mod feedfetcher;
-mod prefs;
 mod result;
 mod server;
 mod stops;
@@ -216,5 +214,9 @@ fn main() {
         stops, proxy_client, tt_version, build_timestamp, google_api_info,
         matches.opt_str("firebase-api-key"),
         matches.opt_str("google-service-account-pem-file"));
-    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_bundle);
+    //    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_bundle);
+
+    let static_files_dir = format!("{}/static/", root_directory);
+    let tiny_server = server::TinyHttpServer::new(server_context, port, &static_files_dir, &webclient_js_bundle);
+    tiny_server.serve();
 }
