@@ -7,7 +7,7 @@ module.exports = merge(template, {
   plugins: [
     new webpack.DefinePlugin({
       'ENABLE_PREFETCHING': 'true',
-      'BUILD_LABEL': process.env.BUILD_LABEL ? process.env.BUILD_LABEL : '"PROD"',
+      'BUILD_LABEL': process.env.BUILD_LABEL ? ('"' + process.env.BUILD_LABEL + '"') : '"PROD"',
     }),
   ],
 });
