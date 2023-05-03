@@ -38,7 +38,7 @@ cp target/release/feedproxy build/feedproxy/feedproxy
 echo "=== Compiling JavaScript/WebClient"
 pushd .
 cd webclient
-BUILD_LABEL=${tag} webpack --mode=production --config webpack-prod.config.js
+webpack --mode=production --config webpack-prod.config.js
 popd
 
 echo "=== Creating frontend image"
