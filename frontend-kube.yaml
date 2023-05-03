@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/mrjones-gke/traintrack:2023-05-02.0
+        image: gcr.io/mrjones-gke/traintrack:2023-05-02.2
         imagePullPolicy: IfNotPresent
         env:
         - name: GOOGLE_API_ID
