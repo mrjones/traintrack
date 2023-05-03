@@ -127,13 +127,13 @@ impl TinyHttpServer {
         const NUM_WORKERS: usize = 4;
         let mut handles = Vec::with_capacity(NUM_WORKERS);
 
-        for _ in 0..NUM_WORKERS {
+        for i in 0..NUM_WORKERS {
             let handle = crossbeam::thread::scope(|s| {
-                s.spawn(|_| {
+                s.builder().name(format!("http{}", i)).spawn(|_| {
                     for request in self.s.incoming_requests() {
                         TinyHttpServer::handle_request(request, &self.routes, &self.tt_context);
                     }
-                });
+                }).expect("spawning HTTP server thread");
             });
             handles.push(handle);
         }
