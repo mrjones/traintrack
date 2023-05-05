@@ -153,8 +153,16 @@ impl TinyHttpServer {
         let route: Option<(PageType, std::collections::HashMap<String, String>)> = TinyHttpServer::route_request(path, routes);
         match route {
             Some((handler, params)) => {
-                let response = TinyHttpServer::serve_page(&handler, params, &qstring, &mut prc, tt_context).unwrap();
-                request.respond(response).unwrap();
+                let response_result = TinyHttpServer::serve_page(&handler, params, &qstring, &mut prc, tt_context);
+                match response_result {
+                    Ok(response) => request.respond(response).expect("sending response"),
+                    Err(error) => {
+                        error!("Error handling {} {}: {}", request.method(), request.url(), error);
+                        request.respond(tiny_http::Response::from_string(format!("ERROR: {}", error))
+                                        .with_status_code(500)).expect("reporting error");
+                    }
+                }
+
             },
             None => {},
         }
@@ -172,7 +180,7 @@ impl TinyHttpServer {
                 let mut response = tiny_http::Response::from_data(response_bytes);
                 for (h, val) in prc.response_headers.iter() {
                     response = response.with_header(tiny_http::Header::from_bytes(
-                        h.clone().into_bytes(), val.clone().into_bytes()).unwrap());
+                        h.clone().into_bytes(), val.clone().into_bytes()).expect("building error"));
                 }
                 return Ok(response);
             },
