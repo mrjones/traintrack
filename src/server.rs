@@ -140,7 +140,7 @@ impl TinyHttpServer {
     }
 
     fn handle_request(request: tiny_http::Request, routes: &Vec<(regex::Regex, PageType)>, tt_context: &context::TTContext) {
-        info!("Handling {} {}", request.method(), request.url());
+        info!("Handling {:?}", request);
         let mut prc = context::PerRequestContext::new();
 
         let path_and_query = request.url();
@@ -157,7 +157,7 @@ impl TinyHttpServer {
                 match response_result {
                     Ok(response) => request.respond(response).expect("sending response"),
                     Err(error) => {
-                        error!("Error handling {} {}: {}", request.method(), request.url(), error);
+                        error!("Error handling {:?} {}. Headers: {:?}", request, error, request.headers());
                         request.respond(tiny_http::Response::from_string(format!("ERROR: {}", error))
                                         .with_status_code(500)).expect("reporting error");
                     }
