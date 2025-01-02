@@ -59,9 +59,9 @@ export class DimensionState<T> {
   public toSpec(): string {
     let ret = "";
     ret += ((this.kind === IncludeExclude.INCLUDE) ? '+' : '-');
-    this.values.forEach((v: T) => {
-      ret += this.formatT(v);
-    });
+
+    const elemStrs = this.values.map((v: T) => { return this.formatT(v); });
+    ret += elemStrs.join('.');
 
     return ret;
   }
@@ -70,21 +70,30 @@ export class DimensionState<T> {
     spec: String,
     parseT: ((spec: string) => T),
     formatT: ((v: T) => string)): DimensionState<T> {
+      let values = Immutable.Set<T>();
+      let kind = IncludeExclude.EXCLUDE;
+      if (spec.length >= 2 && (spec[0] === '+' || spec[0] === '-')) {
+        if (spec[0] === '+') {
+          kind = IncludeExclude.INCLUDE;
+        }
 
-    let values = Immutable.Set<T>();
-    let kind = IncludeExclude.EXCLUDE;
-    if (spec.length >= 2 && (spec[0] === '+' || spec[0] === '-')) {
-      if (spec[0] === '+') {
-        kind = IncludeExclude.INCLUDE;
+        const elemsPart = spec.substring(1);
+
+        if (elemsPart.includes('.')) {
+          // New format: explicitly dot delimited
+          for (const specElem of spec.substring(1).split('.')) {
+            values = values.add(parseT(specElem));
+          }
+        } else {
+          // Old format: one character per element
+          for (const elemChar of elemsPart) {
+            values = values.add(parseT(elemChar));
+          }
+        }
       }
 
-      for (const specChar of spec.substring(1)) {
-        values = values.add(parseT(specChar));
-      }
+      return new DimensionState<T>(values, kind, formatT);
     }
-
-    return new DimensionState<T>(values, kind, formatT);
-  }
 }
 
 export class VisibilityState {

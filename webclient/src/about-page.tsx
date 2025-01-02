@@ -39,6 +39,7 @@ export class AboutPage extends React.Component<any, any> {
       <li>2019-09-11: Added support for a new MTA API endpoint, which hopefully (?) will provide more reliable data, but could also lead to new bugs.</li>
       <li>2019-09-21: Replaced generic "Uptown" and "Downtown" labels with MTA-provided descriptions for each platform.</li>
       <li>2023-04-21: Made recently used stations show up more often.</li>
+      <li>2025-01-02: Enabled filtering express lines (e.g. 7X, FX).</li>
       </ul>
       </div>;
 
