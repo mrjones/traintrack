@@ -61,6 +61,19 @@ export class DimensionState<T> {
     ret += ((this.kind === IncludeExclude.INCLUDE) ? '+' : '-');
 
     const elemStrs = this.values.map((v: T) => { return this.formatT(v); });
+
+    // Explicitly include a leading '.'.
+    // There was an older style of spec which didn't use explicit dot
+    // delimiters, and just used a character per element.  We still support
+    // that format, in order to not break bookmarks.
+    //
+    // Including an explicit dot, even for single-elements lists, ensures
+    // that we know we are using a new-style spec.  This avoids the ambiguity
+    // of a spec like: "-:-GS:-" which could be interpreted as either:
+    //    - Filter out "G" and "S" in the old character-based spec
+    //    - Filter out "GS" (Grand Central Shuttle), in the new delimited spec
+    // Instead we will represent the new spec as ".GS".
+    ret += '.';
     ret += elemStrs.join('.');
 
     return ret;
@@ -79,9 +92,10 @@ export class DimensionState<T> {
 
         const elemsPart = spec.substring(1);
 
-        if (elemsPart.includes('.')) {
+        if (elemsPart.startsWith('.')) {
           // New format: explicitly dot delimited
-          for (const specElem of spec.substring(1).split('.')) {
+          // Manually discard leading dot:
+          for (const specElem of elemsPart.substring(1).split('.')) {
             values = values.add(parseT(specElem));
           }
         } else {

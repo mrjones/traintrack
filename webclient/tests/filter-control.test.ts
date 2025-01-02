@@ -80,4 +80,16 @@ describe("VisibilityState", () => {
     expect(v1.includesLine("L")).toBeTruthy();
   });
 
+  it("doesn't mistake single multi-letter line for a legacy spec", () => {
+    let original = VisibilityState.parseFromSpec("");
+
+    original.toggleLine("7X");
+    expect(original.includesLine("7X")).toBeFalsy();
+
+    let restored = VisibilityState.parseFromSpec(original.toSpec());
+
+    expect(restored.includesLine("7X")).toBeFalsy();
+
+  });
+
 });
