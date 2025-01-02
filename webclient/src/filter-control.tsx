@@ -95,8 +95,13 @@ export class DimensionState<T> {
         if (elemsPart.startsWith('.')) {
           // New format: explicitly dot delimited
           // Manually discard leading dot:
-          for (const specElem of elemsPart.substring(1).split('.')) {
-            values = values.add(parseT(specElem));
+          const elemsPartMinusDot = elemsPart.substring(1);
+
+          if (elemsPartMinusDot.length > 0) {
+            for (const specElem of elemsPartMinusDot.split('.')) {
+              let parsed = parseT(specElem);
+              values = values.add(parseT(specElem));
+            }
           }
         } else {
           // Old format: one character per element

@@ -10,6 +10,9 @@ describe("VisibilityState", () => {
     // Any line or direction is enabled by default
     expect(vstate.includesLine("N")).toBeTruthy();
     expect(vstate.includesDirection(webclient_api.Direction.UPTOWN)).toBeTruthy();
+    expect(vstate.includesDirection(webclient_api.Direction.DOWNTOWN)).toBeTruthy();
+
+
   });
 
   it("is toggleable", () => {
@@ -44,6 +47,7 @@ describe("VisibilityState", () => {
     expect(restored.isCombined()).toBe(original.isCombined());
     expect(restored.includesLine("N")).toBe(original.includesLine("N"));
     expect(restored.includesDirection(webclient_api.Direction.UPTOWN)).toBe(original.includesDirection(webclient_api.Direction.UPTOWN));
+    expect(restored.includesDirection(webclient_api.Direction.DOWNTOWN)).toBe(original.includesDirection(webclient_api.Direction.DOWNTOWN));
   });
 
   it("handles express trains", () => {
@@ -85,11 +89,15 @@ describe("VisibilityState", () => {
 
     original.toggleLine("7X");
     expect(original.includesLine("7X")).toBeFalsy();
+    expect(original.includesDirection(webclient_api.Direction.UPTOWN)).toBeTruthy();
+    expect(original.includesDirection(webclient_api.Direction.DOWNTOWN)).toBeTruthy();
 
     let restored = VisibilityState.parseFromSpec(original.toSpec());
 
     expect(restored.includesLine("7X")).toBeFalsy();
 
+    expect(restored.includesDirection(webclient_api.Direction.UPTOWN)).toBeTruthy();
+    expect(restored.includesDirection(webclient_api.Direction.DOWNTOWN)).toBeTruthy();
   });
 
 });
