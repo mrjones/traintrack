@@ -78,22 +78,22 @@ struct VehicleJourney {
 }
 
 struct XmlStripper<'a> {
-    accum: &'a mut String,
+    accum: std::cell::RefCell<&'a mut String>,
 }
 
 impl<'a> XmlStripper<'a> {
-    fn new(accum: &'a mut String) -> XmlStripper {
-        return XmlStripper{accum: accum};
+    fn new(accum: &'a mut String) -> XmlStripper<'a> {
+        return XmlStripper{accum: std::cell::RefCell::new(accum)};
     }
 }
 
 impl <'a> xml5ever::tokenizer::TokenSink for XmlStripper<'a>  {
-    fn process_token(&mut self, token: xml5ever::tokenizer::Token) {
+    fn process_token(&self, token: xml5ever::tokenizer::Token) {
         match token {
             xml5ever::tokenizer::CharacterTokens(b) => {
-                self.accum.push_str(&b.to_string());
+                self.accum.borrow_mut().push_str(&b.to_string());
                 // TODO(mrjones): Only insert space for <div>, <br> etc.
-                self.accum.push(' ');
+                self.accum.borrow_mut().push(' ');
             },
             _ => { },
         }
@@ -112,7 +112,7 @@ fn strip_xml(input: &str) -> String {
             },
         );
         let input = tendril::StrTendril::from(input);
-        let mut input_buffer = xml5ever::buffer_queue::BufferQueue::new();
+        let mut input_buffer = xml5ever::buffer_queue::BufferQueue::default();
         input_buffer.push_back(input.try_reinterpret().unwrap());
         tok.feed(&mut input_buffer);
         tok.end();

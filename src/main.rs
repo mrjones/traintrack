@@ -200,7 +200,7 @@ fn main() {
         None => None,
     };
 
-    let build_timestamp = chrono::DateTime::<chrono::offset::Utc>::from_utc(chrono::NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), chrono::offset::Utc);
+    let build_timestamp: chrono::DateTime<chrono::offset::Utc> = chrono::DateTime::<chrono::offset::Utc>::from_timestamp(0, 0).expect("hard-coded date-time");
 
 //    let build_timestamp = chrono::DateTime::from_utc(
 //        chrono::NaiveDateTime::from_timestamp(
