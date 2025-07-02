@@ -8,7 +8,7 @@ webclient/node_modules/
 
 # Secrets
 *.pem
-*.sh
+secrets.sh
 
 # Local binaries
 kubectl
