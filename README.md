@@ -26,18 +26,28 @@ The application runs as two separate processes: the feed proxy and the frontend.
 
 1.  **Start the Feed Proxy:**
 
-    In your first terminal, run the following command to start the feed proxy, which fetches real-time data from the MTA:
+    In your first terminal, run the following command to start the feed proxy, which fetches real-time data from the MTA. You can optionally provide a port number (defaults to `3839`) using `--port`:
 
     ```bash
-    ./proxy.sh
+    ./proxy.sh [--port=PORT]
+    ```
+
+    Example:
+    ```bash
+    ./proxy.sh --port=8080
     ```
 
 2.  **Start the Frontend:**
 
-    In your second terminal, run the following command to start the main web application:
+    In your second terminal, run the following command to start the main web application. If you specified a custom port for the proxy, you must provide the same port number here using `--proxy_port`. You can also specify the frontend's listening port using `--port` (defaults to `3838`):
 
     ```bash
-    ./frontend.sh
+    ./frontend.sh [--proxy_port=PROXY_PORT] [--port=FRONTEND_PORT]
+    ```
+
+    Example:
+    ```bash
+    ./frontend.sh --proxy_port=8080 --port=8081
     ```
 
 Once both processes are running, you should be able to access the application in your web browser.
