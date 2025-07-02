@@ -107,7 +107,7 @@ fn main() {
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
-    opts.optopt("r", "root-directory", "Root directory where templates, static, and data directories can ve found", "ROOT_DIR");
+    opts.optopt("", "log-dir", "Directory for log files", "LOG_DIR");
     opts.optopt("", "google-service-account-pem-file", ".pem file containing the Google service account's private key", "PATH");
     opts.optopt("", "gcs-archive-bucket", "GCS bucket to hold archived feeds", "BUCKET");
     opts.optflag("", "use-new-mta-api-endpoint", "If true, connects to the new (api.mta.info) endpoint");
@@ -117,9 +117,9 @@ fn main() {
         Err(f) => { panic!("{}", f.to_string()); }
     };
 
-    let root_directory = matches.opt_str("root-directory").unwrap_or(
+    let log_directory = matches.opt_str("log-dir").unwrap_or(
         ".".to_string());
-    log4rs::init_config(log4rs_config(format!("{}/log/", root_directory).as_ref())).unwrap();
+    log4rs::init_config(log4rs_config(format!("{}/log/", log_directory).as_ref())).unwrap();
 
     let key = match matches.opt_str("mta-api-key") {
         Some(key) => key,

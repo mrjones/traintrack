@@ -26,28 +26,28 @@ The application runs as two separate processes: the feed proxy and the frontend.
 
 1.  **Start the Feed Proxy:**
 
-    In your first terminal, run the following command to start the feed proxy, which fetches real-time data from the MTA. You can optionally provide a port number (defaults to `3839`) using `--port`:
+    In your first terminal, run the following command to start the feed proxy, which fetches real-time data from the MTA. You can optionally provide a port number (defaults to `3839`) using `--port`, and a directory for logs using `--log_dir` (defaults to the current directory):
 
     ```bash
-    ./proxy.sh [--port=PORT]
+    ./proxy.sh [--port=PORT] [--log_dir=LOG_DIR]
     ```
 
     Example:
     ```bash
-    ./proxy.sh --port=8080
+    ./proxy.sh --port=8080 --log_dir=/tmp/traintrack_logs
     ```
 
 2.  **Start the Frontend:**
 
-    In your second terminal, run the following command to start the main web application. If you specified a custom port for the proxy, you must provide the same port number here using `--proxy_port`. You can also specify the frontend's listening port using `--port` (defaults to `3838`):
+    In your second terminal, run the following command to start the main web application. If you specified a custom port for the proxy, you must provide the same port number here using `--proxy_port`. You can also specify the frontend's listening port using `--port` (defaults to `3838`), and a directory for logs using `--log_dir` (defaults to the current directory):
 
     ```bash
-    ./frontend.sh [--proxy_port=PROXY_PORT] [--port=FRONTEND_PORT]
+    ./frontend.sh [--proxy_port=PROXY_PORT] [--port=FRONTEND_PORT] [--log_dir=LOG_DIR]
     ```
 
     Example:
     ```bash
-    ./frontend.sh --proxy_port=8080 --port=8081
+    ./frontend.sh --proxy_port=8080 --port=8081 --log_dir=/tmp/traintrack_logs
     ```
 
 Once both processes are running, you should be able to access the application in your web browser.
