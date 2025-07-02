@@ -32,5 +32,3 @@ cargo build --color=never --bin feedproxy &&
          --google-service-account-pem-file $GOOGLE_SERVICE_ACCOUNT_PEM_FILE 
          --gcs-archive-bucket $GCS_ARCHIVE_BUCKET 
          --log-dir $LOG_DIR
-
-#      --mta-api-key=b596b03ace2495fe020f1dad0f67ef86 \
