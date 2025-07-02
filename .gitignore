@@ -5,3 +5,21 @@ log/
 target
 build/feedproxy/feedproxy
 webclient/node_modules/
+
+# Secrets
+*.pem
+*.sh
+
+# Local binaries
+kubectl
+install-ssl
+
+# Archives
+*.zip
+*.tar.gz
+
+# Editor backups
+*~
+
+# Other
+src/httptest.rs
