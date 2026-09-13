@@ -159,6 +159,8 @@ pub fn station_detail_handler_guts(
 }
 
 pub fn station_list_handler(tt_context: &context::TTContext, http_context: &dyn HttpServerContext, per_request_context: &mut context::PerRequestContext) -> result::TTResult<Vec<u8>> {
+    per_request_context.response_headers.insert(
+        "Cache-Control".to_string(), "public, max-age=604800".to_string());
     let mut response = station_list_handler_guts(&tt_context.stops)?;
 
     return api_response(&mut response, tt_context, http_context, per_request_context, Some(|pb| get_debug_info(&mut pb.debug_info)));
