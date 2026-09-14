@@ -1,4 +1,4 @@
-!/bin/bash -eu
+#!/bin/bash -eu
 #
 # Copyright 2018 Google LLC
 #
@@ -20,7 +20,7 @@ echo "Docker version $(docker --version)"
 
 set -x
 
-if [ -z $1 ]
+if [ -z "${1:-}" ]
 then
     echo "Please supply a tag for this image"
     echo "Run 'gcloud docker images' to see existing images / tags"
@@ -38,7 +38,7 @@ cp target/release/feedproxy build/feedproxy/feedproxy
 echo "=== Compiling JavaScript/WebClient"
 pushd .
 cd webclient
-TRAINTRACK_VERSION=${tag} webpack --mode=production --config webpack-prod.config.js
+TRAINTRACK_VERSION=${tag} ./node_modules/.bin/webpack --mode=production --config webpack-prod.config.js
 popd
 
 echo "=== Creating frontend image"
