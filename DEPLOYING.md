@@ -179,9 +179,11 @@ Rust panic — read the message, it names the offending flag.
 **Past instance, now fixed:** commit `a7b13bd` replaced `--root-directory` with
 `--log-dir` in `src/feedproxy_main.rs` but left `build/feedproxy/Dockerfile`
 passing `--root-directory /deploy`. That went unnoticed for over a year because
-the feedproxy image was not rebuilt in that window. Any feedproxy image built
-between `a7b13bd` and the fix — including `2026-09-13.0` — panics immediately on
-startup and must not be deployed.
+the feedproxy image was not rebuilt in that window; the running deployment was
+still on `2023-05-02.2`, which predated the change. It surfaced the moment
+`2026-09-13.0` was built. The Dockerfile now passes `--log-dir /deploy`, and the
+broken `traintrack-feedproxy:2026-09-13.0` tag was deleted from GCR so it cannot
+be deployed by accident.
 
 ### Do not ship uncommitted WIP
 
@@ -209,6 +211,34 @@ context. To point at production explicitly:
 ```bash
 gcloud container clusters get-credentials cluster-2 --project mrjones-gke --region us-east1
 ```
+
+### feedproxy is the least protected component
+
+`feedproxy-kube.yaml` runs **1 replica with no liveness or readiness probe**,
+unlike the frontend (2 replicas, liveness probe). Nothing automatically detects
+a wedged feedproxy, and because there is no readiness probe the new pod receives
+traffic the instant the container starts — before it has fetched any feeds. A
+deploy therefore has a brief window of thin data.
+
+After deploying it, confirm it is actually pulling feeds:
+
+```bash
+POD=$(kubectl get pods -l run=traintrack-feedproxy -o jsonpath='{.items[0].metadata.name}')
+kubectl logs $POD --tail=20          # expect "Fetching URL: https://api-endpoint.mta.info/..."
+```
+
+Then confirm the frontend can see that data end to end — a station detail
+response should come back non-empty:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} %{size_download}\n' http://traintrack.nyc/api/station/127
+```
+
+**Known pre-existing error:** the log fills with
+`ERROR status_fetcher_thread: Error fetching line status: HTTP error: 404`.
+The MTA line-status URL has been dead for a long time — this is present on every
+release including `2023-05-02.2`, so it is not a sign of a bad deploy. It does
+mean the per-station service-status messages feature is not currently working.
 
 ### The webclient build breaks on missing dependencies
 
