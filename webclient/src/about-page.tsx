@@ -40,6 +40,7 @@ export class AboutPage extends React.Component<any, any> {
       <li>2019-09-21: Replaced generic "Uptown" and "Downtown" labels with MTA-provided descriptions for each platform.</li>
       <li>2023-04-21: Made recently used stations show up more often.</li>
       <li>2025-01-02: Enabled filtering express lines (e.g. 7X, FX).</li>
+      <li>2026-09-13: The station list is now cached by your browser for a week, speeding up page loads. Thanks to <a href="https://github.com/ipopov">Ivo Popov</a> for this change.</li>
       </ul>
       </div>;
 
