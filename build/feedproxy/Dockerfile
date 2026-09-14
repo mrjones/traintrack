@@ -10,5 +10,5 @@ RUN mkdir -p /deploy/log
 
 ENTRYPOINT [ \
   "/deploy/feedproxy", \
-  "--root-directory", "/deploy" \
+  "--log-dir", "/deploy" \
 ]

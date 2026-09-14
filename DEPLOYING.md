@@ -166,11 +166,22 @@ grep -n '^\s*"--' Dockerfile build/feedproxy/Dockerfile
 grep -n 'opts.optopt' src/main.rs src/feedproxy_main.rs
 ```
 
-**Known outstanding instance:** commit `a7b13bd` replaced `--root-directory`
-with `--log-dir` in `src/feedproxy_main.rs`, but `build/feedproxy/Dockerfile`
-still passes `--root-directory /deploy`. The currently deployed feedproxy image
-(`2023-05-02.2`) predates that change and is fine, but **rebuilding and
-deploying the feedproxy today will crashloop** until that Dockerfile is fixed.
+A quick way to prove an image is startable before deploying it — the container
+should stay up rather than exit:
+
+```bash
+timeout 20 docker run --rm mrjones/traintrack-feedproxy:TAG --mta-api-key=fake
+```
+
+Exit code `124` (killed by `timeout`) means it started fine. Exit `101` is a
+Rust panic — read the message, it names the offending flag.
+
+**Past instance, now fixed:** commit `a7b13bd` replaced `--root-directory` with
+`--log-dir` in `src/feedproxy_main.rs` but left `build/feedproxy/Dockerfile`
+passing `--root-directory /deploy`. That went unnoticed for over a year because
+the feedproxy image was not rebuilt in that window. Any feedproxy image built
+between `a7b13bd` and the fix — including `2026-09-13.0` — panics immediately on
+startup and must not be deployed.
 
 ### Do not ship uncommitted WIP
 
