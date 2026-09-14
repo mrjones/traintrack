@@ -18,7 +18,8 @@ EXPOSE 3837
 ENTRYPOINT [ \
   "/deploy/server", \
   "--port", "3837", \
-  "--root-directory", "/deploy", \
+  "--static-data-dir", "/deploy", \
+  "--log-dir", "/deploy", \
   "--webclient-js-file", "/deploy/webclient.js.gz", \
   "--webclient-js-gzipped" \
 ]

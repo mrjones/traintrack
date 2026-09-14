@@ -24,11 +24,11 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-cargo build --color=never --bin feedproxy && 
-     target/debug/feedproxy 
-         --port $PROXY_PORT 
-         --mta-api-key=$MTA_API_KEY 
-         --use-new-mta-api-endpoint 
-         --google-service-account-pem-file $GOOGLE_SERVICE_ACCOUNT_PEM_FILE 
-         --gcs-archive-bucket $GCS_ARCHIVE_BUCKET 
+cargo build --color=never --bin feedproxy && \
+     target/debug/feedproxy \
+         --port $PROXY_PORT \
+         --mta-api-key=$MTA_API_KEY \
+         --use-new-mta-api-endpoint \
+         --google-service-account-pem-file $GOOGLE_SERVICE_ACCOUNT_PEM_FILE \
+         --gcs-archive-bucket $GCS_ARCHIVE_BUCKET \
          --log-dir $LOG_DIR

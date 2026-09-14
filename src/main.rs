@@ -113,7 +113,8 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.optopt("k", "mta-api-key", "MTA API Key", "KEY");
-    opts.optopt("r", "root-directory", "Root directory where static, and data directories can ve found", "ROOT_DIR");
+    opts.optopt("", "static-data-dir", "Root directory where static, and data directories can be found", "STATIC_DATA_DIR");
+    opts.optopt("", "log-dir", "Directory for log files", "LOG_DIR");
     opts.optopt("g", "gtfs-directory", "Location of stops.txt, trips.txt, etc. files.", "GTFS_DIRECTIORY");
     opts.optopt("p", "port", "Port to serve HTTP data.", "PORT");
     opts.optopt("f", "fetch-period-seconds", "How often to fetch new data", "SECONDS");
@@ -132,9 +133,11 @@ fn main() {
         Ok(m) => { m }
         Err(f) => { panic!("{}", f.to_string()); }
     };
-    let root_directory = matches.opt_str("root-directory").unwrap_or(
+    let static_data_directory = matches.opt_str("static-data-dir").unwrap_or(
         ".".to_string());
-    log4rs::init_config(log4rs_config(format!("{}/log/", root_directory).as_ref())).unwrap();
+    let log_directory = matches.opt_str("log-dir").unwrap_or(
+        ".".to_string());
+    log4rs::init_config(log4rs_config(format!("{}/log/", log_directory).as_ref())).unwrap();
 
 
     if matches.opt_str("k").is_some() {
@@ -142,7 +145,7 @@ fn main() {
     }
 
     let gtfs_directory = matches.opt_str("gtfs-directory").unwrap_or(
-        format!("{}/data/", root_directory));
+        format!("{}/data/", static_data_directory));
     let port = matches.opt_str("p")
         .map_or(3838, |s| s.parse::<u16>().expect("Could not parse --port"));
     let fetch_period_seconds = matches.opt_str("f")
@@ -216,7 +219,7 @@ fn main() {
         matches.opt_str("google-service-account-pem-file"));
     //    server::serve(server_context, port, format!("{}/static/", root_directory).as_ref(), &webclient_js_bundle);
 
-    let static_files_dir = format!("{}/static/", root_directory);
+    let static_files_dir = format!("{}/static/", static_data_directory);
     let tiny_server = server::TinyHttpServer::new(server_context, port, &static_files_dir, &webclient_js_bundle);
     tiny_server.serve();
 }
